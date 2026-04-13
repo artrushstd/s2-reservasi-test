@@ -31,7 +31,6 @@
         .dp-input-wrap { position: relative; }
         .dp-input-wrap .prefix { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-weight: 700; color: #6b7280; font-size: 14px; pointer-events: none; user-select: none; }
         .dp-input-wrap input { padding-left: 36px; }
-        /* Efek visual untuk hari yang sudah lewat (tapi tetap bisa diklik) */
         .past-date { opacity: 0.65; background-color: #f9fafb !important; }
     </style>
 </head>
@@ -147,6 +146,7 @@
                 <div class="flex flex-col sm:flex-row justify-between gap-4 mb-6">
                     <div class="flex gap-3 flex-wrap">
                         <button x-show="!isPastDate(selectedDate)" type="button" @click="openForm()" class="py-2.5 px-6 bg-brand-green text-white font-bold rounded-xl hover:bg-green-700 transition flex items-center justify-center gap-2 shadow-md">+ Reservasi Baru</button>
+                        <button type="button" @click="printDailySchedule()" :disabled="dayReservations.length === 0" class="py-2.5 px-5 font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-sm" :class="dayReservations.length === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' : 'bg-purple-600 text-white hover:bg-purple-700 border border-purple-700'">📋 Cetak Jadwal</button>
                         <button type="button" @click="printDay()" :disabled="dayReservations.length === 0" class="py-2.5 px-5 font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-sm" :class="dayReservations.length === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' : 'bg-gray-800 text-white hover:bg-black border border-gray-700'">🖨️ Print 1 Hari <span x-show="dayReservations.length > 0" class="bg-white/20 text-white text-xs font-black px-1.5 py-0.5 rounded-md" x-text="dayReservations.length + ' tiket'"></span></button>
                     </div>
                     <div class="flex gap-3 w-full sm:max-w-md">
@@ -312,7 +312,7 @@
     <!-- Modals Time & Seat -->
     <div x-show="modals.time" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none;"><div class="absolute inset-0" @click="modals.time = false"></div><div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl relative z-10"><h3 class="text-lg font-bold mb-4">Pilih Jam</h3><div class="grid grid-cols-3 gap-3"><template x-for="time in timeSlots"><button @click="selectTime(time)" class="py-2 border-2 rounded-xl font-bold" :class="formData.time === time ? 'bg-brand-green text-white border-brand-green' : 'border-gray-200'" x-text="time"></button></template></div></div></div>
     
-    <div x-show="modals.seat" class="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none;"><div class="absolute inset-0" @click="modals.seat = false"></div><div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative z-10 max-h-[90vh] overflow-y-auto"><h3 class="text-lg font-bold mb-4">Pilih Kursi</h3><div class="flex flex-wrap gap-1.5 mb-4"><template x-for="zone in seatZones"><button @click="selectedSeatZone = zone.label" class="px-3 h-8 rounded-lg border text-xs font-extrabold" :class="selectedSeatZone === zone.label ? 'bg-gray-800 text-white' : 'bg-white text-gray-600'" x-text="zone.label"></button></template></div><template x-for="zone in seatZones"><div x-show="selectedSeatZone === zone.label"><div class="grid grid-cols-5 gap-2"><template x-for="seat in zone.seats"><button @click="toggleSeat(seat)" class="p-2 border-2 rounded-lg font-bold text-xs" :class="{'bg-brand-green text-white border-brand-green': formData.seats.includes(seat), 'bg-gray-100 text-gray-400 cursor-not-allowed': isSeatBooked(seat) && !formData.seats.includes(seat), 'border-gray-200 bg-white': !isSeatBooked(seat) && !formData.seats.includes(seat)}" x-text="seat"></button></template></div></div></template><button @click="modals.seat = false" class="w-full mt-5 py-3 bg-gray-800 text-white font-bold rounded-xl">Selesai Pilih</button></div></div>
+    <div x-show="modals.seat" class="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none;"><div class="absolute inset-0" @click="modals.seat = false"></div><div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative z-10 max-h-[90vh] overflow-y-auto"><h3 class="text-lg font-bold mb-4">Pilih Kursi / Meja</h3><div class="flex flex-wrap gap-1.5 mb-4"><template x-for="zone in seatZones"><button @click="selectedSeatZone = zone.label" class="px-3 h-8 rounded-lg border text-xs font-extrabold" :class="selectedSeatZone === zone.label ? 'bg-gray-800 text-white' : 'bg-white text-gray-600'" x-text="zone.label"></button></template></div><template x-for="zone in seatZones"><div x-show="selectedSeatZone === zone.label"><div class="grid grid-cols-5 gap-2"><template x-for="seat in zone.seats"><button @click="toggleSeat(seat)" class="p-2 border-2 rounded-lg font-bold text-xs" :class="{'bg-brand-green text-white border-brand-green': formData.seats.includes(seat), 'bg-gray-100 text-gray-400 cursor-not-allowed': isSeatBooked(seat) && !formData.seats.includes(seat), 'border-gray-200 bg-white': !isSeatBooked(seat) && !formData.seats.includes(seat)}" x-text="seat"></button></template></div></div></template><button @click="modals.seat = false" class="w-full mt-5 py-3 bg-gray-800 text-white font-bold rounded-xl">Selesai Pilih</button></div></div>
 
     <!-- Modal Log Aktivitas -->
     <div x-show="modals.log" class="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm" style="display:none;" x-transition.opacity>
@@ -374,7 +374,27 @@
                 monthNames:['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
                 dayNames:['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'],
                 timeSlots: Array.from({length: 14}, (_, i) => String(i + 7).padStart(2, '0') + ':00'),
-                seatZones:[{ label: 'A', seats: Array.from({length:11}, (_,i)=>'A'+(i+1)) }, { label: 'B', seats: Array.from({length:15}, (_,i)=>'B'+(i+1)) }, { label: 'C', seats: Array.from({length:9}, (_,i)=>'C'+(i+1)) }, { label: 'D', seats: Array.from({length:17}, (_,i)=>'D'+(i+1)) }, { label: 'E', seats: Array.from({length:11}, (_,i)=>'E'+(i+1)) }, { label: 'F', seats: Array.from({length:7}, (_,i)=>'F'+(i+1)) }, { label: 'H', seats: Array.from({length:10}, (_,i)=>'H'+(i+1)) }, { label: 'J', seats: Array.from({length:21}, (_,i)=>'J'+(i+1)) }, { label: 'K', seats: Array.from({length:7}, (_,i)=>'K'+(i+1)) }, { label: 'L', seats: Array.from({length:8}, (_,i)=>'L'+(i+1)) }, { label: 'M', seats: Array.from({length:17}, (_,i)=>'M'+(i+1)) }, { label: 'N', seats: Array.from({length:9}, (_,i)=>'N'+(i+1)) }, { label: 'R', seats: Array.from({length:24}, (_,i)=>'R'+(i+1)) }, { label: 'RM', seats: Array.from({length:10}, (_,i)=>'RM'+(i+1)) }, { label: 'Cafe', seats: Array.from({length:10}, (_,i)=>'Cafe'+(i+1))}],
+                
+                // DATA SEAT ZONES (TERMASUK TAB "BUNGKUS")
+                seatZones:[
+                    { label: 'A', seats: Array.from({length:11}, (_,i)=>'A'+(i+1)) }, 
+                    { label: 'B', seats: Array.from({length:15}, (_,i)=>'B'+(i+1)) }, 
+                    { label: 'C', seats: Array.from({length:9}, (_,i)=>'C'+(i+1)) }, 
+                    { label: 'D', seats: Array.from({length:17}, (_,i)=>'D'+(i+1)) }, 
+                    { label: 'E', seats: Array.from({length:11}, (_,i)=>'E'+(i+1)) }, 
+                    { label: 'F', seats: Array.from({length:7}, (_,i)=>'F'+(i+1)) }, 
+                    { label: 'H', seats: Array.from({length:10}, (_,i)=>'H'+(i+1)) }, 
+                    { label: 'J', seats: Array.from({length:21}, (_,i)=>'J'+(i+1)) }, 
+                    { label: 'K', seats: Array.from({length:7}, (_,i)=>'K'+(i+1)) }, 
+                    { label: 'L', seats: Array.from({length:8}, (_,i)=>'L'+(i+1)) }, 
+                    { label: 'M', seats: Array.from({length:17}, (_,i)=>'M'+(i+1)) }, 
+                    { label: 'N', seats: Array.from({length:9}, (_,i)=>'N'+(i+1)) }, 
+                    { label: 'R', seats: Array.from({length:24}, (_,i)=>'R'+(i+1)) }, 
+                    { label: 'RM', seats: Array.from({length:10}, (_,i)=>'RM'+(i+1)) }, 
+                    { label: 'Cafe', seats: Array.from({length:10}, (_,i)=>'Cafe'+(i+1))},
+                    { label: 'Bungkus', seats: ['BUNGKUS']} // <-- TAMBAHAN ZONA BUNGKUS
+                ],
+                
                 selectedSeatZone: 'A', currentDate: new Date(), currentMonth: new Date().getMonth(), currentYear: new Date().getFullYear(), selectedDate: null,
                 reservations:[], dayReservations:[], searchQuery: '', sortColumn: 'createdAt', sortDirection: 'desc',
                 modals: { list: false, form: false, time: false, seat: false, log: false },
@@ -435,7 +455,10 @@
                             createdBy: r.created_by || r.createdBy || null, updatedBy: r.updated_by || r.updatedBy || null
                         }));
                         if (this.selectedDate) this.dayReservations = this.getReservations(this.selectedDate);
-                    } catch (error) { this.showToast("Gagal mengambil data!", "error"); } finally { this.isLoading = false; }
+                    } catch (error) { 
+                        console.error("Supabase Select Error:", error); 
+                        this.showToast("Gagal mengambil data!", "error"); 
+                    } finally { this.isLoading = false; }
                 },
 
                 get daysInMonth() { return new Date(this.currentYear, this.currentMonth + 1, 0).getDate(); },
@@ -483,8 +506,40 @@
                 checkNameAndOpenTimePicker() { if (!this.formData.name.trim()) { this.nameError = 'Wajib diisi sebelum memilih jam!'; return; } this.modals.time = true; },
                 selectTime(time) { if (this.formData.time !== time) { this.formData.time = time; this.formData.seats =[]; } this.modals.time = false; setTimeout(() => { this.modals.seat = true; }, 150); },
                 openSeatPicker() { if (!this.formData.time) return; this.modals.seat = true; },
-                toggleSeat(seat) { if (this.isSeatBooked(seat) && !this.formData.seats.includes(seat)) return; if (this.formData.seats.includes(seat)) { this.formData.seats = this.formData.seats.filter(s => s !== seat); } else { this.formData.seats =[...this.formData.seats, seat]; } },
-                isSeatBooked(seat) { const dateStr = this.getFormattedDate(this.selectedDate); const selectedHour = parseInt((this.formData.time||'0').split(':')[0]); return this.reservations.some(r => { if (r.date !== dateStr || r.id === this.formData.id) return false; const resHour = parseInt((r.time||'0').split(':')[0]); const overlap = Math.max(selectedHour, resHour) < Math.min(selectedHour + 3, resHour + 3); if (overlap) return this.getSeats(r).includes(seat); return false; }); },
+                toggleSeat(seat) { 
+                    // Logika khusus jika kursi yang dipilih adalah BUNGKUS atau tidak
+                    if (seat === 'BUNGKUS') {
+                        // Jika pilih bungkus, kosongkan kursi lain yang sempat terpilih
+                        this.formData.seats = ['BUNGKUS'];
+                        return;
+                    } else {
+                        // Jika pilih kursi biasa tapi sebelumnya bungkus, hapus bungkusan nya
+                        if (this.formData.seats.includes('BUNGKUS')) {
+                            this.formData.seats = [];
+                        }
+                    }
+
+                    if (this.isSeatBooked(seat) && !this.formData.seats.includes(seat)) return; 
+                    
+                    if (this.formData.seats.includes(seat)) { 
+                        this.formData.seats = this.formData.seats.filter(s => s !== seat); 
+                    } else { 
+                        this.formData.seats =[...this.formData.seats, seat]; 
+                    } 
+                },
+                isSeatBooked(seat) { 
+                    if (seat === 'BUNGKUS') return false; // BUNGKUS bebas dibooking berkali-kali
+                    
+                    const dateStr = this.getFormattedDate(this.selectedDate); 
+                    const selectedHour = parseInt((this.formData.time||'0').split(':')[0]); 
+                    return this.reservations.some(r => { 
+                        if (r.date !== dateStr || r.id === this.formData.id) return false; 
+                        const resHour = parseInt((r.time||'0').split(':')[0]); 
+                        const overlap = Math.max(selectedHour, resHour) < Math.min(selectedHour + 3, resHour + 3); 
+                        if (overlap) return this.getSeats(r).includes(seat); 
+                        return false; 
+                    }); 
+                },
 
                 async saveReservation() {
                     let hasError = false;
@@ -534,7 +589,10 @@
                             await this.writeLog('INSERT', payload.id, payload.name, dateStr, `Jam: ${payload.time}`);
                         }
                         this.showToast("Data tersimpan!"); await this.initApp(); this.modals.form = false;
-                    } catch (error) { this.showToast("Gagal menyimpan!", "error"); } finally { this.isLoading = false; }
+                    } catch (error) { 
+                        console.error("Supabase Insert Error:", error); 
+                        this.showToast("Gagal menyimpan!", "error"); 
+                    } finally { this.isLoading = false; }
                 },
 
                 async deleteRes(id) { 
@@ -553,6 +611,81 @@
                 },
                 async openLog() { this.logLoading = true; this.activityLogs =[]; this.modals.log = true; await this.loadLogs(); },
                 async loadLogs() { try { const { data } = await supabaseClient.from('activity_logs').select('*').order('ts', { ascending: false }).limit(200); this.activityLogs = data ||[]; } catch(e){} finally { this.logLoading = false; } },
+
+                // ════════════ CETAK JADWAL HARIAN ════════════
+                printDailySchedule() {
+                    // Sorting berdasarkan waktu/jam ascending
+                    const list = [...this.dayReservations].sort((a,b) => (a.time||'').localeCompare(b.time||''));
+                    if (list.length === 0) return;
+
+                    let tableRows = '';
+                    list.forEach((res, index) => {
+                        const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : '-';
+                        const pax = res.pax ? res.pax + ' Org' : '-';
+                        
+                        tableRows += `
+                            <tr>
+                                <td style="text-align:center;">${index + 1}</td>
+                                <td style="text-align:center; font-weight:bold;">${res.time}</td>
+                                <td style="text-transform: uppercase;">${res.name}</td>
+                                <td style="text-align:center;">${pax}</td>
+                                <td style="text-align:center; font-weight:bold;">${seats}</td>
+                            </tr>
+                        `;
+                    });
+
+                    const html = `<!DOCTYPE html>
+                    <html lang="id">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>Jadwal Reservasi Harian - ${this.selectedDateString}</title>
+                        <style>
+                            @page { size: A4 portrait; margin: 15mm; }
+                            body { font-family: 'Segoe UI', Arial, sans-serif; color: #000; }
+                            .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+                            .header h1 { font-size: 18pt; margin: 0; text-transform: uppercase; }
+                            .header p { font-size: 12pt; margin: 5px 0 0 0; font-weight: bold; }
+                            table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11pt; }
+                            th, td { border: 1px solid #000; padding: 8px; }
+                            th { background-color: #f0f0f0; text-transform: uppercase; }
+                            .footer { margin-top: 20px; font-size: 9pt; text-align: right; font-style: italic; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="header">
+                            <h1>Jadwal Reservasi Harian</h1>
+                            <p>Pemancingan Suharno 2</p>
+                            <p style="font-size: 11pt; margin-top: 8px;">Tanggal Kedatangan: ${this.selectedDateString}</p>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%;">No</th>
+                                    <th style="width: 15%;">Jam</th>
+                                    <th style="width: 40%;">Nama Pemesan</th>
+                                    <th style="width: 15%;">Pax</th>
+                                    <th style="width: 25%;">Meja / Kursi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tableRows}
+                            </tbody>
+                        </table>
+                        <div class="footer">
+                            Dicetak oleh: ${this.currentUser.name} pada ${this.formatDateTime(new Date().getTime())}
+                        </div>
+                        <script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
+                    </body>
+                    </html>`;
+
+                    const popup = window.open('', '_blank', 'width=800,height=900,scrollbars=yes');
+                    if (popup) { 
+                        popup.document.write(html); 
+                        popup.document.close(); 
+                    } else { 
+                        this.showToast('Izinkan popup browser Anda!', 'error'); 
+                    }
+                },
 
                 // ════════════ CETAK 1 RESERVASI (A4 Portrait - 2 Kolom Mengalir Kiri ke Kanan) ════════════
                 printTicket(res) {
