@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Reservasi - Pemancingan Suharno 2</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { green: '#297c3f', yellow: '#f4e918', red: '#e90023' } },
+                    fontFamily: { sans:['"Plus Jakarta Sans"', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        #print-area { display: none !important; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .login-card { animation: loginSlideUp 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+        @keyframes loginSlideUp { from { opacity:0; transform:translateY(28px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+        @keyframes floatFish { 0%,100%{ transform:translateY(0) rotate(-5deg); } 50%{ transform:translateY(-18px) rotate(5deg); } }
+        #login-page { min-height: 100vh; background: linear-gradient(135deg, #1a4f28 0%, #297c3f 50%, #1e6b36 100%); display: flex; align-items: center; justify-content: center; }
+        .dp-input-wrap { position: relative; }
+        .dp-input-wrap .prefix { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-weight: 700; color: #6b7280; font-size: 14px; pointer-events: none; user-select: none; }
+        .dp-input-wrap input { padding-left: 36px; }
+        /* Efek visual untuk hari yang sudah lewat (tapi tetap bisa diklik) */
+        .past-date { opacity: 0.65; background-color: #f9fafb !important; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased" x-data="reservationApp()" x-init="checkSession(); if(isLoggedIn) initApp();" @keydown.escape.window="handleEscape($event)">
+
+    <!-- ══════════════ HALAMAN LOGIN ══════════════ -->
+    <div id="login-page" x-show="!isLoggedIn" style="display:none;" class="flex items-center justify-center relative">
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute text-white opacity-[0.04] text-8xl" style="top:8%;left:4%;animation:floatFish 12s ease-in-out infinite;">🐟</div>
+            <div class="absolute text-white opacity-[0.04] text-9xl" style="top:60%;left:78%;animation:floatFish 12s ease-in-out infinite;animation-delay:-4s;">🎣</div>
+            <div class="absolute text-white opacity-[0.04] text-6xl" style="top:78%;left:18%;animation:floatFish 12s ease-in-out infinite;animation-delay:-8s;">🐠</div>
+        </div>
+        <div class="w-full max-w-sm mx-4 login-card">
+            <div class="bg-white rounded-3xl shadow-2xl overflow-hidden">
+                <div class="px-8 pt-10 pb-8 text-center" style="background: linear-gradient(135deg, #297c3f, #1e6b36);">
+                    <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/30" style="background:rgba(255,255,255,0.2);">
+                        <span class="text-white font-black text-2xl">S2</span>
+                    </div>
+                    <h1 class="text-white font-black text-xl tracking-tight">Pemancingan Suharno 2</h1>
+                    <p class="text-sm mt-1 font-medium" style="color:#bbf7d0;">Sistem Manajemen Reservasi</p>
+                </div>
+                <div class="px-8 py-8">
+                    <p class="text-gray-500 text-sm text-center mb-6 font-medium">Masukkan kode akses Anda</p>
+                    <div>
+                        <div class="relative">
+                            <input :type="loginForm.showPass ? 'text' : 'password'" x-model="loginForm.password" @keydown.enter="doLogin()" @input="loginForm.error = ''" class="w-full border-2 p-3 pr-12 rounded-xl outline-none transition font-mono tracking-widest text-base text-center" :class="loginForm.error ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50 focus:bg-white focus:border-brand-green'" placeholder="Password...">
+                            <button type="button" @click="loginForm.showPass = !loginForm.showPass" class="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 transition">
+                                <svg x-show="!loginForm.showPass" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                <svg x-show="loginForm.showPass" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+                            </button>
+                        </div>
+                        <div x-show="loginForm.error" x-transition.opacity class="mt-2 flex items-center justify-center gap-1.5 text-red-600 text-sm font-bold"><span x-text="loginForm.error"></span></div>
+                    </div>
+                    <button type="button" @click="doLogin()" class="w-full mt-6 py-3.5 bg-brand-green text-white font-extrabold rounded-xl hover:bg-green-700 active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2 text-base">Masuk ke Sistem</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════ KONTEN UTAMA ══════════════ -->
+    <div x-show="isLoggedIn" style="display:none;">
+    
+    <!-- Loading Overlay -->
+    <div x-show="isLoading" class="fixed inset-0 z-[100] flex items-center justify-center bg-white/80 backdrop-blur-sm transition-opacity" style="display: none;">
+        <div class="flex flex-col items-center">
+            <svg class="animate-spin h-10 w-10 text-brand-green mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <p class="text-gray-600 font-semibold animate-pulse">Memproses Data...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="fixed top-5 right-5 z-[110] flex flex-col gap-3 pointer-events-none">
+        <template x-for="toast in toasts" :key="toast.id">
+            <div x-show="toast.show" x-transition.duration.300ms class="px-6 py-4 rounded-xl shadow-xl flex items-center gap-3 text-white pointer-events-auto min-w-[300px]" :class="toast.type === 'error' ? 'bg-red-500' : 'bg-brand-green'">
+                <span class="font-bold text-sm" x-text="toast.message"></span>
+            </div>
+        </template>
+    </div>
+
+    <header class="bg-brand-green text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-white text-brand-green rounded font-extrabold flex items-center justify-center">S2</div>
+                <h1 class="text-xl font-bold tracking-tight">Reservasi <span class="hidden sm:inline" x-text="' - Halo, ' + currentUser.name"></span></h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold border" :class="currentUser.role === 'owner' ? 'bg-amber-400/20 border-amber-400/30 text-amber-200' : 'bg-white/10 border-white/20 text-green-100'">
+                        <span x-text="currentUser.name"></span> <span class="opacity-70 uppercase text-[10px]" x-text="'(' + currentUser.role + ')'"></span>
+                    </div>
+                    <button type="button" x-show="currentUser.role === 'owner'" @click="openLog()" class="p-2 hover:bg-green-700 rounded-lg transition text-sm flex items-center gap-2 bg-white/10 border border-white/20" title="Log Aktivitas">Log Aktivitas</button>
+                    <button type="button" @click="initApp()" class="p-2 hover:bg-green-700 rounded-lg transition text-sm flex items-center gap-2">Refresh</button>
+                    <button type="button" @click="doLogout()" class="p-2 hover:bg-red-700 bg-red-500/20 border border-red-400/30 rounded-lg transition text-sm flex items-center gap-2">Keluar</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                <button type="button" @click="changeMonth(-1)" class="p-2 bg-gray-50 hover:bg-gray-100 border rounded-xl text-gray-600 transition flex items-center justify-center w-full sm:w-auto">←</button>
+                <h2 class="text-2xl font-bold text-gray-800" x-text="currentMonthName + ' ' + currentYear"></h2>
+                <button type="button" @click="changeMonth(1)" class="p-2 bg-gray-50 hover:bg-gray-100 border rounded-xl text-gray-600 transition flex items-center justify-center w-full sm:w-auto">→</button>
+            </div>
+            <div class="grid grid-cols-7 gap-2 text-center font-bold text-gray-400 text-sm mb-2 uppercase tracking-wider">
+                <div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div>
+            </div>
+            <div class="grid grid-cols-7 gap-2 sm:gap-3">
+                <template x-for="blank in blankDays"><div class="h-24 bg-gray-50/50 rounded-xl border border-dashed border-gray-200"></div></template>
+                <template x-for="day in daysInMonth">
+                    <div @click="openDay(day)" class="h-24 border rounded-xl p-2 cursor-pointer transition relative flex flex-col items-center group" :class="[isToday(day) ? 'border-brand-green bg-green-50 shadow-sm' : 'border-gray-200 bg-white hover:border-brand-green hover:shadow-md', isPastDate(day) ? 'past-date' : '']">
+                        <span class="text-sm font-semibold self-start" :class="isToday(day) ? 'text-brand-green font-extrabold bg-green-100 px-2 py-0.5 rounded-md' : 'text-gray-700'" x-text="day"></span>
+                        <div class="mt-auto mb-1 w-full flex justify-center">
+                            <template x-if="getReservations(day).length > 0"><div class="text-[11px] sm:text-xs bg-brand-green text-white px-1 sm:px-2.5 py-1 rounded-lg font-bold shadow-sm w-full text-center group-hover:bg-green-700 transition" x-text="getReservations(day).length + ' Reservasi'"></div></template>
+                            <template x-if="getReservations(day).length === 0"><div class="text-[11px] sm:text-xs text-gray-400 font-medium px-1 py-1 w-full text-center border border-gray-100 rounded-lg">0 Reservasi</div></template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal 1: List Reservasi Harian -->
+    <div x-show="modals.list" class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none;" x-transition.opacity>
+        <div class="absolute inset-0" @click="modals.list = false"></div>
+        <div class="bg-white rounded-2xl w-full max-w-[95vw] max-h-[90vh] flex flex-col shadow-2xl relative z-10 mx-4" x-transition.scale.origin.bottom>
+            <div class="p-5 border-b flex items-center gap-4 bg-gray-50 rounded-t-2xl">
+                <button type="button" @click="modals.list = false" class="p-2 bg-white border shadow-sm hover:bg-gray-100 text-gray-600 rounded-full transition">✕</button>
+                <h3 class="text-xl font-bold flex-1 text-gray-800">Data Reservasi: <span class="text-brand-green" x-text="selectedDateString"></span></h3>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 bg-white">
+                <div class="flex flex-col sm:flex-row justify-between gap-4 mb-6">
+                    <div class="flex gap-3 flex-wrap">
+                        <button x-show="!isPastDate(selectedDate)" type="button" @click="openForm()" class="py-2.5 px-6 bg-brand-green text-white font-bold rounded-xl hover:bg-green-700 transition flex items-center justify-center gap-2 shadow-md">+ Reservasi Baru</button>
+                        <button type="button" @click="printDay()" :disabled="dayReservations.length === 0" class="py-2.5 px-5 font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-sm" :class="dayReservations.length === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' : 'bg-gray-800 text-white hover:bg-black border border-gray-700'">🖨️ Print 1 Hari <span x-show="dayReservations.length > 0" class="bg-white/20 text-white text-xs font-black px-1.5 py-0.5 rounded-md" x-text="dayReservations.length + ' tiket'"></span></button>
+                    </div>
+                    <div class="flex gap-3 w-full sm:max-w-md">
+                        <div class="relative flex-1">
+                            <input type="text" x-model="searchQuery" placeholder="Cari nama, tiket, kursi, metode..." class="w-full border border-gray-300 p-2.5 px-4 rounded-xl focus:ring-brand-green focus:border-brand-green outline-none transition bg-gray-50 focus:bg-white">
+                        </div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm bg-white">
+                    <table class="w-full text-left text-sm whitespace-nowrap min-w-max">
+                        <thead class="bg-gray-100 text-gray-600 font-bold border-b border-gray-200">
+                            <tr>
+                                <th class="p-4 text-center w-12">No.</th>
+                                <th class="p-4 cursor-pointer hover:bg-gray-200 transition" @click="sortBy('id')">Detail Reservasi</th>
+                                <th class="p-4 cursor-pointer hover:bg-gray-200 transition" @click="sortBy('name')">Pemesan</th>
+                                <th class="p-4 cursor-pointer hover:bg-gray-200 transition" @click="sortBy('time')">Waktu & Kursi</th>
+                                <th class="p-4 cursor-pointer hover:bg-gray-200 transition" @click="sortBy('paymentStatus')">Pembayaran</th>
+                                <th class="p-4">Informasi Tambahan</th>
+                                <th class="p-4 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <template x-if="filteredAndSortedReservations.length === 0">
+                                <tr><td colspan="7" class="p-12 text-center text-gray-500 font-medium">Belum ada data reservasi atau pencarian tidak ditemukan.</td></tr>
+                            </template>
+                            <template x-for="(res, index) in filteredAndSortedReservations" :key="res.id">
+                                <tr class="hover:bg-green-50/50 transition">
+                                    <td class="p-4 font-bold text-gray-400 text-center" x-text="index + 1"></td>
+                                    <td class="p-4">
+                                        <div class="font-extrabold text-gray-700 font-mono tracking-tight text-xs bg-gray-100 px-2 py-1 rounded inline-block" x-text="res.id"></div>
+                                        <div class="text-[10px] text-gray-500 mt-2 font-medium">Dibuat: <span class="font-bold" x-text="res.createdBy || '-'"></span></div>
+                                        <div class="text-[10px] text-gray-500 mt-0.5 font-medium">Diubah: <span class="font-bold" x-text="res.updatedBy || '-'"></span></div>
+                                    </td>
+                                    <td class="p-4">
+                                        <div class="font-bold text-gray-900 text-base" x-text="res.name"></div>
+                                        <div class="text-gray-500 text-xs mt-0.5" x-text="res.phone ? '📞 ' + res.phone : ''"></div>
+                                        <div class="text-gray-600 font-semibold text-xs mt-1" x-text="res.pax ? '👥 ' + res.pax + ' pax' : ''"></div>
+                                    </td>
+                                    <td class="p-4">
+                                        <div class="flex flex-col gap-1.5 items-start">
+                                            <div class="text-brand-green font-extrabold bg-green-100 border border-green-200 px-2 py-1 rounded shadow-sm text-xs" x-text="res.time + ' WIB'"></div>
+                                            <div class="text-blue-700 font-bold bg-blue-50 border border-blue-200 px-2 py-1 rounded text-xs" x-text="getSeats(res).length > 0 ? getSeats(res).join(', ') : 'Belum pilih kursi'"></div>
+                                        </div>
+                                    </td>
+                                    <td class="p-4">
+                                        <div class="flex flex-col gap-1 items-start">
+                                            <span class="px-2 py-0.5 rounded text-xs font-bold border shadow-sm" :class="res.paymentStatus === 'Lunas' ? 'bg-green-100 text-green-800 border-green-300' : 'bg-orange-100 text-orange-800 border-orange-300'" x-text="res.paymentStatus || 'DP'"></span>
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-600 border border-gray-200 uppercase" x-text="res.paymentMethod || 'Cash'"></span>
+                                            <template x-if="res.paymentStatus === 'DP' && res.dpAmount && res.dpAmount > 0">
+                                                <div class="font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded text-[10px] shadow-sm mt-0.5" x-text="formatRupiah(res.dpAmount)"></div>
+                                            </template>
+                                        </div>
+                                    </td>
+                                    <td class="p-4">
+                                        <div class="text-[10px] text-gray-400 mb-1">Tgl Input: <span x-text="formatDateTime(res.createdAt)"></span></div>
+                                        <div class="text-orange-600 text-xs mt-0.5 font-bold truncate max-w-[200px]" x-text="res.notes || ''" :title="res.notes"></div>
+                                        <div class="text-gray-500 text-[10px] mt-0.5 truncate max-w-[200px]" x-text="res.details || ''" :title="res.details"></div>
+                                    </td>
+                                    <td class="p-4 text-center space-x-1">
+                                        <button type="button" @click="printTicket(res)" class="p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition shadow-sm" title="Print Tiket">🖨️</button>
+                                        <button x-show="!isPastDate(selectedDate)" type="button" @click="openForm(res)" class="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition shadow-sm" title="Edit">✏️</button>
+                                        <button type="button" @click="deleteRes(res.id)" class="p-2 bg-brand-red text-white rounded-lg hover:bg-red-700 transition shadow-sm" title="Hapus">🗑️</button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FORM MODAL (ESC DISABLED) -->
+    <div x-show="modals.form" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
+        <div class="absolute inset-0"></div> <!-- Klik di luar tidak menutup -->
+        <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative z-10 max-h-[95vh] overflow-y-auto mx-4" x-transition.scale.origin.center>
+            <div class="flex items-center gap-3 mb-6 border-b pb-4 border-gray-100">
+                <button type="button" @click="closeFormSafe()" class="p-2 bg-gray-50 border hover:bg-gray-100 text-gray-600 rounded-full transition">✕</button>
+                <h3 class="text-xl font-extrabold flex-1 text-gray-800" x-text="formData.id ? 'Edit Data Reservasi' : 'Form Reservasi Baru'"></h3>
+            </div>
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5">Nama Pemesan <span class="text-red-500">*</span></label>
+                    <input type="text" id="inputName" x-model="formData.name" @input="nameError = ''" class="w-full border p-3 rounded-xl outline-none transition bg-gray-50 focus:bg-white" :class="nameError ? 'border-red-400 focus:ring-red-500 text-red-700' : 'border-gray-200 focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green'" placeholder="Masukkan nama lengkap">
+                    <div x-show="nameError" x-transition.opacity><p class="text-sm text-red-600 font-bold mt-1.5" x-text="nameError"></p></div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1.5">Nomor HP <span class="text-gray-400 font-normal text-xs">(opsional)</span></label>
+                        <input type="text" inputmode="numeric" x-model="formData.phone" @input="onPhoneInput($event)" class="w-full border border-gray-200 p-3 rounded-xl outline-none transition bg-gray-50 focus:bg-white focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green" placeholder="08xxxxxxxxxx">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1.5">Jumlah Pax <span class="text-red-500">*</span></label>
+                        <input type="number" min="1" x-model="formData.pax" @input="paxError = ''" class="w-full border p-3 rounded-xl outline-none transition bg-gray-50 focus:bg-white" :class="paxError ? 'border-red-400 focus:ring-red-500 text-red-700' : 'border-gray-200 focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green'" placeholder="Misal: 4">
+                        <div x-show="paxError" x-transition.opacity><p class="text-[11px] text-red-600 font-bold mt-1" x-text="paxError"></p></div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1.5">Pilih Jam <span class="text-red-500">*</span></label>
+                        <div @click="checkNameAndOpenTimePicker()" class="w-full border-2 p-3 rounded-xl text-center font-extrabold transition select-none" :class="(!formData.name || formData.name.trim() === '') ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed opacity-70' : 'border-brand-green bg-green-50 text-brand-green hover:bg-green-100 shadow-sm cursor-pointer'">
+                            <span x-text="formData.time ? formData.time + ' WIB' : 'Pilih Jam'"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1.5">Tempat Duduk <span class="text-gray-400 font-normal text-xs">(opsional)</span></label>
+                        <div @click="openSeatPicker()" class="w-full border-2 p-3 rounded-xl text-center font-extrabold transition overflow-hidden text-ellipsis whitespace-nowrap select-none" :class="!formData.time ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed opacity-70' : 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100 shadow-sm cursor-pointer'">
+                            <span x-text="formData.seats.length > 0 ? formData.seats.join(', ') : 'Pilih Kursi'"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <label class="block text-sm font-bold text-gray-800 mb-3">Status Pembayaran</label>
+                    <div class="flex gap-3 mb-4">
+                        <label class="flex items-center gap-2 cursor-pointer border-2 p-2.5 rounded-lg flex-1 transition bg-white" :class="formData.paymentStatus === 'DP' ? 'border-orange-400 ring-2 ring-orange-400/20' : 'border-gray-200 hover:border-orange-300'">
+                            <input type="radio" x-model="formData.paymentStatus" value="DP" class="hidden">
+                            <span class="font-bold text-sm text-gray-700">DP (Uang Muka)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer border-2 p-2.5 rounded-lg flex-1 transition bg-white" :class="formData.paymentStatus === 'Lunas' ? 'border-green-500 ring-2 ring-green-500/20' : 'border-gray-200 hover:border-green-300'">
+                            <input type="radio" x-model="formData.paymentStatus" value="Lunas" class="hidden">
+                            <span class="font-bold text-sm text-gray-700">Lunas</span>
+                        </label>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-gray-500 mb-2">Pilih Metode Pembayaran</label>
+                        <div class="flex gap-2">
+                            <template x-for="method in ['Transfer', 'Qris', 'EDC', 'Cash']">
+                                <label class="flex-1 flex items-center justify-center gap-1 cursor-pointer border-2 py-2 px-1 rounded-lg transition bg-white" :class="formData.paymentMethod === method ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm' : 'border-gray-200 text-gray-500 hover:border-gray-300'">
+                                    <input type="radio" x-model="formData.paymentMethod" :value="method" class="hidden">
+                                    <span class="font-bold text-xs uppercase tracking-wide" x-text="method"></span>
+                                </label>
+                            </template>
+                        </div>
+                    </div>
+                    <div x-show="formData.paymentStatus === 'DP'" x-transition.duration.200ms>
+                        <label class="block text-xs font-bold text-gray-700 mb-2">Jumlah Uang DP</label>
+                        <div class="dp-input-wrap">
+                            <span class="prefix">Rp</span>
+                            <input type="text" inputmode="numeric" x-model="formData.dpAmountDisplay" @input="onDpInput($event)" @focus="onDpFocus($event)" @blur="onDpBlur($event)" class="w-full border-2 p-3 rounded-xl outline-none transition bg-white font-bold text-gray-800 text-right border-orange-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-400/20" placeholder="0">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5">Catatan Tambahan <span class="text-gray-400 font-normal text-xs">(maks 30 karakter, opsional)</span></label>
+                    <input type="text" maxlength="30" x-model="formData.notes" class="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green outline-none transition bg-gray-50 focus:bg-white" placeholder="Contoh: Sound + MIC, makan keluar jam...">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5">Detail Pesanan Menu</label>
+                    <textarea x-model="formData.details" rows="3" class="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green outline-none transition bg-gray-50 focus:bg-white" placeholder="Contoh: 2 Gurami Bakar, 1 Es Teh, Tambah Sambal..."></textarea>
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-end gap-3 border-t border-gray-100 pt-5">
+                <button type="button" @click="closeFormSafe()" class="px-5 py-2.5 border border-gray-300 rounded-xl text-gray-600 hover:bg-gray-100 font-bold transition">Batal</button>
+                <button type="button" @click="saveReservation()" class="px-6 py-2.5 bg-brand-green text-white rounded-xl hover:bg-green-700 font-bold shadow-lg transition">Simpan Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals Time & Seat -->
+    <div x-show="modals.time" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none;"><div class="absolute inset-0" @click="modals.time = false"></div><div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl relative z-10"><h3 class="text-lg font-bold mb-4">Pilih Jam</h3><div class="grid grid-cols-3 gap-3"><template x-for="time in timeSlots"><button @click="selectTime(time)" class="py-2 border-2 rounded-xl font-bold" :class="formData.time === time ? 'bg-brand-green text-white border-brand-green' : 'border-gray-200'" x-text="time"></button></template></div></div></div>
+    
+    <div x-show="modals.seat" class="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none;"><div class="absolute inset-0" @click="modals.seat = false"></div><div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative z-10 max-h-[90vh] overflow-y-auto"><h3 class="text-lg font-bold mb-4">Pilih Kursi</h3><div class="flex flex-wrap gap-1.5 mb-4"><template x-for="zone in seatZones"><button @click="selectedSeatZone = zone.label" class="px-3 h-8 rounded-lg border text-xs font-extrabold" :class="selectedSeatZone === zone.label ? 'bg-gray-800 text-white' : 'bg-white text-gray-600'" x-text="zone.label"></button></template></div><template x-for="zone in seatZones"><div x-show="selectedSeatZone === zone.label"><div class="grid grid-cols-5 gap-2"><template x-for="seat in zone.seats"><button @click="toggleSeat(seat)" class="p-2 border-2 rounded-lg font-bold text-xs" :class="{'bg-brand-green text-white border-brand-green': formData.seats.includes(seat), 'bg-gray-100 text-gray-400 cursor-not-allowed': isSeatBooked(seat) && !formData.seats.includes(seat), 'border-gray-200 bg-white': !isSeatBooked(seat) && !formData.seats.includes(seat)}" x-text="seat"></button></template></div></div></template><button @click="modals.seat = false" class="w-full mt-5 py-3 bg-gray-800 text-white font-bold rounded-xl">Selesai Pilih</button></div></div>
+
+    <!-- Modal Log Aktivitas -->
+    <div x-show="modals.log" class="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm" style="display:none;" x-transition.opacity>
+        <div class="absolute inset-0" @click="modals.log = false"></div>
+        <div class="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl relative z-10 mx-4" x-transition.scale.origin.center>
+            <div class="p-5 border-b flex items-center gap-4 bg-gray-50 rounded-t-2xl">
+                <button type="button" @click="modals.log = false" class="p-2 bg-white border shadow-sm hover:bg-gray-100 text-gray-600 rounded-full transition flex items-center justify-center">✕</button>
+                <div class="flex-1">
+                    <h3 class="text-xl font-bold text-gray-800">Log Aktivitas Sistem</h3>
+                </div>
+            </div>
+            <div class="px-6 pb-6 pt-4 overflow-y-auto flex-1">
+                <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm bg-white">
+                    <table class="w-full text-left text-sm whitespace-nowrap min-w-max">
+                        <thead class="bg-gray-100 text-gray-600 font-bold border-b border-gray-200 text-xs uppercase">
+                            <tr>
+                                <th class="p-3 text-center w-10">No.</th>
+                                <th class="p-3">Waktu</th>
+                                <th class="p-3">Aksi</th>
+                                <th class="p-3">Pelaku</th>
+                                <th class="p-3">Detail Perubahan</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <tr x-show="logLoading"><td colspan="5" class="p-10 text-center text-gray-400">Memuat log...</td></tr>
+                            <template x-for="(log, idx) in activityLogs" :key="log.id">
+                                <tr x-show="!logLoading" class="hover:bg-purple-50/30 transition">
+                                    <td class="p-3 text-center text-gray-400 font-bold text-xs" x-text="idx+1"></td>
+                                    <td class="p-3 text-xs text-gray-500 font-medium" x-text="formatDateTime(log.ts)"></td>
+                                    <td class="p-3"><span class="px-2 py-1 rounded-lg text-xs font-black border" :class="{'bg-green-100 text-green-800 border-green-200': log.action === 'INSERT','bg-blue-100 text-blue-800 border-blue-200': log.action === 'UPDATE','bg-red-100 text-red-700 border-red-200': log.action === 'DELETE'}" x-text="log.action"></span></td>
+                                    <td class="p-3 font-bold text-gray-800" x-text="log.actor"></td>
+                                    <td class="p-3 text-xs text-gray-500 max-w-xs"><div class="truncate" :title="log.detail" x-text="log.detail || '-'"></div></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://kepwayqnpludozbonvbe.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlcHdheXFucGx1ZG96Ym9udmJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMzE4NTksImV4cCI6MjA5MTYwNzg1OX0.klCq5PCxFcZYGEp2Y0ckMX9aZLRt__KNhGXSRdQX3K4';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('reservationApp', () => ({
+                isLoggedIn: false, currentUser: { role: '', name: '' }, loginForm: { password: '', showPass: false, error: '' },
+                ACCOUNTS: { 
+                    'fania14': { role: 'admin', name: 'Admin Aji' }, 
+                    'lia0605': { role: 'admin', name: 'Admin Imam' }, 
+                    'wulan194': { role: 'admin', name: 'Admin Wulan' },
+                    'mei141414': { role: 'admin', name: 'Admin Mei' }, 
+                    'z008': { role: 'owner', name: 'Owner Hendy' } 
+                },
+                isLoading: false, toasts:[], toastCount: 0,
+                monthNames:['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
+                dayNames:['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'],
+                timeSlots: Array.from({length: 14}, (_, i) => String(i + 7).padStart(2, '0') + ':00'),
+                seatZones:[{ label: 'A', seats: Array.from({length:11}, (_,i)=>'A'+(i+1)) }, { label: 'B', seats: Array.from({length:15}, (_,i)=>'B'+(i+1)) }, { label: 'C', seats: Array.from({length:9}, (_,i)=>'C'+(i+1)) }, { label: 'D', seats: Array.from({length:17}, (_,i)=>'D'+(i+1)) }, { label: 'E', seats: Array.from({length:11}, (_,i)=>'E'+(i+1)) }, { label: 'F', seats: Array.from({length:7}, (_,i)=>'F'+(i+1)) }, { label: 'H', seats: Array.from({length:10}, (_,i)=>'H'+(i+1)) }, { label: 'J', seats: Array.from({length:21}, (_,i)=>'J'+(i+1)) }, { label: 'K', seats: Array.from({length:7}, (_,i)=>'K'+(i+1)) }, { label: 'L', seats: Array.from({length:8}, (_,i)=>'L'+(i+1)) }, { label: 'M', seats: Array.from({length:17}, (_,i)=>'M'+(i+1)) }, { label: 'N', seats: Array.from({length:9}, (_,i)=>'N'+(i+1)) }, { label: 'R', seats: Array.from({length:24}, (_,i)=>'R'+(i+1)) }, { label: 'RM', seats: Array.from({length:10}, (_,i)=>'RM'+(i+1)) }, { label: 'Cafe', seats: Array.from({length:10}, (_,i)=>'Cafe'+(i+1))}],
+                selectedSeatZone: 'A', currentDate: new Date(), currentMonth: new Date().getMonth(), currentYear: new Date().getFullYear(), selectedDate: null,
+                reservations:[], dayReservations:[], searchQuery: '', sortColumn: 'createdAt', sortDirection: 'desc',
+                modals: { list: false, form: false, time: false, seat: false, log: false },
+                formData: { id: null, name: '', time: '', seats:[], details: '', notes: '', paymentStatus: 'DP', paymentMethod: 'Cash', createdAt: null, dpAmount: null, dpAmountDisplay: '', phone: '', pax: '' },
+                nameError: '', phoneError: '', paxError: '', activityLogs:[], logLoading: false,
+
+                formatRupiah(angka) { if (!angka && angka !== 0) return ''; const num = parseInt(angka, 10); if (isNaN(num)) return ''; return 'Rp ' + num.toLocaleString('id-ID'); },
+                formatDateLong(dateStr) { if (!dateStr) return '-'; const parts = String(dateStr).split('-'); if (parts.length !== 3) return dateStr; const d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2])); if (isNaN(d.getTime())) return dateStr; return `${this.dayNames[d.getDay()]}, ${d.getDate()} ${this.monthNames[d.getMonth()]} ${d.getFullYear()}`; },
+                formatDateTime(timestamp) { if (!timestamp) return '-'; const d = new Date(timestamp); if (isNaN(d.getTime())) return '-'; return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; },
+                onPhoneInput(event) { const el = event.target; const raw = el.value.replace(/\D/g, ''); this.formData.phone = raw; el.value = raw; },
+                onDpInput(event) { const el = event.target; const raw = el.value.replace(/\D/g, ''); this.formData.dpAmountDisplay = raw ? parseInt(raw, 10).toLocaleString('id-ID') : ''; this.formData.dpAmount = raw ? parseInt(raw, 10) : null; },
+                onDpFocus(event) { event.target.select(); }, onDpBlur(event) { if (this.formData.dpAmount === 0) { this.formData.dpAmount = null; this.formData.dpAmountDisplay = ''; } },
+                getSeats(res) { if (!res) return[]; if (Array.isArray(res.seats) && res.seats.length > 0) return res.seats; if (res.seat) return [res.seat]; return[]; },
+                showToast(message, type = 'success') { const id = this.toastCount++; this.toasts.push({ id, message, type, show: true }); setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 3000); },
+
+                handleEscape(e) {
+                    if (this.modals.form) {
+                        e.preventDefault();
+                        return;
+                    }
+                    if (this.modals.time) this.modals.time = false;
+                    else if (this.modals.seat) this.modals.seat = false;
+                    else if (this.modals.log) this.modals.log = false;
+                    else if (this.modals.list) this.modals.list = false;
+                },
+
+                closeFormSafe() {
+                    if (confirm('Yakin ingin membatalkan pengisian form?')) {
+                        this.modals.form = false;
+                    }
+                },
+
+                doLogin() { 
+                    const pwd = this.loginForm.password; 
+                    const acc = this.ACCOUNTS[pwd]; 
+                    if (!acc) { this.loginForm.error = 'Kode akses tidak dikenali!'; return; } 
+                    
+                    const session = { role: acc.role, name: acc.name, ts: Date.now() }; 
+                    sessionStorage.setItem('s2_session', JSON.stringify(session)); 
+                    this.currentUser = { role: acc.role, name: acc.name }; 
+                    this.isLoggedIn = true; 
+                    this.loginForm.password = ''; 
+                    this.loginForm.error = ''; 
+                    this.initApp(); 
+                },
+                doLogout() { if (confirm('Keluar dari sistem?')) { sessionStorage.removeItem('s2_session'); this.isLoggedIn = false; } },
+                checkSession() { try { const raw = sessionStorage.getItem('s2_session'); if (!raw) return false; const session = JSON.parse(raw); if (Date.now() - session.ts > 8*60*60*1000) return false; this.currentUser = { role: session.role, name: session.name }; this.isLoggedIn = true; return true; } catch(e) { return false; } },
+
+                async initApp() {
+                    this.isLoading = true;
+                    try {
+                        const { data, error } = await supabaseClient.from('reservations').select('*');
+                        if (error) throw error;
+                        this.reservations = (data ||[]).map(r => ({
+                            ...r, paymentStatus: r.paymentStatus || r.paymentstatus || 'DP', paymentMethod: r.paymentMethod || r.paymentmethod || 'Cash',
+                            createdAt: r.createdAt || r.createdat || null, seats: Array.isArray(r.seats) ? r.seats : (r.seat ? [r.seat] :[]),
+                            dpAmount: r.dpAmount || r.dpamount || null, phone: r.phone || '', pax: r.pax || '', notes: r.notes || '',
+                            createdBy: r.created_by || r.createdBy || null, updatedBy: r.updated_by || r.updatedBy || null
+                        }));
+                        if (this.selectedDate) this.dayReservations = this.getReservations(this.selectedDate);
+                    } catch (error) { this.showToast("Gagal mengambil data!", "error"); } finally { this.isLoading = false; }
+                },
+
+                get daysInMonth() { return new Date(this.currentYear, this.currentMonth + 1, 0).getDate(); },
+                get blankDays() { return Array.from({ length: new Date(this.currentYear, this.currentMonth, 1).getDay() }); },
+                get currentMonthName() { return this.monthNames[this.currentMonth]; },
+                get selectedDateString() { return this.selectedDate ? `${this.selectedDate} ${this.currentMonthName} ${this.currentYear}` : ''; },
+                getFormattedDate(day) { return `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`; },
+                isToday(day) { const today = new Date(); return day === today.getDate() && this.currentMonth === today.getMonth() && this.currentYear === today.getFullYear(); },
+                
+                isPastDate(day) {
+                    const checkDate = new Date(this.currentYear, this.currentMonth, day);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    return checkDate < today;
+                },
+
+                changeMonth(step) { const newMonth = this.currentMonth + step; if (newMonth < 0) { this.currentMonth = 11; this.currentYear--; } else if (newMonth > 11) { this.currentMonth = 0; this.currentYear++; } else { this.currentMonth = newMonth; } },
+                getReservations(day) { return this.reservations.filter(r => r.date === this.getFormattedDate(day)); },
+                sortBy(column) { if (this.sortColumn === column) { this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc'; } else { this.sortColumn = column; this.sortDirection = 'asc'; } },
+                
+                get filteredAndSortedReservations() {
+                    let filtered = [...this.dayReservations];
+                    if (this.searchQuery.trim() !== '') {
+                        const q = this.searchQuery.toLowerCase();
+                        filtered = filtered.filter(res => (res.name||'').toLowerCase().includes(q) || (res.id||'').toLowerCase().includes(q) || (res.time||'').includes(q) || this.getSeats(res).join(', ').toLowerCase().includes(q) || (res.paymentStatus||'').toLowerCase().includes(q) || (res.phone||'').includes(q) || (res.notes||'').toLowerCase().includes(q));
+                    }
+                    filtered.sort((a, b) => { const modifier = this.sortDirection === 'asc' ? 1 : -1; let valA = a[this.sortColumn] || ''; let valB = b[this.sortColumn] || ''; if (valA < valB) return -1 * modifier; if (valA > valB) return 1 * modifier; return 0; });
+                    return filtered;
+                },
+
+                openDay(day) { 
+                    this.selectedDate = day; 
+                    this.dayReservations = this.getReservations(day); 
+                    this.modals.list = true; 
+                },
+                openForm(res = null) {
+                    this.nameError = ''; this.phoneError = ''; this.paxError = ''; this.selectedSeatZone = 'A';
+                    if (res) {
+                        const dpVal = res.dpAmount || res.dpamount || null;
+                        this.formData = { id: res.id || null, name: res.name || '', time: res.time || '', seats: Array.isArray(res.seats) ? [...res.seats] : (res.seat ?[res.seat] :[]), details: res.details || '', notes: res.notes || '', paymentStatus: res.paymentStatus || 'DP', paymentMethod: res.paymentMethod || 'Cash', createdAt: res.createdAt || null, dpAmount: dpVal, dpAmountDisplay: dpVal ? parseInt(dpVal, 10).toLocaleString('id-ID') : '', phone: res.phone || '', pax: res.pax || '' };
+                    } else { this.formData = { id: null, name: '', time: '', seats:[], details: '', notes: '', paymentStatus: 'DP', paymentMethod: 'Cash', createdAt: null, dpAmount: null, dpAmountDisplay: '', phone: '', pax: '' }; }
+                    this.modals.form = true;
+                },
+
+                checkNameAndOpenTimePicker() { if (!this.formData.name.trim()) { this.nameError = 'Wajib diisi sebelum memilih jam!'; return; } this.modals.time = true; },
+                selectTime(time) { if (this.formData.time !== time) { this.formData.time = time; this.formData.seats =[]; } this.modals.time = false; setTimeout(() => { this.modals.seat = true; }, 150); },
+                openSeatPicker() { if (!this.formData.time) return; this.modals.seat = true; },
+                toggleSeat(seat) { if (this.isSeatBooked(seat) && !this.formData.seats.includes(seat)) return; if (this.formData.seats.includes(seat)) { this.formData.seats = this.formData.seats.filter(s => s !== seat); } else { this.formData.seats =[...this.formData.seats, seat]; } },
+                isSeatBooked(seat) { const dateStr = this.getFormattedDate(this.selectedDate); const selectedHour = parseInt((this.formData.time||'0').split(':')[0]); return this.reservations.some(r => { if (r.date !== dateStr || r.id === this.formData.id) return false; const resHour = parseInt((r.time||'0').split(':')[0]); const overlap = Math.max(selectedHour, resHour) < Math.min(selectedHour + 3, resHour + 3); if (overlap) return this.getSeats(r).includes(seat); return false; }); },
+
+                async saveReservation() {
+                    let hasError = false;
+                    if (!this.formData.name || !this.formData.name.trim()) { this.nameError = "Nama wajib diisi!"; hasError = true; }
+                    if (!this.formData.time) { this.showToast("Jam wajib dipilih!", "error"); hasError = true; }
+                    
+                    const paxVal = parseInt(this.formData.pax);
+                    if (!this.formData.pax || isNaN(paxVal) || paxVal <= 0) {
+                        this.paxError = "Pax wajib diisi minimal 1!";
+                        hasError = true;
+                    }
+
+                    if (hasError) return;
+
+                    this.isLoading = true;
+                    try {
+                        const dateStr = this.getFormattedDate(this.selectedDate);
+                        const dpAmountVal = (this.formData.paymentStatus === 'DP' && this.formData.dpAmount > 0) ? this.formData.dpAmount : null;
+                        
+                        const payload = { 
+                            name: this.formData.name.trim(), 
+                            date: dateStr, 
+                            time: this.formData.time, 
+                            seats: this.formData.seats, 
+                            details: this.formData.details || null, 
+                            notes: this.formData.notes || null, 
+                            paymentStatus: this.formData.paymentStatus, 
+                            paymentMethod: this.formData.paymentMethod, 
+                            dpAmount: dpAmountVal, 
+                            phone: this.formData.phone || null, 
+                            pax: paxVal 
+                        };
+                        
+                        if (this.formData.id) { 
+                            payload.updated_by = this.currentUser.name;
+                            await supabaseClient.from('reservations').update(payload).eq('id', this.formData.id); 
+                            await this.writeLog('UPDATE', this.formData.id, payload.name, dateStr, `Jam: ${payload.time}`);
+                        } else {
+                            const dateCode = dateStr.replace(/-/g, '').substring(2);
+                            let maxSeq = 0; this.dayReservations.forEach(r => { if (r.id && r.id.startsWith(`S2-${dateCode}-`)) { const seq = parseInt(r.id.split('-')[2]); if (seq > maxSeq) maxSeq = seq; } });
+                            payload.id = `S2-${dateCode}-${String(maxSeq + 1).padStart(3, '0')}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
+                            payload.createdAt = new Date().getTime();
+                            payload.created_by = this.currentUser.name;
+                            payload.updated_by = this.currentUser.name;
+
+                            await supabaseClient.from('reservations').insert([payload]);
+                            await this.writeLog('INSERT', payload.id, payload.name, dateStr, `Jam: ${payload.time}`);
+                        }
+                        this.showToast("Data tersimpan!"); await this.initApp(); this.modals.form = false;
+                    } catch (error) { this.showToast("Gagal menyimpan!", "error"); } finally { this.isLoading = false; }
+                },
+
+                async deleteRes(id) { 
+                    if (confirm("Hapus reservasi ini?")) { 
+                        this.isLoading = true; 
+                        await supabaseClient.from('reservations').delete().eq('id', id); 
+                        await this.writeLog('DELETE', id, '-', '-', 'Dihapus');
+                        this.showToast("Dihapus."); await this.initApp(); 
+                    } 
+                },
+
+                async writeLog(action, resId, customerName, resDate, detail) {
+                    try {
+                        await supabaseClient.from('activity_logs').insert([{ action, actor: this.currentUser.name + ' (' + this.currentUser.role + ')', reservation_id: resId || null, customer_name: customerName || null, reservation_date: resDate || null, detail: detail || null, ts: new Date().getTime(), created_at: new Date().toISOString() }]);
+                    } catch(e) {}
+                },
+                async openLog() { this.logLoading = true; this.activityLogs =[]; this.modals.log = true; await this.loadLogs(); },
+                async loadLogs() { try { const { data } = await supabaseClient.from('activity_logs').select('*').order('ts', { ascending: false }).limit(200); this.activityLogs = data ||[]; } catch(e){} finally { this.logLoading = false; } },
+
+                // ════════════ CETAK 1 RESERVASI (A4 Portrait - 2 Kolom Mengalir Kiri ke Kanan) ════════════
+                printTicket(res) {
+                    const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : '—';
+                    const details = res.details || '- Tidak ada pesanan menu -';
+                    const payStatus = (res.paymentStatus || 'DP') + ' via ' + (res.paymentMethod || 'CASH');
+                    const dpLine = (res.paymentStatus === 'DP' && res.dpAmount) ? `<div class="row"><span class="label">Uang DP:</span><span class="value" style="color:#d97706;font-weight:900;">${this.formatRupiah(res.dpAmount)}</span></div>` : '';
+                    const catatanLine = res.notes ? `<div class="row"><span class="label">Catatan Tambahan:</span><span class="value upper" style="color:#c2410c;font-weight:900;">${res.notes}</span></div>` : '';
+                    const phoneLine = res.phone ? `<div class="row"><span class="label">No. HP:</span><span class="value">${res.phone}</span></div>` : '';
+                    const paxLine = res.pax ? `<div class="row"><span class="label">Jumlah Pax:</span><span class="value">${res.pax}</span></div>` : '';
+
+                    const html = `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Tiket - ${res.id}</title>
+<style>
+  @page { size: A4 portrait; margin: 10mm; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body {
+      width: 190mm; /* A4 width (210) - 20mm margin */
+      height: 277mm; /* A4 height (297) - 20mm margin */
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: white;
+      color: #1a1a1a;
+  }
+  
+  /* Layout Dibagi 2 Kolom Kiri dan Kanan yang Mengalir ke Bawah */
+  .print-wrapper {
+      column-count: 2;
+      column-gap: 15mm;
+      column-fill: auto;
+      height: 277mm; /* Memaksa agar konten mentok ke bawah baru pindah ke kanan */
+      position: relative;
+  }
+  
+  .header { text-align: center; border-bottom: 2px dashed #9ca3af; padding-bottom: 12px; margin-bottom: 15px; break-inside: avoid; position: relative; }
+  .watermark { position: absolute; top: -5px; right: 0; font-size: 30px; font-weight: 900; color: #e5e7eb; z-index: -1; letter-spacing: 2px; }
+  .header h1 { font-size: 14pt; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+  .header p  { font-size: 8.5pt; color: #6b7280; margin-top: 4px; font-weight: 600; }
+  
+  .row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; padding: 6px 0; break-inside: avoid; }
+  .row .label { font-weight: 700; color: #6b7280; font-size: 9.5pt; white-space: nowrap; }
+  .row .value { font-weight: 700; font-size: 10.5pt; text-align: right; }
+  .row .value.id  { font-family: monospace; letter-spacing: 0.5px; font-size: 10pt; }
+  .row .value.jam { border: 2px solid #1a1a1a; padding: 2px 6px; border-radius: 4px; }
+  .row .value.upper { text-transform: uppercase; }
+  
+  .notes-label { font-weight: 900; color: #1a1a1a; font-size: 11pt; margin-top: 15px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; break-after: avoid; }
+  
+  /* Tanpa Background Box agar tidak aneh saat terpotong 2 kolom */
+  .notes-box {
+      font-size: 10.5pt;
+      font-weight: 600;
+      white-space: pre-wrap;
+      line-height: 1.6;
+  }
+  
+  .footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 8pt;
+      color: #6b7280;
+      line-height: 1.6;
+      font-weight: 700;
+      border-top: 2px solid #1a1a1a;
+      padding-top: 8px;
+      text-transform: uppercase;
+      break-inside: avoid;
+  }
+  .print-meta { font-size: 8pt; color: #9ca3af; text-align: left; margin-top: 15px; break-inside: avoid; line-height:1.4; }
+</style>
+</head>
+<body>
+<div class="print-wrapper">
+  <!-- Elemen Header dan Data akan mengisi kolom KIRI terlebih dahulu -->
+  <div class="header">
+    <div class="watermark">S2</div>
+    <h1>Pemancingan Suharno 2</h1>
+    <p>E-TIKET RESERVASI PELANGGAN</p>
+  </div>
+  <div class="row"><span class="label">No. Reservasi:</span><span class="value id">${res.id}</span></div>
+  <div class="row"><span class="label">Nama Pelanggan:</span><span class="value upper">${res.name}</span></div>
+  ${phoneLine}
+  ${paxLine}
+  <div class="row"><span class="label">Tgl. Kedatangan:</span><span class="value">${this.formatDateLong(res.date)}</span></div>
+  <div class="row"><span class="label">Jam Kedatangan:</span><span class="value jam">${res.time} WIB</span></div>
+  <div class="row"><span class="label">Status Bayar:</span><span class="value upper">${payStatus}</span></div>
+  ${dpLine}
+  ${catatanLine}
+  <div class="row"><span class="label">Spot / Kursi:</span><span class="value upper">${seats}</span></div>
+  
+  <div class="notes-label">🍽 Detail Menu:</div>
+  <!-- Jika teks ini sangat panjang menabrak batas bawah halaman, akan otomatis lompat/memanjang ke kolom KANAN -->
+  <div class="notes-box">${details}</div>
+  
+  <div class="print-meta">Dicetak oleh: ${this.currentUser.name} <br> Input data: ${this.formatDateTime(res.createdAt)}</div>
+  <div class="footer">
+    <p>Tunjukkan tiket ini kepada kasir saat kedatangan.</p>
+    <p>Kursi berlaku maks. 3 jam dari waktu tertera.</p>
+  </div>
+</div>
+<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
+</body>
+</html>`;
+                    const popup = window.open('', '_blank', 'width=800,height=900,scrollbars=yes');
+                    if (popup) { popup.document.write(html); popup.document.close(); } else { this.showToast('Izinkan popup!', 'error'); }
+                },
+
+                // ════════════ CETAK HARIAN (4 per page) ════════════
+                printDay() {
+                    const list =[...this.dayReservations].sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+                    if (list.length === 0) return;
+                    const buildTicket = (res) => {
+                        const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : '—';
+                        const catatanLine = res.notes ? `<div class="row"><span class="label">Catatan:</span><span class="value upper" style="color:#c2410c;font-weight:700;">${res.notes}</span></div>` : '';
+                        const dpLine = (res.paymentStatus === 'DP' && res.dpAmount) ? `<div class="row"><span class="label">DP:</span><span class="value" style="color:#d97706;">${this.formatRupiah(res.dpAmount)}</span></div>` : '';
+                        const phoneLine = res.phone ? `<div class="row"><span class="label">No.HP:</span><span class="value">${res.phone}</span></div>` : '';
+                        const paxLine = res.pax ? `<div class="row"><span class="label">Pax:</span><span class="value">${res.pax}</span></div>` : '';
+                        const detailsClass = (res.details && res.details.length > 150) ? 'notes-box multicolumn' : 'notes-box';
+                        
+                        return `
+<div class="ticket"><div class="watermark">S2</div>
+  <div class="header"><h1>Pemancingan Suharno 2</h1><p>E-TIKET RESERVASI RESMI</p></div>
+  <div class="row"><span class="label">No:</span><span class="value id">${res.id}</span></div>
+  <div class="row"><span class="label">Nama:</span><span class="value upper">${res.name}</span></div>
+  ${phoneLine}
+  ${paxLine}
+  <div class="row"><span class="label">Tgl:</span><span class="value">${this.formatDateLong(res.date)}</span></div>
+  <div class="row"><span class="label">Jam:</span><span class="value jam">${res.time} WIB</span></div>
+  <div class="row"><span class="label">Bayar:</span><span class="value upper">${res.paymentStatus}</span></div>
+  ${dpLine}
+  <div class="row"><span class="label">Kursi:</span><span class="value upper">${seats}</span></div>
+  ${catatanLine}
+  <div class="notes-label">🍽 Menu:</div>
+  <div class="${detailsClass}">${res.details || '- Tidak ada -'}</div>
+  <div class="footer">
+     <div style="text-align:left;font-size:5.5pt;color:#9ca3af;margin-bottom:2px;font-weight:600;line-height:1.2;">
+        Cetak: ${this.currentUser.name}<br>Input: ${this.formatDateTime(res.createdAt)}
+     </div>
+     <p>Kursi berlaku maks. 3 jam.</p>
+  </div>
+</div>`;
+                    };
+
+                    let pages = '';
+                    for (let i = 0; i < list.length; i += 4) {
+                        const chunk = list.slice(i, i + 4); while (chunk.length < 4) chunk.push(null);
+                        const cells = chunk.map(res => res ? buildTicket(res) : '<div class="ticket ticket-empty"></div>').join('');
+                        pages += `<div class="page${i + 4 >= list.length ? '' : ' page-break'}">${cells}</div>`;
+                    }
+
+                    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Tiket Harian</title>
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:210mm; background:white; font-family:'Segoe UI',sans-serif; color:#1a1a1a; }
+  .page { width:210mm; height:297mm; display:grid; grid-template-columns:105mm 105mm; grid-template-rows:148mm 148mm; }
+  .page-break { page-break-after:always; }
+  .ticket { width:105mm; height:148mm; border:1px dashed #9ca3af; padding:6mm; display:flex; flex-direction:column; position:relative; font-size:8.5pt; }
+  .ticket-empty { background:#f9fafb; border:none; border-right:1px dashed #e5e7eb; border-bottom:1px dashed #e5e7eb; }
+  .watermark { position:absolute; top:8px; right:12px; font-size:24px; font-weight:900; color:#e5e7eb; }
+  .header { text-align:center; border-bottom:2px dashed #9ca3af; padding-bottom:4px; margin-bottom:4px; }
+  .header h1 { font-size:9pt; font-weight:900; text-transform:uppercase; letter-spacing:1.5px; }
+  .header p  { font-size:6.5pt; color:#6b7280; font-weight:600; }
+  .row { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e5e7eb; padding:2.5px 0; }
+  .row .label { font-weight:700; color:#6b7280; font-size:7pt; white-space:nowrap; }
+  .row .value { font-weight:700; font-size:7.5pt; text-align:right; max-width:62%; }
+  .row .value.id { font-family:monospace; font-size:6.5pt; }
+  .row .value.jam { border:2px solid #1a1a1a; padding:1px 5px; border-radius:3px; }
+  .row .value.upper { text-transform:uppercase; }
+  .notes-label { font-weight:900; color:#1a1a1a; font-size:8pt; margin-top:4px; margin-bottom:2px; text-transform:uppercase; }
+  .notes-box { padding:4px 6px; background:#f9fafb; border:1px solid #d1d5db; border-radius:4px; font-size:8.5pt; font-weight:600; white-space:pre-wrap; flex:1; overflow:hidden; line-height:1.5; }
+  .notes-box.multicolumn { column-count: 2; column-gap: 15px; column-rule: 1px dashed #d1d5db; word-break: break-word; }
+  .footer { margin-top:4px; text-align:center; font-size:5.5pt; color:#6b7280; border-top:2px solid #1a1a1a; padding-top:3px; text-transform:uppercase; display:flex; justify-content:space-between; align-items:flex-end; }
+</style></head><body>${pages}<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script></body></html>`;
+                    const popup = window.open('', '_blank', 'width=900,height=700');
+                    if (popup) { popup.document.write(html); popup.document.close(); }
+                }
+            }));
+        });
+    </script>
+    </div>
+</body>
+</html>
