@@ -239,7 +239,7 @@
                         <input type="text" inputmode="numeric" x-model="formData.phone" @input="onPhoneInput($event)" class="w-full border border-gray-200 p-3 rounded-xl outline-none transition bg-gray-50 focus:bg-white focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green" placeholder="08xxxxxxxxxx">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-1.5">Jumlah Pax <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-bold text-gray-700 mb-1.5">Jumlah Pax <span class="text-gray-400 font-normal text-xs">(opsional)</span></label>
                         <input type="number" min="1" x-model="formData.pax" @input="paxError = ''" class="w-full border p-3 rounded-xl outline-none transition bg-gray-50 focus:bg-white" :class="paxError ? 'border-red-400 focus:ring-red-500 text-red-700' : 'border-gray-200 focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green'" placeholder="Misal: 4">
                         <div x-show="paxError" x-transition.opacity><p class="text-[11px] text-red-600 font-bold mt-1" x-text="paxError"></p></div>
                     </div>
@@ -546,10 +546,14 @@
                     if (!this.formData.name || !this.formData.name.trim()) { this.nameError = "Nama wajib diisi!"; hasError = true; }
                     if (!this.formData.time) { this.showToast("Jam wajib dipilih!", "error"); hasError = true; }
                     
-                    const paxVal = parseInt(this.formData.pax);
-                    if (!this.formData.pax || isNaN(paxVal) || paxVal <= 0) {
-                        this.paxError = "Pax wajib diisi minimal 1!";
-                        hasError = true;
+                    // Pax bersifat opsional
+                    let paxVal = null;
+                    if (this.formData.pax && String(this.formData.pax).trim() !== '') {
+                        paxVal = parseInt(this.formData.pax);
+                        if (isNaN(paxVal) || paxVal <= 0) {
+                            this.paxError = "Jika diisi, pax minimal 1!";
+                            hasError = true;
+                        }
                     }
 
                     if (hasError) return;
