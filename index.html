@@ -187,6 +187,7 @@
                                         <div class="font-bold text-gray-900 text-base" x-text="res.name"></div>
                                         <div class="text-gray-500 text-xs mt-0.5" x-text="res.phone ? '📞 ' + res.phone : ''"></div>
                                         <div class="text-gray-600 font-semibold text-xs mt-1" x-text="res.pax ? '👥 ' + res.pax + ' pax' : ''"></div>
+                                        <div class="text-indigo-600 font-bold text-[10px] mt-1 border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 rounded inline-block" x-text="'🛒 ' + (res.orderType || 'WA')"></div>
                                     </td>
                                     <td class="p-4">
                                         <div class="flex flex-col gap-1.5 items-start">
@@ -231,6 +232,21 @@
                 <h3 class="text-xl font-extrabold flex-1 text-gray-800" x-text="formData.id ? 'Edit Data Reservasi' : 'Form Reservasi Baru'"></h3>
             </div>
             <div class="space-y-5">
+                <!-- Jenis Order -->
+                <div class="mb-4">
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5">Jenis Order <span class="text-red-500">*</span></label>
+                    <div class="flex gap-3">
+                        <label class="flex items-center justify-center gap-2 cursor-pointer border-2 p-2.5 rounded-xl flex-1 transition bg-white" :class="formData.orderType === 'WA' ? 'border-brand-green ring-2 ring-green-500/20 bg-green-50' : 'border-gray-200 hover:border-green-300'">
+                            <input type="radio" x-model="formData.orderType" value="WA" class="hidden">
+                            <span class="font-bold text-sm" :class="formData.orderType === 'WA' ? 'text-brand-green' : 'text-gray-600'">WA (WhatsApp)</span>
+                        </label>
+                        <label class="flex items-center justify-center gap-2 cursor-pointer border-2 p-2.5 rounded-xl flex-1 transition bg-white" :class="formData.orderType === 'OTS' ? 'border-brand-green ring-2 ring-green-500/20 bg-green-50' : 'border-gray-200 hover:border-green-300'">
+                            <input type="radio" x-model="formData.orderType" value="OTS" class="hidden">
+                            <span class="font-bold text-sm" :class="formData.orderType === 'OTS' ? 'text-brand-green' : 'text-gray-600'">OTS (On The Spot)</span>
+                        </label>
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1.5">Nama Pemesan <span class="text-red-500">*</span></label>
                     <input type="text" id="inputName" x-model="formData.name" @input="nameError = ''" class="w-full border p-3 rounded-xl outline-none transition bg-gray-50 focus:bg-white" :class="nameError ? 'border-red-400 focus:ring-red-500 text-red-700' : 'border-gray-200 focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green'" placeholder="Masukkan nama lengkap">
@@ -401,7 +417,7 @@
                 selectedSeatZone: 'A', currentDate: new Date(), currentMonth: new Date().getMonth(), currentYear: new Date().getFullYear(), selectedDate: null,
                 reservations:[], dayReservations:[], searchQuery: '', sortColumn: 'createdAt', sortDirection: 'desc',
                 modals: { list: false, form: false, time: false, seat: false, log: false },
-                formData: { id: null, name: '', time: '', seats:[], details: '', notes: '', paymentStatus: 'DP', paymentMethod: 'Cash', createdAt: null, dpAmount: null, dpAmountDisplay: '', phone: '', pax: '' },
+                formData: { id: null, name: '', orderType: 'WA', time: '', seats:[], details: '', notes: '', paymentStatus: 'DP', paymentMethod: 'Cash', createdAt: null, dpAmount: null, dpAmountDisplay: '', phone: '', pax: '' },
                 nameError: '', phoneError: '', paxError: '', activityLogs:[], logLoading: false,
 
                 formatRupiah(angka) { if (!angka && angka !== 0) return ''; const num = parseInt(angka, 10); if (isNaN(num)) return ''; return 'Rp ' + num.toLocaleString('id-ID'); },
@@ -455,6 +471,7 @@
                             ...r, paymentStatus: r.paymentStatus || r.paymentstatus || 'DP', paymentMethod: r.paymentMethod || r.paymentmethod || 'Cash',
                             createdAt: r.createdAt || r.createdat || null, 
                             updatedAt: r.updatedAt || r.updated_at || null,
+                            orderType: r.order_type || r.orderType || 'WA',
                             seats: Array.isArray(r.seats) ? r.seats : (r.seat ? [r.seat] :[]),
                             dpAmount: r.dpAmount || r.dpamount || null, phone: r.phone || '', pax: r.pax || '', notes: r.notes || '',
                             createdBy: r.created_by || r.createdBy || null, updatedBy: r.updated_by || r.updatedBy || null
@@ -488,7 +505,7 @@
                     let filtered =[...this.dayReservations];
                     if (this.searchQuery.trim() !== '') {
                         const q = this.searchQuery.toLowerCase();
-                        filtered = filtered.filter(res => (res.name||'').toLowerCase().includes(q) || (res.id||'').toLowerCase().includes(q) || (res.time||'').includes(q) || this.getSeats(res).join(', ').toLowerCase().includes(q) || (res.paymentStatus||'').toLowerCase().includes(q) || (res.phone||'').includes(q) || (res.notes||'').toLowerCase().includes(q));
+                        filtered = filtered.filter(res => (res.name||'').toLowerCase().includes(q) || (res.id||'').toLowerCase().includes(q) || (res.time||'').includes(q) || this.getSeats(res).join(', ').toLowerCase().includes(q) || (res.paymentStatus||'').toLowerCase().includes(q) || (res.phone||'').includes(q) || (res.notes||'').toLowerCase().includes(q) || (res.orderType||'').toLowerCase().includes(q));
                     }
                     filtered.sort((a, b) => { const modifier = this.sortDirection === 'asc' ? 1 : -1; let valA = a[this.sortColumn] || ''; let valB = b[this.sortColumn] || ''; if (valA < valB) return -1 * modifier; if (valA > valB) return 1 * modifier; return 0; });
                     return filtered;
@@ -503,24 +520,18 @@
                     this.nameError = ''; this.phoneError = ''; this.paxError = ''; this.selectedSeatZone = 'A';
                     if (res) {
                         const dpVal = res.dpAmount || res.dpamount || null;
-                        this.formData = { id: res.id || null, name: res.name || '', time: res.time || '', seats: Array.isArray(res.seats) ?[...res.seats] : (res.seat ?[res.seat] :[]), details: res.details || '', notes: res.notes || '', paymentStatus: res.paymentStatus || 'DP', paymentMethod: res.paymentMethod || 'Cash', createdAt: res.createdAt || null, dpAmount: dpVal, dpAmountDisplay: dpVal ? parseInt(dpVal, 10).toLocaleString('id-ID') : '', phone: res.phone || '', pax: res.pax || '' };
-                    } else { this.formData = { id: null, name: '', time: '', seats:[], details: '', notes: '', paymentStatus: 'DP', paymentMethod: 'Cash', createdAt: null, dpAmount: null, dpAmountDisplay: '', phone: '', pax: '' }; }
+                        this.formData = { id: res.id || null, name: res.name || '', orderType: res.orderType || 'WA', time: res.time || '', seats: Array.isArray(res.seats) ?[...res.seats] : (res.seat ?[res.seat] :[]), details: res.details || '', notes: res.notes || '', paymentStatus: res.paymentStatus || 'DP', paymentMethod: res.paymentMethod || 'Cash', createdAt: res.createdAt || null, dpAmount: dpVal, dpAmountDisplay: dpVal ? parseInt(dpVal, 10).toLocaleString('id-ID') : '', phone: res.phone || '', pax: res.pax || '' };
+                    } else { this.formData = { id: null, name: '', orderType: 'WA', time: '', seats:[], details: '', notes: '', paymentStatus: 'DP', paymentMethod: 'Cash', createdAt: null, dpAmount: null, dpAmountDisplay: '', phone: '', pax: '' }; }
                     this.modals.form = true;
                 },
-
-                // Fungsi checkNameAndOpenTimePicker DIHAPUS karena validasi nama sebelum jam tidak lagi dibutuhkan
-                // Tombol "Pilih Jam" sekarang secara langsung membuka modal waktu.
 
                 selectTime(time) { if (this.formData.time !== time) { this.formData.time = time; this.formData.seats =[]; } this.modals.time = false; setTimeout(() => { this.modals.seat = true; }, 150); },
                 openSeatPicker() { if (!this.formData.time) return; this.modals.seat = true; },
                 toggleSeat(seat) { 
-                    // Logika khusus jika kursi yang dipilih adalah BUNGKUS atau tidak
                     if (seat === 'BUNGKUS') {
-                        // Jika pilih bungkus, kosongkan kursi lain yang sempat terpilih
                         this.formData.seats = ['BUNGKUS'];
                         return;
                     } else {
-                        // Jika pilih kursi biasa tapi sebelumnya bungkus, hapus bungkusan nya
                         if (this.formData.seats.includes('BUNGKUS')) {
                             this.formData.seats =[];
                         }
@@ -535,8 +546,7 @@
                     } 
                 },
                 isSeatBooked(seat) { 
-                    if (seat === 'BUNGKUS') return false; // BUNGKUS bebas dibooking berkali-kali
-                    
+                    if (seat === 'BUNGKUS') return false;
                     const dateStr = this.getFormattedDate(this.selectedDate); 
                     const selectedHour = parseInt((this.formData.time||'0').split(':')[0]); 
                     return this.reservations.some(r => { 
@@ -553,7 +563,6 @@
                     if (!this.formData.name || !this.formData.name.trim()) { this.nameError = "Nama wajib diisi!"; hasError = true; }
                     if (!this.formData.time) { this.showToast("Jam wajib dipilih!", "error"); hasError = true; }
                     
-                    // Pax bersifat opsional
                     let paxVal = null;
                     if (this.formData.pax && String(this.formData.pax).trim() !== '') {
                         paxVal = parseInt(this.formData.pax);
@@ -581,7 +590,8 @@
                             paymentMethod: this.formData.paymentMethod, 
                             dpAmount: dpAmountVal, 
                             phone: this.formData.phone || null, 
-                            pax: paxVal 
+                            pax: paxVal,
+                            order_type: this.formData.orderType 
                         };
                         
                         if (this.formData.id) { 
@@ -625,7 +635,6 @@
 
                 // ════════════ CETAK JADWAL HARIAN ════════════
                 printDailySchedule() {
-                    // Sorting berdasarkan waktu/jam ascending
                     const list =[...this.dayReservations].sort((a,b) => (a.time||'').localeCompare(b.time||''));
                     if (list.length === 0) return;
 
@@ -633,13 +642,13 @@
                     list.forEach((res, index) => {
                         const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : '-';
                         const pax = res.pax ? res.pax + ' Org' : '-';
-                        const notes = res.notes ? res.notes : '-'; // Menambahkan data Catatan Tambahan
+                        const notes = res.notes ? res.notes : '-'; 
                         
                         tableRows += `
                             <tr>
                                 <td style="text-align:center;">${index + 1}</td>
                                 <td style="text-align:center; font-weight:bold;">${res.time}</td>
-                                <td style="text-transform: uppercase;">${res.name}</td>
+                                <td style="text-transform: uppercase;">${res.name} (${res.orderType || 'WA'})</td>
                                 <td style="text-align:center;">${pax}</td>
                                 <td style="text-align:center; font-weight:bold;">${seats}</td>
                                 <td style="text-transform: uppercase; color:#c2410c; font-weight:600;">${notes}</td>
@@ -647,7 +656,6 @@
                         `;
                     });
 
-                    // Format hari dan tanggal lengkap dari tanggal yang sedang dilihat
                     const printDateStr = this.formatDateLong(this.getFormattedDate(this.selectedDate));
 
                     const html = `<!DOCTYPE html>
@@ -752,10 +760,11 @@
   .row .value.upper { text-transform: uppercase; }
   
   .notes-label { font-weight: 900; color: #1a1a1a; font-size: 11pt; margin-top: 15px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; break-after: avoid; }
-  .notes-box { font-size: 10.5pt; font-weight: 600; white-space: pre-wrap; line-height: 1.6; }
+  
+  /* Menu diubah 2 kolom font normal */
+  .notes-box { font-size: 10pt; font-weight: 600; white-space: pre-wrap; line-height: 1.6; column-count: 2; column-gap: 10mm; }
   
   /* Styling Footer Baru */
-  .rules { margin-top: 20px; text-align: center; font-size: 8pt; color: #6b7280; line-height: 1.6; font-weight: 700; text-transform: uppercase; break-inside: avoid; }
   .ticket-meta { display: flex; justify-content: space-between; font-size: 7.5pt; color: #6b7280; margin-top: 10px; border-top: 2px solid #1a1a1a; padding-top: 8px; break-inside: avoid; line-height: 1.4; font-weight: 600; }
   .ticket-meta .left { text-align: left; }
   .ticket-meta .right { text-align: right; }
@@ -769,7 +778,7 @@
     <p>E-TIKET RESERVASI PELANGGAN</p>
   </div>
   <div class="row"><span class="label">No. Reservasi:</span><span class="value id">${res.id}</span></div>
-  <div class="row"><span class="label">Nama Pelanggan:</span><span class="value upper">${res.name}</span></div>
+  <div class="row"><span class="label">Nama Pelanggan:</span><span class="value upper">${res.name} (${res.orderType || 'WA'})</span></div>
   ${phoneLine}
   ${paxLine}
   <div class="row"><span class="label">Tgl. Kedatangan:</span><span class="value">${this.formatDateLong(res.date)}</span></div>
@@ -782,7 +791,7 @@
   <div class="notes-label">🍽 Detail Menu:</div>
   <div class="notes-box">${details}</div>
   
-  <div class="ticket-meta">
+  <div class="ticket-meta" style="margin-top:20px;">
     <div class="left">
       Input : ${createdAtStr} oleh ${createdBy}${updatedStr}
     </div>
@@ -799,7 +808,7 @@
                     if (popup) { popup.document.write(html); popup.document.close(); } else { this.showToast('Izinkan popup!', 'error'); }
                 },
 
-                // ════════════ CETAK HARIAN (4 per page) ════════════
+                // ════════════ CETAK HARIAN (Sekarang 2 per page Kiri-Kanan Landscape) ════════════
                 printDay() {
                     const list =[...this.dayReservations].sort((a,b)=>(a.time||'').localeCompare(b.time||''));
                     if (list.length === 0) return;
@@ -818,21 +827,10 @@
                             const amt = res.dpAmount ? this.formatRupiah(res.dpAmount) : '';
                             combinedPayment = `DP (${res.paymentMethod || 'CASH'}) ${amt}`.trim();
                         }
-                        const payLine = `<div class="row"><span class="label">Bayar:</span><span class="value upper" style="color:#d97706;font-weight:900;">${combinedPayment}</span></div>`;
+                        const payLine = `<div class="row"><span class="label">Pembayaran:</span><span class="value upper" style="color:#d97706;font-weight:900;">${combinedPayment}</span></div>`;
                         
                         const phoneLine = res.phone ? `<div class="row"><span class="label">No.HP:</span><span class="value">${res.phone}</span></div>` : '';
                         const paxLine = res.pax ? `<div class="row"><span class="label">Pax:</span><span class="value">${res.pax}</span></div>` : '';
-                        
-                        // Dynamic font size untuk menu
-                        const lineCount = res.details ? res.details.split('\n').length : 0;
-                        const detailsClass = (res.details && (res.details.length > 150 || lineCount > 10)) ? 'notes-box multicolumn' : 'notes-box';
-                        
-                        let dynFontSize = '8.5pt';
-                        if (lineCount > 35) dynFontSize = '5pt';
-                        else if (lineCount > 25) dynFontSize = '5.5pt';
-                        else if (lineCount > 20) dynFontSize = '6pt';
-                        else if (lineCount > 15) dynFontSize = '6.5pt';
-                        else if (lineCount > 10) dynFontSize = '7.5pt';
                         
                         // Data Footer Kiri Kanan
                         const createdAtStr = this.formatDateTime(res.createdAt);
@@ -842,9 +840,9 @@
 
                         return `
 <div class="ticket"><div class="watermark">S2</div>
-  <div class="header"><p style="font-size:9.5pt; color:#1a1a1a; font-weight:900; letter-spacing:1px; margin-bottom:2px; text-transform:uppercase;">E-TIKET RESERVASI RESMI</p></div>
+  <div class="header"><p style="font-size:11pt; color:#1a1a1a; font-weight:900; letter-spacing:1px; margin-bottom:2px; text-transform:uppercase;">E-TIKET RESERVASI RESMI</p></div>
   <div class="row"><span class="label">No:</span><span class="value id">${res.id}</span></div>
-  <div class="row"><span class="label">Nama:</span><span class="value upper">${res.name}</span></div>
+  <div class="row"><span class="label">Nama:</span><span class="value upper">${res.name} (${res.orderType || 'WA'})</span></div>
   ${phoneLine}
   ${paxLine}
   <div class="row"><span class="label">Tgl:</span><span class="value">${this.formatDateLong(res.date)}</span></div>
@@ -853,7 +851,7 @@
   <div class="row"><span class="label">Kursi:</span><span class="value upper">${seats}</span></div>
   ${catatanLine}
   <div class="notes-label">🍽 Menu:</div>
-  <div class="${detailsClass}" style="font-size:${dynFontSize};">${res.details || '- Tidak ada -'}</div>
+  <div class="notes-box">${res.details || '- Tidak ada pesanan menu -'}</div>
   <div class="footer">
      <div class="meta-print">
         <div class="left">Input : ${createdAtStr} oleh ${createdBy}${updatedStr}</div>
@@ -864,43 +862,50 @@
                     };
 
                     let pages = '';
-                    for (let i = 0; i < list.length; i += 4) {
-                        const chunk = list.slice(i, i + 4); while (chunk.length < 4) chunk.push(null);
+                    // Mengubah menjadi kelipatan 2 (karena menggunakan A4 Landscape yang di-split 2 secara horizontal)
+                    for (let i = 0; i < list.length; i += 2) {
+                        const chunk = list.slice(i, i + 2); while (chunk.length < 2) chunk.push(null);
                         const cells = chunk.map(res => res ? buildTicket(res) : '<div class="ticket ticket-empty"></div>').join('');
-                        pages += `<div class="page${i + 4 >= list.length ? '' : ' page-break'}">${cells}</div>`;
+                        pages += `<div class="page${i + 2 >= list.length ? '' : ' page-break'}">${cells}</div>`;
                     }
 
-                    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Tiket Harian</title>
+                    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Tiket Harian (Landscape)</title>
 <style>
-  @page { size: A4 portrait; margin: 0; }
+  /* Format A4 Landscape, margin 0 untuk layout presisi */
+  @page { size: A4 landscape; margin: 0; }
   * { margin:0; padding:0; box-sizing:border-box; }
-  html, body { width:210mm; background:white; font-family:'Segoe UI',sans-serif; color:#1a1a1a; }
-  .page { width:210mm; height:297mm; display:grid; grid-template-columns:105mm 105mm; grid-template-rows:148mm 148mm; }
+  html, body { width:297mm; background:white; font-family:'Segoe UI',sans-serif; color:#1a1a1a; }
+  
+  /* 2 tiket berjejer kiri dan kanan, tinggi penuh 1 halaman A4 Landscape */
+  .page { width:297mm; height:210mm; display:grid; grid-template-columns:148.5mm 148.5mm; grid-template-rows:210mm; }
   .page-break { page-break-after:always; }
-  .ticket { width:105mm; height:148mm; border:1px dashed #9ca3af; padding:6mm; display:flex; flex-direction:column; position:relative; font-size:8.5pt; }
-  .ticket-empty { background:#f9fafb; border:none; border-right:1px dashed #e5e7eb; border-bottom:1px dashed #e5e7eb; }
+  
+  /* Tiket individual */
+  .ticket { width:148.5mm; height:210mm; border-right:1px dashed #9ca3af; padding:8mm; display:flex; flex-direction:column; position:relative; font-size:9.5pt; }
+  .ticket-empty { background:#f9fafb; border:none; border-right:1px dashed #e5e7eb; }
+  
   .watermark { position:absolute; top:8px; right:12px; font-size:24px; font-weight:900; color:#e5e7eb; }
-  .header { text-align:center; border-bottom:2px dashed #9ca3af; padding-bottom:4px; margin-bottom:4px; }
-  .header h1 { font-size:9pt; font-weight:900; text-transform:uppercase; letter-spacing:1.5px; }
-  .header p  { font-size:6.5pt; color:#6b7280; font-weight:600; }
-  .row { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e5e7eb; padding:2.5px 0; }
-  .row .label { font-weight:700; color:#6b7280; font-size:7pt; white-space:nowrap; }
-  .row .value { font-weight:700; font-size:7.5pt; text-align:right; max-width:62%; }
-  .row .value.id { font-family:monospace; font-size:6.5pt; }
+  .header { text-align:center; border-bottom:2px dashed #9ca3af; padding-bottom:6px; margin-bottom:6px; }
+  
+  .row { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e5e7eb; padding:3.5px 0; }
+  .row .label { font-weight:700; color:#6b7280; font-size:8pt; white-space:nowrap; }
+  .row .value { font-weight:700; font-size:8.5pt; text-align:right; max-width:65%; }
+  .row .value.id { font-family:monospace; font-size:7.5pt; }
   .row .value.jam { border:2px solid #1a1a1a; padding:1px 5px; border-radius:3px; }
   .row .value.upper { text-transform:uppercase; }
-  .notes-label { font-weight:900; color:#1a1a1a; font-size:8pt; margin-top:4px; margin-bottom:2px; text-transform:uppercase; }
-  .notes-box { padding:4px 6px; background:#f9fafb; border:1px solid #d1d5db; border-radius:4px; font-size:8.5pt; font-weight:600; white-space:pre-wrap; flex:1; overflow:hidden; line-height:1.5; }
-  .notes-box.multicolumn { column-count: 2; column-gap: 15px; column-rule: 1px dashed #d1d5db; word-break: break-word; }
   
-  /* Styling Footer Harian */
-  .footer { margin-top:auto; border-top:2px solid #1a1a1a; padding-top:4px; display:flex; flex-direction:column; gap:4px; }
-  .footer p { text-align:center; font-size:5.5pt; color:#6b7280; text-transform:uppercase; font-weight:700; margin-bottom: 2px; }
-  .meta-print { display:flex; justify-content:space-between; font-size:4.5pt; color:#9ca3af; font-weight:600; line-height:1.3; }
+  .notes-label { font-weight:900; color:#1a1a1a; font-size:9pt; margin-top:6px; margin-bottom:4px; text-transform:uppercase; }
+  
+  /* Kotak Menu 2 Kolom, font normal agar enak dibaca */
+  .notes-box { padding:6px; background:#f9fafb; border:1px solid #d1d5db; border-radius:4px; font-size:9pt; font-weight:600; white-space:pre-wrap; flex:1; overflow:hidden; line-height:1.5; column-count: 2; column-gap: 8mm; column-rule: 1px dashed #d1d5db; word-break: break-word; }
+  
+  /* Styling Footer Baru Kiri Kanan */
+  .footer { margin-top:auto; border-top:2px solid #1a1a1a; padding-top:6px; margin-top: 8px; }
+  .meta-print { display:flex; justify-content:space-between; font-size:6pt; color:#6b7280; font-weight:600; line-height:1.4; text-transform:uppercase; }
   .meta-print .left { text-align:left; max-width: 60%; }
   .meta-print .right { text-align:right; max-width: 40%; }
 </style></head><body>${pages}<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script></body></html>`;
-                    const popup = window.open('', '_blank', 'width=900,height=700');
+                    const popup = window.open('', '_blank', 'width=1100,height=700');
                     if (popup) { popup.document.write(html); popup.document.close(); }
                 }
             }));
