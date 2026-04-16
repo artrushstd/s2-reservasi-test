@@ -74,7 +74,7 @@
     <div x-show="isLoggedIn" style="display:none;">
     
     <!-- Loading Overlay -->
-    <div x-show="isLoading" class="fixed inset-0 z-[100] flex items-center justify-center bg-white/80 backdrop-blur-sm transition-opacity" style="display: none;">
+    <div x-show="isLoading" class="fixed inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm transition-opacity" style="display: none; z-index: 100;">
         <div class="flex flex-col items-center">
             <svg class="animate-spin h-10 w-10 text-brand-green mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             <p class="text-gray-600 font-semibold animate-pulse">Memproses Data...</p>
@@ -82,7 +82,7 @@
     </div>
 
     <!-- Toast Notifications -->
-    <div class="fixed top-5 right-5 z-[110] flex flex-col gap-3 pointer-events-none">
+    <div class="fixed top-5 right-5 flex flex-col gap-3 pointer-events-none" style="z-index: 110;">
         <template x-for="toast in toasts" :key="toast.id">
             <div x-show="toast.show" x-transition.duration.300ms class="px-6 py-4 rounded-xl shadow-xl flex items-center gap-3 text-white pointer-events-auto min-w-[300px]" :class="toast.type === 'error' ? 'bg-red-500' : 'bg-brand-green'">
                 <span class="font-bold text-sm" x-text="toast.message"></span>
@@ -135,8 +135,8 @@
     </main>
 
     <!-- Modal 1: List Reservasi Harian -->
-    <div x-show="modals.list" class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="absolute inset-0" @click="modals.list = false"></div>
+    <div x-show="modals.list" class="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none; z-index: 40;" x-transition.opacity>
+        <div class="absolute inset-0 z-0" @click="modals.list = false"></div>
         <div class="bg-white rounded-2xl w-full max-w-[95vw] max-h-[90vh] flex flex-col shadow-2xl relative z-10 mx-4" x-transition.scale.origin.bottom>
             <div class="p-5 border-b flex items-center gap-4 bg-gray-50 rounded-t-2xl">
                 <button type="button" @click="modals.list = false" class="p-2 bg-white border shadow-sm hover:bg-gray-100 text-gray-600 rounded-full transition">✕</button>
@@ -221,8 +221,8 @@
     </div>
 
     <!-- FORM MODAL (ESC DISABLED) -->
-    <div x-show="modals.form" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="absolute inset-0"></div> <!-- Klik di luar tidak menutup -->
+    <div x-show="modals.form" class="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm" style="display: none; z-index: 50;" x-transition.opacity>
+        <div class="absolute inset-0 z-0"></div> <!-- Klik di luar tidak menutup -->
         <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative z-10 max-h-[95vh] overflow-y-auto mx-4" x-transition.scale.origin.center>
             <div class="flex items-center gap-3 mb-6 border-b pb-4 border-gray-100">
                 <button type="button" @click="closeFormSafe()" class="p-2 bg-gray-50 border hover:bg-gray-100 text-gray-600 rounded-full transition">✕</button>
@@ -259,18 +259,20 @@
                         <div x-show="paxError" x-transition.opacity><p class="text-[11px] text-red-600 font-bold mt-1" x-text="paxError"></p></div>
                     </div>
                 </div>
+                
+                <!-- TOMBOL PILIH JAM & TEMPAT DUDUK (DIPERBAIKI) -->
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1.5">Pilih Jam <span class="text-red-500">*</span></label>
-                        <div @click="modals.time = true" class="w-full border-2 p-3 rounded-xl text-center font-extrabold transition select-none border-brand-green bg-green-50 text-brand-green hover:bg-green-100 shadow-sm cursor-pointer">
+                        <button type="button" @click="modals.time = true" class="w-full border-2 p-3 rounded-xl text-center font-extrabold transition select-none border-brand-green bg-green-50 text-brand-green hover:bg-green-100 shadow-sm cursor-pointer block">
                             <span x-text="formData.time ? formData.time + ' WIB' : 'Pilih Jam'"></span>
-                        </div>
+                        </button>
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1.5">Tempat Duduk <span class="text-gray-400 font-normal text-xs">(opsional)</span></label>
-                        <div @click="openSeatPicker()" class="w-full border-2 p-3 rounded-xl text-center font-extrabold transition overflow-hidden text-ellipsis whitespace-nowrap select-none" :class="!formData.time ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed opacity-70' : 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100 shadow-sm cursor-pointer'">
+                        <button type="button" @click="openSeatPicker()" class="w-full border-2 p-3 rounded-xl text-center font-extrabold transition overflow-hidden text-ellipsis whitespace-nowrap select-none block" :class="!formData.time ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed opacity-70' : 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100 shadow-sm cursor-pointer'">
                             <span x-text="formData.seats.length > 0 ? formData.seats.join(', ') : 'Pilih Kursi'"></span>
-                        </div>
+                        </button>
                     </div>
                 </div>
 
@@ -317,6 +319,7 @@
                 </div>
             </div>
 
+            <!-- TOMBOL SIMPAN & BATAL (DIPERBAIKI) -->
             <div class="mt-8 flex justify-end gap-3 border-t border-gray-100 pt-5">
                 <button type="button" @click="closeFormSafe()" class="px-5 py-2.5 border border-gray-300 rounded-xl text-gray-600 hover:bg-gray-100 font-bold transition">Batal</button>
                 <button type="button" @click="saveReservation()" class="px-6 py-2.5 bg-brand-green text-white rounded-xl hover:bg-green-700 font-bold shadow-lg transition">Simpan Data</button>
@@ -324,14 +327,44 @@
         </div>
     </div>
 
-    <!-- Modals Time & Seat -->
-    <div x-show="modals.time" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none;"><div class="absolute inset-0" @click="modals.time = false"></div><div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl relative z-10"><h3 class="text-lg font-bold mb-4">Pilih Jam</h3><div class="grid grid-cols-3 gap-3"><template x-for="time in timeSlots"><button @click="selectTime(time)" class="py-2 border-2 rounded-xl font-bold" :class="formData.time === time ? 'bg-brand-green text-white border-brand-green' : 'border-gray-200'" x-text="time"></button></template></div></div></div>
+    <!-- Modals Time & Seat (Z-INDEX DIPERBAIKI MENGGUNAKAN STYLE INLINE AGAR 100% AMAN DI SEMUA BROWSER) -->
+    <div x-show="modals.time" class="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none; z-index: 60;">
+        <div class="absolute inset-0 z-0" @click="modals.time = false"></div>
+        <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl relative z-10">
+            <h3 class="text-lg font-bold mb-4">Pilih Jam</h3>
+            <div class="grid grid-cols-3 gap-3">
+                <template x-for="time in timeSlots">
+                    <button type="button" @click="selectTime(time)" class="py-2 border-2 rounded-xl font-bold transition" :class="formData.time === time ? 'bg-brand-green text-white border-brand-green' : 'border-gray-200 hover:bg-gray-50'" x-text="time"></button>
+                </template>
+            </div>
+        </div>
+    </div>
     
-    <div x-show="modals.seat" class="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none;"><div class="absolute inset-0" @click="modals.seat = false"></div><div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative z-10 max-h-[90vh] overflow-y-auto"><h3 class="text-lg font-bold mb-4">Pilih Kursi / Meja</h3><div class="flex flex-wrap gap-1.5 mb-4"><template x-for="zone in seatZones"><button @click="selectedSeatZone = zone.label" class="px-3 h-8 rounded-lg border text-xs font-extrabold" :class="selectedSeatZone === zone.label ? 'bg-gray-800 text-white' : 'bg-white text-gray-600'" x-text="zone.label"></button></template></div><template x-for="zone in seatZones"><div x-show="selectedSeatZone === zone.label"><div class="grid grid-cols-5 gap-2"><template x-for="seat in zone.seats"><button @click="toggleSeat(seat)" class="p-2 border-2 rounded-lg font-bold text-xs" :class="{'bg-brand-green text-white border-brand-green': formData.seats.includes(seat), 'bg-gray-100 text-gray-400 cursor-not-allowed': isSeatBooked(seat) && !formData.seats.includes(seat), 'border-gray-200 bg-white': !isSeatBooked(seat) && !formData.seats.includes(seat)}" x-text="seat"></button></template></div></div></template><button @click="modals.seat = false" class="w-full mt-5 py-3 bg-gray-800 text-white font-bold rounded-xl">Selesai Pilih</button></div></div>
+    <div x-show="modals.seat" class="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none; z-index: 70;">
+        <div class="absolute inset-0 z-0" @click="modals.seat = false"></div>
+        <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative z-10 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-lg font-bold mb-4">Pilih Kursi / Meja</h3>
+            <div class="flex flex-wrap gap-1.5 mb-4">
+                <template x-for="zone in seatZones">
+                    <button type="button" @click="selectedSeatZone = zone.label" class="px-3 h-8 rounded-lg border text-xs font-extrabold transition" :class="selectedSeatZone === zone.label ? 'bg-gray-800 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'" x-text="zone.label"></button>
+                </template>
+            </div>
+            <template x-for="zone in seatZones">
+                <div x-show="selectedSeatZone === zone.label">
+                    <div class="grid grid-cols-5 gap-2">
+                        <template x-for="seat in zone.seats">
+                            <button type="button" @click="toggleSeat(seat)" class="p-2 border-2 rounded-lg font-bold text-xs transition" :class="{'bg-brand-green text-white border-brand-green': formData.seats.includes(seat), 'bg-gray-100 text-gray-400 cursor-not-allowed': isSeatBooked(seat) && !formData.seats.includes(seat), 'border-gray-200 bg-white hover:bg-gray-50': !isSeatBooked(seat) && !formData.seats.includes(seat)}" x-text="seat"></button>
+                        </template>
+                    </div>
+                </div>
+            </template>
+            <button type="button" @click="modals.seat = false" class="w-full mt-5 py-3 bg-gray-800 text-white font-bold rounded-xl transition hover:bg-gray-700 shadow-md">Selesai Pilih</button>
+        </div>
+    </div>
 
     <!-- Modal Log Aktivitas -->
-    <div x-show="modals.log" class="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm" style="display:none;" x-transition.opacity>
-        <div class="absolute inset-0" @click="modals.log = false"></div>
+    <div x-show="modals.log" class="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm" style="display: none; z-index: 80;" x-transition.opacity>
+        <div class="absolute inset-0 z-0" @click="modals.log = false"></div>
         <div class="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl relative z-10 mx-4" x-transition.scale.origin.center>
             <div class="p-5 border-b flex items-center gap-4 bg-gray-50 rounded-t-2xl">
                 <button type="button" @click="modals.log = false" class="p-2 bg-white border shadow-sm hover:bg-gray-100 text-gray-600 rounded-full transition flex items-center justify-center">✕</button>
@@ -515,7 +548,14 @@
                     this.modals.form = true;
                 },
 
-                selectTime(time) { if (this.formData.time !== time) { this.formData.time = time; this.formData.seats =[]; } this.modals.time = false; setTimeout(() => { this.modals.seat = true; }, 150); },
+                selectTime(time) { 
+                    if (this.formData.time !== time) { 
+                        this.formData.time = time; 
+                        this.formData.seats =[]; 
+                    } 
+                    this.modals.time = false; 
+                    setTimeout(() => { this.modals.seat = true; }, 150); 
+                },
                 openSeatPicker() { if (!this.formData.time) return; this.modals.seat = true; },
                 toggleSeat(seat) { 
                     if (seat === 'BUNGKUS') {
@@ -706,8 +746,10 @@
                     const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : '—';
                     const details = res.details || '- Tidak ada pesanan menu -';
                     
-                    const payStatus = (res.paymentStatus || 'DP') + ' via ' + (res.paymentMethod || 'CASH');
-                    const dpLine = (res.paymentStatus === 'DP' && res.dpAmount) ? `<div class="row"><span class="label">Jml DP (${res.paymentMethod || 'CASH'}):</span><span class="value" style="color:#d97706;font-weight:900;">${this.formatRupiah(res.dpAmount)}</span></div>` : '';
+                    // PENGGABUNGAN TEKS STATUS BAYAR & JUMLAH DP MENJADI 1 BARIS (SESUAI REQUEST)
+                    const payText = res.paymentStatus === 'Lunas' 
+                        ? `LUNAS (${res.paymentMethod || 'CASH'})` 
+                        : `DP ${res.paymentMethod || 'CASH'}: ${res.dpAmount ? this.formatRupiah(res.dpAmount) : '-'}`;
                     
                     const catatanLine = res.notes ? `<div class="row"><span class="label">Catatan Tambahan:</span><span class="value upper" style="color:#c2410c;font-weight:900;">${res.notes}</span></div>` : '';
                     const phoneLine = res.phone ? `<div class="row"><span class="label">No. HP:</span><span class="value">${res.phone}</span></div>` : '';
@@ -770,8 +812,7 @@
   ${paxLine}
   <div class="row"><span class="label">Tgl. Kedatangan:</span><span class="value">${this.formatDateLong(res.date)}</span></div>
   <div class="row"><span class="label">Jam Kedatangan:</span><span class="value jam">${res.time} WIB</span></div>
-  <div class="row"><span class="label">Status Bayar:</span><span class="value upper">${payStatus}</span></div>
-  ${dpLine}
+  <div class="row"><span class="label">Status Bayar:</span><span class="value upper" style="${res.paymentStatus === 'DP' ? 'color:#d97706;' : ''}">${payText}</span></div>
   ${catatanLine}
   <div class="row"><span class="label">Spot / Kursi:</span><span class="value upper">${seats}</span></div>
   
@@ -810,8 +851,10 @@
                         const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : '—';
                         const catatanLine = res.notes ? `<div class="row"><span class="label">Catatan:</span><span class="value upper" style="color:#c2410c;font-weight:700;">${res.notes}</span></div>` : '';
                         
-                        const payStatus = res.paymentStatus === 'Lunas' ? `LUNAS (${res.paymentMethod || 'CASH'})` : 'DP (UANG MUKA)';
-                        const dpLine = (res.paymentStatus === 'DP' && res.dpAmount) ? `<div class="row"><span class="label">DP via ${res.paymentMethod || 'CASH'}:</span><span class="value" style="color:#d97706;font-weight:900;">${this.formatRupiah(res.dpAmount)}</span></div>` : '';
+                        // PENGGABUNGAN TEKS STATUS BAYAR & JUMLAH DP MENJADI 1 BARIS (SESUAI REQUEST)
+                        const payText = res.paymentStatus === 'Lunas' 
+                            ? `LUNAS (${res.paymentMethod || 'CASH'})` 
+                            : `DP ${res.paymentMethod || 'CASH'}: ${res.dpAmount ? this.formatRupiah(res.dpAmount) : '-'}`;
                         
                         const phoneLine = res.phone ? `<div class="row"><span class="label">No.HP:</span><span class="value">${res.phone}</span></div>` : '';
                         const paxLine = res.pax ? `<div class="row"><span class="label">Pax:</span><span class="value">${res.pax}</span></div>` : '';
@@ -835,8 +878,7 @@
   ${paxLine}
   <div class="row"><span class="label">Tgl:</span><span class="value">${this.formatDateLong(res.date)}</span></div>
   <div class="row"><span class="label">Jam:</span><span class="value jam">${res.time} WIB</span></div>
-  <div class="row"><span class="label">Bayar:</span><span class="value upper">${payStatus}</span></div>
-  ${dpLine}
+  <div class="row"><span class="label">Bayar:</span><span class="value upper" style="${res.paymentStatus === 'DP' ? 'color:#d97706;' : ''}">${payText}</span></div>
   <div class="row"><span class="label">Kursi:</span><span class="value upper">${seats}</span></div>
   ${catatanLine}
   
