@@ -74,7 +74,7 @@
     <div x-show="isLoggedIn" style="display:none;">
     
     <!-- Loading Overlay -->
-    <div x-show="isLoading" class="fixed inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm transition-opacity" style="display: none; z-index: 100;">
+    <div x-show="isLoading" class="fixed inset-0 z-[100] flex items-center justify-center bg-white/80 backdrop-blur-sm transition-opacity" style="display: none;">
         <div class="flex flex-col items-center">
             <svg class="animate-spin h-10 w-10 text-brand-green mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             <p class="text-gray-600 font-semibold animate-pulse">Memproses Data...</p>
@@ -82,7 +82,7 @@
     </div>
 
     <!-- Toast Notifications -->
-    <div class="fixed top-5 right-5 flex flex-col gap-3 pointer-events-none" style="z-index: 110;">
+    <div class="fixed top-5 right-5 z-[110] flex flex-col gap-3 pointer-events-none">
         <template x-for="toast in toasts" :key="toast.id">
             <div x-show="toast.show" x-transition.duration.300ms class="px-6 py-4 rounded-xl shadow-xl flex items-center gap-3 text-white pointer-events-auto min-w-[300px]" :class="toast.type === 'error' ? 'bg-red-500' : 'bg-brand-green'">
                 <span class="font-bold text-sm" x-text="toast.message"></span>
@@ -135,9 +135,9 @@
     </main>
 
     <!-- Modal 1: List Reservasi Harian -->
-    <div x-show="modals.list" class="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none; z-index: 40;" x-transition.opacity>
-        <div class="absolute inset-0 z-0" @click="modals.list = false"></div>
-        <div class="bg-white rounded-2xl w-full max-w-[95vw] max-h-[90vh] flex flex-col shadow-2xl relative z-10 mx-4" x-transition.scale.origin.bottom>
+    <div x-show="modals.list" class="fixed inset-0 z-[40] flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none;" x-transition.opacity>
+        <div class="absolute inset-0 -z-10" @click="modals.list = false"></div>
+        <div class="bg-white rounded-2xl w-full max-w-[95vw] max-h-[90vh] flex flex-col shadow-2xl relative z-10 mx-4">
             <div class="p-5 border-b flex items-center gap-4 bg-gray-50 rounded-t-2xl">
                 <button type="button" @click="modals.list = false" class="p-2 bg-white border shadow-sm hover:bg-gray-100 text-gray-600 rounded-full transition">✕</button>
                 <h3 class="text-xl font-bold flex-1 text-gray-800">Data Reservasi: <span class="text-brand-green" x-text="selectedDateString"></span></h3>
@@ -220,10 +220,10 @@
         </div>
     </div>
 
-    <!-- FORM MODAL (ESC DISABLED) -->
-    <div x-show="modals.form" class="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm" style="display: none; z-index: 50;" x-transition.opacity>
-        <div class="absolute inset-0 z-0"></div> <!-- Klik di luar tidak menutup -->
-        <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative z-10 max-h-[95vh] overflow-y-auto mx-4" x-transition.scale.origin.center>
+    <!-- FORM MODAL (Z-INDEX SUPER AMAN DAN TANPA INNER TRANSITION) -->
+    <div x-show="modals.form" class="fixed inset-0 z-[50] flex items-center justify-center bg-black/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
+        <div class="absolute inset-0 -z-10"></div> <!-- Klik di luar tidak menutup -->
+        <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative z-10 max-h-[95vh] overflow-y-auto mx-4">
             <div class="flex items-center gap-3 mb-6 border-b pb-4 border-gray-100">
                 <button type="button" @click="closeFormSafe()" class="p-2 bg-gray-50 border hover:bg-gray-100 text-gray-600 rounded-full transition">✕</button>
                 <h3 class="text-xl font-extrabold flex-1 text-gray-800" x-text="formData.id ? 'Edit Data Reservasi' : 'Form Reservasi Baru'"></h3>
@@ -264,13 +264,13 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1.5">Pilih Jam <span class="text-red-500">*</span></label>
-                        <button type="button" @click="modals.time = true" class="w-full border-2 p-3 rounded-xl text-center font-extrabold transition select-none border-brand-green bg-green-50 text-brand-green hover:bg-green-100 shadow-sm cursor-pointer block">
+                        <button type="button" @click="modals.time = true" class="w-full border-2 p-3 rounded-xl text-center font-extrabold transition select-none border-brand-green bg-green-50 text-brand-green hover:bg-green-100 shadow-sm cursor-pointer">
                             <span x-text="formData.time ? formData.time + ' WIB' : 'Pilih Jam'"></span>
                         </button>
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1.5">Tempat Duduk <span class="text-gray-400 font-normal text-xs">(opsional)</span></label>
-                        <button type="button" @click="openSeatPicker()" class="w-full border-2 p-3 rounded-xl text-center font-extrabold transition overflow-hidden text-ellipsis whitespace-nowrap select-none block" :class="!formData.time ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed opacity-70' : 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100 shadow-sm cursor-pointer'">
+                        <button type="button" @click="openSeatPicker()" class="w-full border-2 p-3 rounded-xl text-center font-extrabold transition overflow-hidden text-ellipsis whitespace-nowrap select-none" :class="!formData.time ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed opacity-70' : 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100 shadow-sm cursor-pointer'">
                             <span x-text="formData.seats.length > 0 ? formData.seats.join(', ') : 'Pilih Kursi'"></span>
                         </button>
                     </div>
@@ -327,9 +327,9 @@
         </div>
     </div>
 
-    <!-- Modals Time & Seat (Z-INDEX DIPERBAIKI MENGGUNAKAN STYLE INLINE AGAR 100% AMAN DI SEMUA BROWSER) -->
-    <div x-show="modals.time" class="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none; z-index: 60;">
-        <div class="absolute inset-0 z-0" @click="modals.time = false"></div>
+    <!-- Modals Time & Seat (Z-INDEX SUPER AMAN 60 & 70) -->
+    <div x-show="modals.time" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none;">
+        <div class="absolute inset-0 -z-10" @click="modals.time = false"></div>
         <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl relative z-10">
             <h3 class="text-lg font-bold mb-4">Pilih Jam</h3>
             <div class="grid grid-cols-3 gap-3">
@@ -340,8 +340,8 @@
         </div>
     </div>
     
-    <div x-show="modals.seat" class="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none; z-index: 70;">
-        <div class="absolute inset-0 z-0" @click="modals.seat = false"></div>
+    <div x-show="modals.seat" class="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none;">
+        <div class="absolute inset-0 -z-10" @click="modals.seat = false"></div>
         <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative z-10 max-h-[90vh] overflow-y-auto">
             <h3 class="text-lg font-bold mb-4">Pilih Kursi / Meja</h3>
             <div class="flex flex-wrap gap-1.5 mb-4">
@@ -363,9 +363,9 @@
     </div>
 
     <!-- Modal Log Aktivitas -->
-    <div x-show="modals.log" class="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm" style="display: none; z-index: 80;" x-transition.opacity>
-        <div class="absolute inset-0 z-0" @click="modals.log = false"></div>
-        <div class="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl relative z-10 mx-4" x-transition.scale.origin.center>
+    <div x-show="modals.log" class="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
+        <div class="absolute inset-0 -z-10" @click="modals.log = false"></div>
+        <div class="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl relative z-10 mx-4">
             <div class="p-5 border-b flex items-center gap-4 bg-gray-50 rounded-t-2xl">
                 <button type="button" @click="modals.log = false" class="p-2 bg-white border shadow-sm hover:bg-gray-100 text-gray-600 rounded-full transition flex items-center justify-center">✕</button>
                 <div class="flex-1">
@@ -457,12 +457,13 @@
                 getSeats(res) { if (!res) return[]; if (Array.isArray(res.seats) && res.seats.length > 0) return res.seats; if (res.seat) return[res.seat]; return[]; },
                 showToast(message, type = 'success') { const id = this.toastCount++; this.toasts.push({ id, message, type, show: true }); setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 3000); },
 
+                // Perbaikan logic Escape: menutup yang teratas (Time/Seat) dulu, tanpa terblokir Form
                 handleEscape(e) {
-                    if (this.modals.form) { e.preventDefault(); return; }
-                    if (this.modals.time) this.modals.time = false;
-                    else if (this.modals.seat) this.modals.seat = false;
-                    else if (this.modals.log) this.modals.log = false;
-                    else if (this.modals.list) this.modals.list = false;
+                    if (this.modals.time) { this.modals.time = false; return; }
+                    if (this.modals.seat) { this.modals.seat = false; return; }
+                    if (this.modals.form) { e.preventDefault(); return; } // mencegah tertutup form secara tdk sengaja
+                    if (this.modals.log) { this.modals.log = false; return; }
+                    if (this.modals.list) { this.modals.list = false; return; }
                 },
 
                 closeFormSafe() {
@@ -746,7 +747,6 @@
                     const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : '—';
                     const details = res.details || '- Tidak ada pesanan menu -';
                     
-                    // PENGGABUNGAN TEKS STATUS BAYAR & JUMLAH DP MENJADI 1 BARIS (SESUAI REQUEST)
                     const payText = res.paymentStatus === 'Lunas' 
                         ? `LUNAS (${res.paymentMethod || 'CASH'})` 
                         : `DP ${res.paymentMethod || 'CASH'}: ${res.dpAmount ? this.formatRupiah(res.dpAmount) : '-'}`;
@@ -791,7 +791,9 @@
   .row .value.upper { text-transform: uppercase; }
   
   .notes-label { font-weight: 900; color: #1a1a1a; font-size: 11pt; margin-top: 15px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; break-after: avoid; }
-  .notes-box { font-size: 10.5pt; font-weight: 600; white-space: pre-wrap; line-height: 1.6; }
+  
+  /* PERBAIKAN: DETAIL MENU DIBUAT 2 KOLOM */
+  .notes-box { font-size: 10.5pt; font-weight: 600; white-space: pre-wrap; line-height: 1.6; column-count: 2; column-gap: 15px; column-rule: 1px dashed #d1d5db; word-break: break-word; }
   
   .rules { margin-top: 20px; text-align: center; font-size: 8pt; color: #6b7280; line-height: 1.6; font-weight: 700; text-transform: uppercase; break-inside: avoid; }
   .ticket-meta { display: flex; justify-content: space-between; font-size: 7.5pt; color: #6b7280; margin-top: 10px; border-top: 2px solid #1a1a1a; padding-top: 8px; break-inside: avoid; line-height: 1.4; font-weight: 600; }
@@ -851,7 +853,6 @@
                         const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : '—';
                         const catatanLine = res.notes ? `<div class="row"><span class="label">Catatan:</span><span class="value upper" style="color:#c2410c;font-weight:700;">${res.notes}</span></div>` : '';
                         
-                        // PENGGABUNGAN TEKS STATUS BAYAR & JUMLAH DP MENJADI 1 BARIS (SESUAI REQUEST)
                         const payText = res.paymentStatus === 'Lunas' 
                             ? `LUNAS (${res.paymentMethod || 'CASH'})` 
                             : `DP ${res.paymentMethod || 'CASH'}: ${res.dpAmount ? this.formatRupiah(res.dpAmount) : '-'}`;
