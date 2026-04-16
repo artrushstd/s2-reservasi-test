@@ -210,9 +210,9 @@
                                             <div class="text-gray-500 text-[10px] mt-0.5 truncate max-w-[200px]" x-text="res.details || ''" :title="res.details"></div>
                                         </td>
                                         <td class="p-4 text-center space-x-1">
-                                            <button type="button" @click="printTicket(res)" class="p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition shadow-sm" title="Print Tiket">️</button>
+                                            <button type="button" @click="printTicket(res)" class="p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition shadow-sm" title="Print Tiket">️🖨️</button>
                                             <button x-show="!isPastDate(selectedDate)" type="button" @click="openForm(res)" class="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition shadow-sm" title="Edit">✏️</button>
-                                            <button type="button" @click="deleteRes(res.id)" class="p-2 bg-brand-red text-white rounded-lg hover:bg-red-700 transition shadow-sm" title="Hapus">️</button>
+                                            <button type="button" @click="deleteRes(res.id)" class="p-2 bg-brand-red text-white rounded-lg hover:bg-red-700 transition shadow-sm" title="Hapus">️🗑️</button>
                                         </td>
                                     </tr>
                                 </template>
@@ -507,10 +507,9 @@
                 },
 
                 closeFormSafe() {
-                    // Cek apakah ada data yang belum disimpan sebelum menutup
                     const hasData = this.formData.name || this.formData.time || this.formData.seats.length > 0;
                     
-                    if (hasData && !this.formData.id) { // Jika form baru dan ada data
+                    if (hasData && !this.formData.id) { 
                         if (confirm('Yakin ingin membatalkan pengisian form? Data akan hilang.')) { 
                             this.modals.form = false; 
                             this.resetForm(); 
@@ -549,7 +548,8 @@
                         if (error) throw error;
                         this.reservations = (data ||[]).map(r => ({
                             ...r, paymentStatus: r.paymentStatus || r.paymentstatus || 'DP', paymentMethod: r.paymentMethod || r.paymentmethod || 'Cash',
-                            orderType: r.orderType || r.ordertype || 'WA',
+                            // FIX: Menangani properti sesuai schema di tabel (order_type)
+                            orderType: r.order_type || r.orderType || r.ordertype || 'WA',
                             createdAt: r.createdAt || r.createdat || null, 
                             updatedAt: r.updatedAt || r.updated_at || null,
                             seats: Array.isArray(r.seats) ? r.seats : (r.seat ? [r.seat] :[]),
@@ -606,21 +606,11 @@
                 },
 
                 selectTime(time) { 
-                    // Simpan waktu yang dipilih
                     this.formData.time = time; 
-                    
-                    // Reset kursi jika waktu berubah (opsional, sesuai logika lama Anda)
                     if (this.formData.seats.length > 0) {
-                        // Opsional: tampilkan konfirmasi jika ingin reset kursi, 
-                        // atau biarkan saja jika user hanya mengubah jam sedikit.
-                        // Di sini kita ikuti logika lama Anda yang mereset:
-                        this.formData.seats = []; 
+                        this.formData.seats =[]; 
                     }
-                    
-                    // Tutup modal waktu
                     this.modals.time = false; 
-                    
-                    // Buka modal kursi setelah jeda singkat agar transisi mulus
                     setTimeout(() => { 
                         this.modals.seat = true; 
                     }, 150); 
@@ -678,8 +668,9 @@
                         const dateStr = this.getFormattedDate(this.selectedDate);
                         const dpAmountVal = (this.formData.paymentStatus === 'DP' && this.formData.dpAmount > 0) ? this.formData.dpAmount : null;
                         
+                        // FIX: Menyesuaikan parameter payload dengan nama kolom secara eksak pada database
                         const payload = { 
-                            orderType: this.formData.orderType,
+                            order_type: this.formData.orderType, // Di DB namanya order_type (bukan orderType)
                             name: this.formData.name.trim(), 
                             date: dateStr, 
                             time: this.formData.time, 
@@ -688,9 +679,9 @@
                             notes: this.formData.notes || null, 
                             paymentStatus: this.formData.paymentStatus, 
                             paymentMethod: this.formData.paymentMethod, 
-                            dpAmount: dpAmountVal, 
+                            dpAmount: dpAmountVal !== null ? String(dpAmountVal) : null, // Cast ke String karena kolom tipe text
                             phone: this.formData.phone || null, 
-                            pax: paxVal 
+                            pax: paxVal !== null ? String(paxVal) : null // Cast ke String karena kolom tipe text
                         };
                         
                         if (this.formData.id) { 
