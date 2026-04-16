@@ -406,7 +406,7 @@
                     { label: 'R', seats: Array.from({length:24}, (_,i)=>'R'+(i+1)) }, 
                     { label: 'RM', seats: Array.from({length:10}, (_,i)=>'RM'+(i+1)) }, 
                     { label: 'Cafe', seats: Array.from({length:10}, (_,i)=>'Cafe'+(i+1))},
-                    { label: 'Bungkus', seats: ['BUNGKUS']}
+                    { label: 'Bungkus', seats:['BUNGKUS']}
                 ],
                 
                 selectedSeatZone: 'A', currentDate: new Date(), currentMonth: new Date().getMonth(), currentYear: new Date().getFullYear(), selectedDate: null,
@@ -421,7 +421,7 @@
                 onPhoneInput(event) { const el = event.target; const raw = el.value.replace(/\D/g, ''); this.formData.phone = raw; el.value = raw; },
                 onDpInput(event) { const el = event.target; const raw = el.value.replace(/\D/g, ''); this.formData.dpAmountDisplay = raw ? parseInt(raw, 10).toLocaleString('id-ID') : ''; this.formData.dpAmount = raw ? parseInt(raw, 10) : null; },
                 onDpFocus(event) { event.target.select(); }, onDpBlur(event) { if (this.formData.dpAmount === 0) { this.formData.dpAmount = null; this.formData.dpAmountDisplay = ''; } },
-                getSeats(res) { if (!res) return[]; if (Array.isArray(res.seats) && res.seats.length > 0) return res.seats; if (res.seat) return [res.seat]; return[]; },
+                getSeats(res) { if (!res) return[]; if (Array.isArray(res.seats) && res.seats.length > 0) return res.seats; if (res.seat) return[res.seat]; return[]; },
                 showToast(message, type = 'success') { const id = this.toastCount++; this.toasts.push({ id, message, type, show: true }); setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 3000); },
 
                 handleEscape(e) {
@@ -799,7 +799,7 @@
                     if (popup) { popup.document.write(html); popup.document.close(); } else { this.showToast('Izinkan popup!', 'error'); }
                 },
 
-                // ════════════ CETAK HARIAN (2 per page - Layout Landscape/A5 Portrait) ════════════
+                // ════════════ CETAK HARIAN (2 per page - Layout Portrait Kiri Kanan) ════════════
                 printDay() {
                     const list =[...this.dayReservations].sort((a,b)=>(a.time||'').localeCompare(b.time||''));
                     if (list.length === 0) return;
@@ -822,8 +822,13 @@
                         const updatedStr = res.updatedBy ? `<br>Diubah : ${updatedTime} oleh ${res.updatedBy}` : '';
 
                         return `
-<div class="ticket"><div class="watermark">S2</div>
-  <div class="header"><h1>Pemancingan Suharno 2</h1><p>E-TIKET RESERVASI RESMI</p></div>
+<div class="ticket">
+  <div class="watermark">S2</div>
+  <div class="header">
+    <h1>Pemancingan Suharno 2</h1>
+    <p>E-TIKET RESERVASI RESMI</p>
+  </div>
+  
   <div class="row"><span class="label">No:</span><span class="value id">${res.id}</span></div>
   <div class="row"><span class="label">Nama:</span><span class="value upper">${res.name} (${res.orderType || 'WA'})</span></div>
   ${phoneLine}
@@ -834,8 +839,10 @@
   ${dpLine}
   <div class="row"><span class="label">Kursi:</span><span class="value upper">${seats}</span></div>
   ${catatanLine}
+  
   <div class="notes-label">🍽 Menu:</div>
   <div class="notes-box">${res.details || '- Tidak ada -'}</div>
+  
   <div class="footer">
      <p>Kursi berlaku maks. 3 jam.</p>
      <div class="meta-print">
@@ -855,35 +862,44 @@
 
                     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Tiket Harian</title>
 <style>
-  @page { size: A4 landscape; margin: 0; }
+  @page { size: A4 portrait; margin: 0; }
   * { margin:0; padding:0; box-sizing:border-box; }
-  html, body { width:297mm; background:white; font-family:'Segoe UI',sans-serif; color:#1a1a1a; }
-  .page { width:297mm; height:210mm; display:grid; grid-template-columns:148.5mm 148.5mm; grid-template-rows:210mm; }
-  .page-break { page-break-after:always; }
-  .ticket { width:148.5mm; height:210mm; border:1px dashed #9ca3af; padding:10mm; display:flex; flex-direction:column; position:relative; font-size:10pt; }
-  .ticket-empty { background:#f9fafb; border:none; border-right:1px dashed #e5e7eb; border-bottom:1px dashed #e5e7eb; }
-  .watermark { position:absolute; top:15px; right:20px; font-size:36px; font-weight:900; color:#e5e7eb; }
-  .header { text-align:center; border-bottom:2px dashed #9ca3af; padding-bottom:8px; margin-bottom:8px; }
-  .header h1 { font-size:14pt; font-weight:900; text-transform:uppercase; letter-spacing:1.5px; }
-  .header p  { font-size:9pt; color:#6b7280; font-weight:600; margin-top:2px; }
-  .row { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e5e7eb; padding:5px 0; }
-  .row .label { font-weight:700; color:#6b7280; font-size:9.5pt; white-space:nowrap; }
-  .row .value { font-weight:700; font-size:10pt; text-align:right; max-width:65%; }
-  .row .value.id { font-family:monospace; font-size:9.5pt; }
-  .row .value.jam { border:2px solid #1a1a1a; padding:2px 8px; border-radius:4px; }
-  .row .value.upper { text-transform:uppercase; }
-  .notes-label { font-weight:900; color:#1a1a1a; font-size:11pt; margin-top:10px; margin-bottom:6px; text-transform:uppercase; }
+  html, body { width:210mm; background:white; font-family:'Segoe UI',sans-serif; color:#1a1a1a; }
   
-  /* Bagian Box Menu 2 Kolom */
-  .notes-box { padding:8px 10px; background:#f9fafb; border:1px solid #d1d5db; border-radius:6px; font-size:10pt; font-weight:600; white-space:pre-wrap; flex:1; overflow:hidden; line-height:1.6; column-count: 2; column-gap: 15px; column-rule: 1px dashed #d1d5db; word-break: break-word; }
+  /* GRID: 2 Kolom Kiri Kanan (Masing-masing 105mm width, Tinggi 297mm full A4 vertikal) */
+  .page { width:210mm; height:297mm; display:grid; grid-template-columns:105mm 105mm; grid-template-rows:297mm; }
+  .page-break { page-break-after:always; }
+  
+  /* Tiket menyesuaikan kolom width=105mm & height=297mm */
+  .ticket { width:105mm; height:297mm; border-right:1px dashed #9ca3af; padding:8mm; display:flex; flex-direction:column; position:relative; font-size:9.5pt; }
+  .ticket:nth-child(2n) { border-right:none; }
+  .ticket-empty { background:#f9fafb; border:none; }
+  
+  .watermark { position:absolute; top:15px; right:15px; font-size:28px; font-weight:900; color:#e5e7eb; }
+  .header { text-align:center; border-bottom:2px dashed #9ca3af; padding-bottom:8px; margin-bottom:8px; }
+  .header h1 { font-size:12pt; font-weight:900; text-transform:uppercase; letter-spacing:1px; }
+  .header p  { font-size:7.5pt; color:#6b7280; font-weight:600; margin-top:2px; }
+  
+  .row { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e5e7eb; padding:5px 0; }
+  .row .label { font-weight:700; color:#6b7280; font-size:8.5pt; white-space:nowrap; }
+  .row .value { font-weight:700; font-size:9pt; text-align:right; max-width:65%; }
+  .row .value.id { font-family:monospace; font-size:8.5pt; }
+  .row .value.jam { border:2px solid #1a1a1a; padding:2px 6px; border-radius:4px; }
+  .row .value.upper { text-transform:uppercase; }
+  
+  .notes-label { font-weight:900; color:#1a1a1a; font-size:10pt; margin-top:10px; margin-bottom:6px; text-transform:uppercase; }
+  
+  /* Box Menu disesuaikan ke layout Vertikal (2 Kolom Mengalir) */
+  .notes-box { padding:8px; background:#f9fafb; border:1px solid #d1d5db; border-radius:6px; font-size:9pt; font-weight:600; white-space:pre-wrap; flex:1; overflow:hidden; line-height:1.5; column-count: 2; column-gap: 10px; column-rule: 1px dashed #d1d5db; word-break: break-word; }
   
   .footer { margin-top:auto; border-top:2px solid #1a1a1a; padding-top:8px; display:flex; flex-direction:column; gap:6px; }
-  .footer p { text-align:center; font-size:8pt; color:#6b7280; text-transform:uppercase; font-weight:700; margin-bottom: 2px; }
-  .meta-print { display:flex; justify-content:space-between; font-size:7.5pt; color:#9ca3af; font-weight:600; line-height:1.4; }
-  .meta-print .left { text-align:left; max-width: 60%; }
-  .meta-print .right { text-align:right; max-width: 40%; }
+  .footer p { text-align:center; font-size:7pt; color:#6b7280; text-transform:uppercase; font-weight:700; margin-bottom: 2px; }
+  
+  .meta-print { display:flex; justify-content:space-between; font-size:6.5pt; color:#9ca3af; font-weight:600; line-height:1.4; }
+  .meta-print .left { text-align:left; max-width: 55%; }
+  .meta-print .right { text-align:right; max-width: 45%; }
 </style></head><body>${pages}<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script></body></html>`;
-                    const popup = window.open('', '_blank', 'width=900,height=700');
+                    const popup = window.open('', '_blank', 'width=900,height=800');
                     if (popup) { popup.document.write(html); popup.document.close(); }
                 }
             }));
