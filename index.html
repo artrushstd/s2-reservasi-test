@@ -32,6 +32,8 @@
         .dp-input-wrap .prefix { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-weight: 700; color: #6b7280; font-size: 14px; pointer-events: none; user-select: none; }
         .dp-input-wrap input { padding-left: 36px; }
         .past-date { opacity: 0.65; background-color: #f9fafb !important; }
+        /* Mencegah highlight biru pada mobile saat tap */
+        * { -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans antialiased" x-data="reservationApp()" x-init="checkSession(); if(isLoggedIn) initApp();" @keydown.escape.window="handleEscape($event)">
@@ -39,7 +41,7 @@
     <!-- ══════════════ HALAMAN LOGIN ══════════════ -->
     <div id="login-page" x-show="!isLoggedIn" style="display:none;" class="flex items-center justify-center relative">
         <div class="absolute inset-0 overflow-hidden pointer-events-none">
-            <div class="absolute text-white opacity-[0.04] text-8xl" style="top:8%;left:4%;animation:floatFish 12s ease-in-out infinite;">🐟</div>
+            <div class="absolute text-white opacity-[0.04] text-8xl" style="top:8%;left:4%;animation:floatFish 12s ease-in-out infinite;"></div>
             <div class="absolute text-white opacity-[0.04] text-9xl" style="top:60%;left:78%;animation:floatFish 12s ease-in-out infinite;animation-delay:-4s;">🎣</div>
             <div class="absolute text-white opacity-[0.04] text-6xl" style="top:78%;left:18%;animation:floatFish 12s ease-in-out infinite;animation-delay:-8s;">🐠</div>
         </div>
@@ -136,9 +138,7 @@
 
     <!-- Modal 1: List Reservasi Harian -->
     <div x-show="modals.list" style="display: none; z-index: 40;" class="fixed inset-0" x-transition.opacity>
-        <!-- Overlay transparan yang bisa diklik untuk menutup modal -->
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm pointer-events-auto" @click="modals.list = false"></div>
-        <!-- Wrapper Modal -->
         <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
             <div class="bg-white rounded-2xl w-full max-w-[95vw] h-[90vh] flex flex-col shadow-2xl relative pointer-events-auto">
                 <div class="p-5 border-b flex items-center gap-4 bg-gray-50 rounded-t-2xl shrink-0">
@@ -187,7 +187,7 @@
                                             <div class="font-bold text-gray-900 text-base" x-text="res.name"></div>
                                             <div class="text-gray-500 text-xs mt-0.5" x-text="res.phone ? '📞 ' + res.phone : ''"></div>
                                             <div class="text-gray-600 font-semibold text-xs mt-1" x-text="res.pax ? '👥 ' + res.pax + ' pax' : ''"></div>
-                                            <div class="mt-1.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold border shadow-sm" :class="(res.orderType || 'WA') === 'OTS' ? 'bg-purple-100 text-purple-800 border-purple-300' : 'bg-blue-100 text-blue-800 border-blue-300'" x-text="(res.orderType || 'WA') === 'OTS' ? '🚶 On The Spot (OTS)' : '📱 WhatsApp (WA)'"></span></div>
+                                            <div class="mt-1.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold border shadow-sm" :class="(res.orderType || 'WA') === 'OTS' ? 'bg-purple-100 text-purple-800 border-purple-300' : 'bg-blue-100 text-blue-800 border-blue-300'" x-text="(res.orderType || 'WA') === 'OTS' ? '🚶 On The Spot (OTS)' : ' WhatsApp (WA)'"></span></div>
                                         </td>
                                         <td class="p-4">
                                             <div class="flex flex-col gap-1.5 items-start">
@@ -210,9 +210,9 @@
                                             <div class="text-gray-500 text-[10px] mt-0.5 truncate max-w-[200px]" x-text="res.details || ''" :title="res.details"></div>
                                         </td>
                                         <td class="p-4 text-center space-x-1">
-                                            <button type="button" @click="printTicket(res)" class="p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition shadow-sm" title="Print Tiket">🖨️</button>
+                                            <button type="button" @click="printTicket(res)" class="p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition shadow-sm" title="Print Tiket">️</button>
                                             <button x-show="!isPastDate(selectedDate)" type="button" @click="openForm(res)" class="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition shadow-sm" title="Edit">✏️</button>
-                                            <button type="button" @click="deleteRes(res.id)" class="p-2 bg-brand-red text-white rounded-lg hover:bg-red-700 transition shadow-sm" title="Hapus">🗑️</button>
+                                            <button type="button" @click="deleteRes(res.id)" class="p-2 bg-brand-red text-white rounded-lg hover:bg-red-700 transition shadow-sm" title="Hapus">️</button>
                                         </td>
                                     </tr>
                                 </template>
@@ -224,29 +224,32 @@
         </div>
     </div>
 
-    <!-- FORM MODAL (FIX LAYER KLIK DAN TOMBOL MACET) -->
-    <div x-show="modals.form" style="display: none; z-index: 50;" class="fixed inset-0" x-transition.opacity>
-        <!-- Overlay Background -->
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto"></div>
-        <!-- Modal Card Wrapper -->
+    <!-- FORM MODAL (FIXED LAYER & BUTTONS) -->
+    <!-- Z-Index 60: Di atas List (40), di bawah Time (70) -->
+    <div x-show="modals.form" style="display: none; z-index: 60;" class="fixed inset-0" x-transition.opacity>
+        <!-- Overlay dengan click.stop agar tidak menutup modal lain secara tidak sengaja -->
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto" @click.stop="closeFormSafe()"></div>
+        
         <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
-            <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl relative pointer-events-auto flex flex-col max-h-[95vh]">
+            <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl relative pointer-events-auto flex flex-col max-h-[95vh]" @click.stop>
                 <!-- Header -->
-                <div class="flex items-center gap-3 p-5 border-b border-gray-100 shrink-0">
-                    <button type="button" @click="closeFormSafe()" class="p-2 bg-gray-50 border shadow-sm hover:bg-gray-100 text-gray-600 rounded-full transition">✕</button>
+                <div class="flex items-center gap-3 p-5 border-b border-gray-100 shrink-0 bg-white rounded-t-2xl sticky top-0 z-10">
+                    <button type="button" @click="closeFormSafe()" class="p-2 bg-gray-50 border shadow-sm hover:bg-gray-100 text-gray-600 rounded-full transition focus:outline-none">✕</button>
                     <h3 class="text-xl font-extrabold flex-1 text-gray-800" x-text="formData.id ? 'Edit Data Reservasi' : 'Form Reservasi Baru'"></h3>
                 </div>
                 
                 <!-- Body -->
-                <div class="p-6 overflow-y-auto space-y-5 flex-1">
+                <div class="p-6 overflow-y-auto space-y-5 flex-1 bg-white">
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-2">Jenis Order (Sumber) <span class="text-red-500">*</span></label>
                         <div class="flex gap-3">
-                            <label class="flex items-center justify-center gap-2 cursor-pointer border-2 p-3 rounded-xl flex-1 transition bg-white" :class="formData.orderType === 'WA' ? 'border-brand-green ring-2 ring-brand-green/20 bg-green-50' : 'border-gray-200 hover:border-brand-green'">
+                            <label class="flex items-center justify-center gap-2 cursor-pointer border-2 p-3 rounded-xl flex-1 transition bg-white select-none" 
+                                   :class="formData.orderType === 'WA' ? 'border-brand-green ring-2 ring-brand-green/20 bg-green-50' : 'border-gray-200 hover:border-brand-green'">
                                 <input type="radio" x-model="formData.orderType" value="WA" class="hidden">
                                 <span class="font-bold text-sm" :class="formData.orderType === 'WA' ? 'text-brand-green' : 'text-gray-600'">📱 WhatsApp (WA)</span>
                             </label>
-                            <label class="flex items-center justify-center gap-2 cursor-pointer border-2 p-3 rounded-xl flex-1 transition bg-white" :class="formData.orderType === 'OTS' ? 'border-brand-green ring-2 ring-brand-green/20 bg-green-50' : 'border-gray-200 hover:border-brand-green'">
+                            <label class="flex items-center justify-center gap-2 cursor-pointer border-2 p-3 rounded-xl flex-1 transition bg-white select-none" 
+                                   :class="formData.orderType === 'OTS' ? 'border-brand-green ring-2 ring-brand-green/20 bg-green-50' : 'border-gray-200 hover:border-brand-green'">
                                 <input type="radio" x-model="formData.orderType" value="OTS" class="hidden">
                                 <span class="font-bold text-sm" :class="formData.orderType === 'OTS' ? 'text-brand-green' : 'text-gray-600'">🚶 On The Spot (OTS)</span>
                             </label>
@@ -255,7 +258,9 @@
                     
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1.5">Nama Pemesan <span class="text-red-500">*</span></label>
-                        <input type="text" id="inputName" x-model="formData.name" @input="nameError = ''" class="w-full border p-3 rounded-xl outline-none transition bg-gray-50 focus:bg-white" :class="nameError ? 'border-red-400 focus:ring-red-500 text-red-700' : 'border-gray-200 focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green'" placeholder="Masukkan nama lengkap">
+                        <input type="text" id="inputName" x-model="formData.name" @input="nameError = ''" class="w-full border p-3 rounded-xl outline-none transition bg-gray-50 focus:bg-white" 
+                               :class="nameError ? 'border-red-400 focus:ring-red-500 text-red-700' : 'border-gray-200 focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green'" 
+                               placeholder="Masukkan nama lengkap">
                         <div x-show="nameError" x-transition.opacity><p class="text-sm text-red-600 font-bold mt-1.5" x-text="nameError"></p></div>
                     </div>
                     
@@ -266,7 +271,9 @@
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-1.5">Jumlah Pax <span class="text-gray-400 font-normal text-xs">(opsional)</span></label>
-                            <input type="number" min="1" x-model="formData.pax" @input="paxError = ''" class="w-full border p-3 rounded-xl outline-none transition bg-gray-50 focus:bg-white" :class="paxError ? 'border-red-400 focus:ring-red-500 text-red-700' : 'border-gray-200 focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green'" placeholder="Misal: 4">
+                            <input type="number" min="1" x-model="formData.pax" @input="paxError = ''" class="w-full border p-3 rounded-xl outline-none transition bg-gray-50 focus:bg-white" 
+                                   :class="paxError ? 'border-red-400 focus:ring-red-500 text-red-700' : 'border-gray-200 focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green'" 
+                                   placeholder="Misal: 4">
                             <div x-show="paxError" x-transition.opacity><p class="text-[11px] text-red-600 font-bold mt-1" x-text="paxError"></p></div>
                         </div>
                     </div>
@@ -274,13 +281,16 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-1.5">Pilih Jam <span class="text-red-500">*</span></label>
-                            <button type="button" @click="modals.time = true" class="w-full border-2 p-3 rounded-xl text-center font-extrabold transition select-none border-brand-green bg-green-50 text-brand-green hover:bg-green-100 shadow-sm cursor-pointer block">
+                            <!-- Tombol Buka Modal Jam -->
+                            <button type="button" @click.stop="modals.time = true" class="w-full border-2 p-3 rounded-xl text-center font-extrabold transition select-none border-brand-green bg-green-50 text-brand-green hover:bg-green-100 shadow-sm cursor-pointer block">
                                 <span x-text="formData.time ? formData.time + ' WIB' : 'Pilih Jam'"></span>
                             </button>
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-1.5">Tempat Duduk <span class="text-gray-400 font-normal text-xs">(opsional)</span></label>
-                            <button type="button" @click="openSeatPicker()" class="w-full border-2 p-3 rounded-xl text-center font-extrabold transition overflow-hidden text-ellipsis whitespace-nowrap select-none block" :class="!formData.time ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed opacity-70' : 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100 shadow-sm cursor-pointer'">
+                            <!-- Tombol Buka Modal Kursi -->
+                            <button type="button" @click.stop="openSeatPicker()" class="w-full border-2 p-3 rounded-xl text-center font-extrabold transition overflow-hidden text-ellipsis whitespace-nowrap select-none block" 
+                                    :class="!formData.time ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed opacity-70' : 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100 shadow-sm cursor-pointer'">
                                 <span x-text="formData.seats.length > 0 ? formData.seats.join(', ') : 'Pilih Kursi'"></span>
                             </button>
                         </div>
@@ -289,11 +299,13 @@
                     <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
                         <label class="block text-sm font-bold text-gray-800 mb-3">Status Pembayaran</label>
                         <div class="flex gap-3 mb-4">
-                            <label class="flex items-center gap-2 cursor-pointer border-2 p-2.5 rounded-lg flex-1 transition bg-white" :class="formData.paymentStatus === 'DP' ? 'border-orange-400 ring-2 ring-orange-400/20' : 'border-gray-200 hover:border-orange-300'">
+                            <label class="flex items-center gap-2 cursor-pointer border-2 p-2.5 rounded-lg flex-1 transition bg-white select-none" 
+                                   :class="formData.paymentStatus === 'DP' ? 'border-orange-400 ring-2 ring-orange-400/20' : 'border-gray-200 hover:border-orange-300'">
                                 <input type="radio" x-model="formData.paymentStatus" value="DP" class="hidden">
                                 <span class="font-bold text-sm text-gray-700">DP (Uang Muka)</span>
                             </label>
-                            <label class="flex items-center gap-2 cursor-pointer border-2 p-2.5 rounded-lg flex-1 transition bg-white" :class="formData.paymentStatus === 'Lunas' ? 'border-green-500 ring-2 ring-green-500/20' : 'border-gray-200 hover:border-green-300'">
+                            <label class="flex items-center gap-2 cursor-pointer border-2 p-2.5 rounded-lg flex-1 transition bg-white select-none" 
+                                   :class="formData.paymentStatus === 'Lunas' ? 'border-green-500 ring-2 ring-green-500/20' : 'border-gray-200 hover:border-green-300'">
                                 <input type="radio" x-model="formData.paymentStatus" value="Lunas" class="hidden">
                                 <span class="font-bold text-sm text-gray-700">Lunas</span>
                             </label>
@@ -301,8 +313,9 @@
                         <div class="mb-4">
                             <label class="block text-xs font-bold text-gray-500 mb-2">Pilih Metode Pembayaran</label>
                             <div class="flex gap-2">
-                                <template x-for="method in['Transfer', 'Qris', 'EDC', 'Cash']">
-                                    <label class="flex-1 flex items-center justify-center gap-1 cursor-pointer border-2 py-2 px-1 rounded-lg transition bg-white" :class="formData.paymentMethod === method ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm' : 'border-gray-200 text-gray-500 hover:border-gray-300'">
+                                <template x-for="method in ['Transfer', 'Qris', 'EDC', 'Cash']">
+                                    <label class="flex-1 flex items-center justify-center gap-1 cursor-pointer border-2 py-2 px-1 rounded-lg transition bg-white select-none" 
+                                           :class="formData.paymentMethod === method ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm' : 'border-gray-200 text-gray-500 hover:border-gray-300'">
                                         <input type="radio" x-model="formData.paymentMethod" :value="method" class="hidden">
                                         <span class="font-bold text-xs uppercase tracking-wide" x-text="method"></span>
                                     </label>
@@ -320,16 +333,16 @@
 
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1.5">Catatan Tambahan <span class="text-gray-400 font-normal text-xs">(maks 30 karakter, opsional)</span></label>
-                        <input type="text" maxlength="30" x-model="formData.notes" class="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green outline-none transition bg-gray-50 focus:bg-white" placeholder="Contoh: Sound + MIC, makan keluar jam...">
+                        <input type="text" maxlength="30" x-model="formData.notes" class="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green outline-none transition bg-gray-50 focus:bg-white" placeholder="Contoh: Sound + MIC...">
                     </div>
 
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1.5">Detail Pesanan Menu</label>
-                        <textarea x-model="formData.details" rows="3" class="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green outline-none transition bg-gray-50 focus:bg-white" placeholder="Contoh: 2 Gurami Bakar, 1 Es Teh, Tambah Sambal..."></textarea>
+                        <textarea x-model="formData.details" rows="3" class="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green outline-none transition bg-gray-50 focus:bg-white" placeholder="Contoh: 2 Gurami Bakar..."></textarea>
                     </div>
                 </div>
 
-                <!-- Footer (Fix tombol macet) -->
+                <!-- Footer -->
                 <div class="p-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50 rounded-b-2xl shrink-0">
                     <button type="button" @click="closeFormSafe()" class="px-5 py-2.5 border border-gray-300 rounded-xl text-gray-600 hover:bg-gray-200 font-bold transition bg-white shadow-sm">Batal</button>
                     <button type="button" @click="saveReservation()" class="px-6 py-2.5 bg-brand-green text-white rounded-xl hover:bg-green-700 font-bold shadow-md transition">Simpan Data</button>
@@ -338,38 +351,44 @@
         </div>
     </div>
 
-    <!-- Modals Time (Fix Layer Interaksi) -->
-    <div x-show="modals.time" style="display: none; z-index: 60;" class="fixed inset-0" x-transition.opacity>
+    <!-- Modals Time (Z-Index 70: Di atas Form) -->
+    <div x-show="modals.time" style="display: none; z-index: 70;" class="fixed inset-0" x-transition.opacity>
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm pointer-events-auto" @click="modals.time = false"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
-            <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl relative pointer-events-auto">
-                <h3 class="text-lg font-bold mb-4">Pilih Jam</h3>
+            <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl relative pointer-events-auto" @click.stop>
+                <h3 class="text-lg font-bold mb-4">Pilih Jam Kedatangan</h3>
                 <div class="grid grid-cols-3 gap-3">
                     <template x-for="time in timeSlots">
-                        <button type="button" @click="selectTime(time)" class="py-2 border-2 rounded-xl font-bold transition" :class="formData.time === time ? 'bg-brand-green text-white border-brand-green' : 'border-gray-200 hover:bg-gray-50'" x-text="time"></button>
+                        <button type="button" @click="selectTime(time)" class="py-2 border-2 rounded-xl font-bold transition select-none" 
+                                :class="formData.time === time ? 'bg-brand-green text-white border-brand-green' : 'border-gray-200 hover:bg-gray-50'" 
+                                x-text="time"></button>
                     </template>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Modals Seat (Fix Layer Interaksi) -->
-    <div x-show="modals.seat" style="display: none; z-index: 70;" class="fixed inset-0" x-transition.opacity>
+    <!-- Modals Seat (Z-Index 80: Paling Atas) -->
+    <div x-show="modals.seat" style="display: none; z-index: 80;" class="fixed inset-0" x-transition.opacity>
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm pointer-events-auto" @click="modals.seat = false"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
-            <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative pointer-events-auto max-h-[90vh] flex flex-col">
+            <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative pointer-events-auto max-h-[90vh] flex flex-col" @click.stop>
                 <h3 class="text-lg font-bold mb-4 shrink-0">Pilih Kursi / Meja</h3>
                 <div class="overflow-y-auto flex-1 pr-1">
                     <div class="flex flex-wrap gap-1.5 mb-4">
                         <template x-for="zone in seatZones">
-                            <button type="button" @click="selectedSeatZone = zone.label" class="px-3 h-8 rounded-lg border text-xs font-extrabold transition" :class="selectedSeatZone === zone.label ? 'bg-gray-800 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'" x-text="zone.label"></button>
+                            <button type="button" @click="selectedSeatZone = zone.label" class="px-3 h-8 rounded-lg border text-xs font-extrabold transition select-none" 
+                                    :class="selectedSeatZone === zone.label ? 'bg-gray-800 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'" 
+                                    x-text="zone.label"></button>
                         </template>
                     </div>
                     <template x-for="zone in seatZones">
                         <div x-show="selectedSeatZone === zone.label">
                             <div class="grid grid-cols-5 gap-2">
                                 <template x-for="seat in zone.seats">
-                                    <button type="button" @click="toggleSeat(seat)" class="p-2 border-2 rounded-lg font-bold text-xs transition" :class="{'bg-brand-green text-white border-brand-green': formData.seats.includes(seat), 'bg-gray-100 text-gray-400 cursor-not-allowed': isSeatBooked(seat) && !formData.seats.includes(seat), 'border-gray-200 bg-white hover:bg-gray-50': !isSeatBooked(seat) && !formData.seats.includes(seat)}" x-text="seat"></button>
+                                    <button type="button" @click="toggleSeat(seat)" class="p-2 border-2 rounded-lg font-bold text-xs transition select-none" 
+                                            :class="{'bg-brand-green text-white border-brand-green': formData.seats.includes(seat), 'bg-gray-100 text-gray-400 cursor-not-allowed': isSeatBooked(seat) && !formData.seats.includes(seat), 'border-gray-200 bg-white hover:bg-gray-50': !isSeatBooked(seat) && !formData.seats.includes(seat)}" 
+                                            x-text="seat"></button>
                                 </template>
                             </div>
                         </div>
@@ -383,7 +402,7 @@
     </div>
 
     <!-- Modal Log Aktivitas -->
-    <div x-show="modals.log" style="display: none; z-index: 80;" class="fixed inset-0" x-transition.opacity>
+    <div x-show="modals.log" style="display: none; z-index: 90;" class="fixed inset-0" x-transition.opacity>
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto" @click="modals.log = false"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
             <div class="bg-white rounded-2xl w-full max-w-5xl h-[90vh] flex flex-col shadow-2xl relative pointer-events-auto">
@@ -480,16 +499,31 @@
                 showToast(message, type = 'success') { const id = this.toastCount++; this.toasts.push({ id, message, type, show: true }); setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 3000); },
 
                 handleEscape(e) {
-                    // Logic menutup popup/modal teratas agar tidak menutup Form utama
                     if (this.modals.time) { this.modals.time = false; return; }
                     if (this.modals.seat) { this.modals.seat = false; return; }
-                    if (this.modals.form) { e.preventDefault(); return; } // menahan escape agar form tidak ter-close tidak sengaja
+                    if (this.modals.form) { e.preventDefault(); return; } 
                     if (this.modals.log) { this.modals.log = false; return; }
                     if (this.modals.list) { this.modals.list = false; return; }
                 },
 
                 closeFormSafe() {
-                    if (confirm('Yakin ingin membatalkan pengisian form?')) { this.modals.form = false; }
+                    // Cek apakah ada data yang belum disimpan sebelum menutup
+                    const hasData = this.formData.name || this.formData.time || this.formData.seats.length > 0;
+                    
+                    if (hasData && !this.formData.id) { // Jika form baru dan ada data
+                        if (confirm('Yakin ingin membatalkan pengisian form? Data akan hilang.')) { 
+                            this.modals.form = false; 
+                            this.resetForm(); 
+                        }
+                    } else {
+                        this.modals.form = false;
+                        if(!this.formData.id) this.resetForm();
+                    }
+                },
+                
+                resetForm() {
+                    this.formData = { id: null, orderType: 'WA', name: '', time: '', seats:[], details: '', notes: '', paymentStatus: 'DP', paymentMethod: 'Cash', createdAt: null, dpAmount: null, dpAmountDisplay: '', phone: '', pax: '' };
+                    this.nameError = ''; this.phoneError = ''; this.paxError = '';
                 },
 
                 doLogin() { 
@@ -572,12 +606,24 @@
                 },
 
                 selectTime(time) { 
-                    if (this.formData.time !== time) { 
-                        this.formData.time = time; 
-                        this.formData.seats =[]; 
-                    } 
+                    // Simpan waktu yang dipilih
+                    this.formData.time = time; 
+                    
+                    // Reset kursi jika waktu berubah (opsional, sesuai logika lama Anda)
+                    if (this.formData.seats.length > 0) {
+                        // Opsional: tampilkan konfirmasi jika ingin reset kursi, 
+                        // atau biarkan saja jika user hanya mengubah jam sedikit.
+                        // Di sini kita ikuti logika lama Anda yang mereset:
+                        this.formData.seats = []; 
+                    }
+                    
+                    // Tutup modal waktu
                     this.modals.time = false; 
-                    setTimeout(() => { this.modals.seat = true; }, 150); 
+                    
+                    // Buka modal kursi setelah jeda singkat agar transisi mulus
+                    setTimeout(() => { 
+                        this.modals.seat = true; 
+                    }, 150); 
                 },
                 openSeatPicker() { if (!this.formData.time) return; this.modals.seat = true; },
                 toggleSeat(seat) { 
@@ -686,7 +732,6 @@
                 async openLog() { this.logLoading = true; this.activityLogs =[]; this.modals.log = true; await this.loadLogs(); },
                 async loadLogs() { try { const { data } = await supabaseClient.from('activity_logs').select('*').order('ts', { ascending: false }).limit(200); this.activityLogs = data ||[]; } catch(e){} finally { this.logLoading = false; } },
 
-                // ════════════ CETAK JADWAL HARIAN ════════════
                 printDailySchedule() {
                     const list =[...this.dayReservations].sort((a,b) => (a.time||'').localeCompare(b.time||''));
                     if (list.length === 0) return;
@@ -764,7 +809,6 @@
                     }
                 },
 
-                // ════════════ CETAK 1 RESERVASI (A4 Portrait - Menu 2 Kolom Kiri Kanan) ════════════
                 printTicket(res) {
                     const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : '—';
                     const details = res.details || '- Tidak ada pesanan menu -';
@@ -864,7 +908,6 @@
                     if (popup) { popup.document.write(html); popup.document.close(); } else { this.showToast('Izinkan popup!', 'error'); }
                 },
 
-                // ════════════ CETAK HARIAN (2 per page - Layout Portrait Kiri Kanan) ════════════
                 printDay() {
                     const list =[...this.dayReservations].sort((a,b)=>(a.time||'').localeCompare(b.time||''));
                     if (list.length === 0) return;
@@ -905,7 +948,7 @@
   <div class="row"><span class="label">Kursi:</span><span class="value upper">${seats}</span></div>
   ${catatanLine}
   
-  <div class="notes-label">🍽 Menu:</div>
+  <div class="notes-label"> Menu:</div>
   <div class="notes-box">${res.details || '- Tidak ada -'}</div>
   
   <div class="footer">
