@@ -223,12 +223,12 @@
         </div>
     </div>
 
-    <!-- FORM MODAL (ESC DISABLED) -->
+    <!-- FORM MODAL -->
     <div x-show="modals.form" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="absolute inset-0"></div> <!-- Klik di luar tidak menutup -->
+        <div class="absolute inset-0"></div>
         <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative z-10 max-h-[95vh] overflow-y-auto mx-4" x-transition.scale.origin.center>
             <div class="flex items-center gap-3 mb-6 border-b pb-4 border-gray-100">
-                <button type="button" @click="closeFormSafe()" class="p-2 bg-gray-50 border hover:bg-gray-100 text-gray-600 rounded-full transition">✕</button>
+                <button type="button" @click="closeForm()" class="p-2 bg-gray-50 border hover:bg-gray-100 text-gray-600 rounded-full transition">✕</button>
                 <h3 class="text-xl font-extrabold flex-1 text-gray-800" x-text="formData.id ? 'Edit Data Reservasi' : 'Form Reservasi Baru'"></h3>
             </div>
             <div class="space-y-5">
@@ -266,15 +266,18 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1.5">Pilih Jam <span class="text-red-500">*</span></label>
-                        <div @click="modals.time = true" class="w-full border-2 p-3 rounded-xl text-center font-extrabold transition select-none border-brand-green bg-green-50 text-brand-green hover:bg-green-100 shadow-sm cursor-pointer">
+                        <!-- FIX: Tombol pilih jam menggunakan @click.stop agar tidak bubble ke backdrop -->
+                        <button type="button" @click.stop="openTimePicker()" class="w-full border-2 p-3 rounded-xl text-center font-extrabold transition select-none cursor-pointer" :class="timeError ? 'border-red-400 bg-red-50 text-red-600' : 'border-brand-green bg-green-50 text-brand-green hover:bg-green-100 shadow-sm'">
                             <span x-text="formData.time ? formData.time + ' WIB' : 'Pilih Jam'"></span>
-                        </div>
+                        </button>
+                        <div x-show="timeError" x-transition.opacity><p class="text-[11px] text-red-600 font-bold mt-1" x-text="timeError"></p></div>
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1.5">Tempat Duduk <span class="text-gray-400 font-normal text-xs">(opsional)</span></label>
-                        <div @click="openSeatPicker()" class="w-full border-2 p-3 rounded-xl text-center font-extrabold transition overflow-hidden text-ellipsis whitespace-nowrap select-none" :class="!formData.time ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed opacity-70' : 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100 shadow-sm cursor-pointer'">
+                        <!-- FIX: Tombol kursi menggunakan @click.stop dan disabled state yang tepat -->
+                        <button type="button" @click.stop="openSeatPicker()" :disabled="!formData.time" class="w-full border-2 p-3 rounded-xl text-center font-extrabold transition overflow-hidden text-ellipsis whitespace-nowrap select-none" :class="!formData.time ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed opacity-70' : 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100 shadow-sm cursor-pointer'">
                             <span x-text="formData.seats.length > 0 ? formData.seats.join(', ') : 'Pilih Kursi'"></span>
-                        </div>
+                        </button>
                     </div>
                 </div>
 
@@ -322,16 +325,60 @@
             </div>
 
             <div class="mt-8 flex justify-end gap-3 border-t border-gray-100 pt-5">
-                <button type="button" @click="closeFormSafe()" class="px-5 py-2.5 border border-gray-300 rounded-xl text-gray-600 hover:bg-gray-100 font-bold transition">Batal</button>
-                <button type="button" @click="saveReservation()" class="px-6 py-2.5 bg-brand-green text-white rounded-xl hover:bg-green-700 font-bold shadow-lg transition">Simpan Data</button>
+                <!-- FIX: Tombol Batal dengan @click.stop agar tidak trigger backdrop -->
+                <button type="button" @click.stop="closeForm()" class="px-5 py-2.5 border border-gray-300 rounded-xl text-gray-600 hover:bg-gray-100 font-bold transition">Batal</button>
+                <!-- FIX: Tombol Simpan dengan :disabled saat isSaving dan indikator loading -->
+                <button type="button" @click.stop="saveReservation()" :disabled="isSaving" class="px-6 py-2.5 bg-brand-green text-white rounded-xl hover:bg-green-700 font-bold shadow-lg transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2">
+                    <svg x-show="isSaving" class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <span x-text="isSaving ? 'Menyimpan...' : 'Simpan Data'"></span>
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Modals Time & Seat -->
-    <div x-show="modals.time" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none;"><div class="absolute inset-0" @click="modals.time = false"></div><div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl relative z-10"><h3 class="text-lg font-bold mb-4">Pilih Jam</h3><div class="grid grid-cols-3 gap-3"><template x-for="time in timeSlots"><button @click="selectTime(time)" class="py-2 border-2 rounded-xl font-bold" :class="formData.time === time ? 'bg-brand-green text-white border-brand-green' : 'border-gray-200'" x-text="time"></button></template></div></div></div>
+    <!-- Modal Pilih Jam — z-index di atas form -->
+    <div x-show="modals.time" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none;" x-transition.opacity>
+        <div class="absolute inset-0" @click.stop="modals.time = false"></div>
+        <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl relative z-10 mx-4" x-transition.scale.origin.center>
+            <div class="flex items-center gap-3 mb-5">
+                <button type="button" @click.stop="modals.time = false" class="p-2 bg-gray-50 border hover:bg-gray-100 text-gray-600 rounded-full transition">✕</button>
+                <h3 class="text-lg font-bold text-gray-800">Pilih Jam Kedatangan</h3>
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+                <template x-for="time in timeSlots">
+                    <!-- FIX: @click.stop agar pemilihan jam tidak bubble ke backdrop -->
+                    <button type="button" @click.stop="selectTime(time)" class="py-3 border-2 rounded-xl font-bold text-sm transition" :class="formData.time === time ? 'bg-brand-green text-white border-brand-green shadow-md' : 'border-gray-200 text-gray-700 hover:border-brand-green hover:bg-green-50'" x-text="time + ' WIB'"></button>
+                </template>
+            </div>
+        </div>
+    </div>
     
-    <div x-show="modals.seat" class="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none;"><div class="absolute inset-0" @click="modals.seat = false"></div><div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative z-10 max-h-[90vh] overflow-y-auto"><h3 class="text-lg font-bold mb-4">Pilih Kursi / Meja</h3><div class="flex flex-wrap gap-1.5 mb-4"><template x-for="zone in seatZones"><button @click="selectedSeatZone = zone.label" class="px-3 h-8 rounded-lg border text-xs font-extrabold" :class="selectedSeatZone === zone.label ? 'bg-gray-800 text-white' : 'bg-white text-gray-600'" x-text="zone.label"></button></template></div><template x-for="zone in seatZones"><div x-show="selectedSeatZone === zone.label"><div class="grid grid-cols-5 gap-2"><template x-for="seat in zone.seats"><button @click="toggleSeat(seat)" class="p-2 border-2 rounded-lg font-bold text-xs" :class="{'bg-brand-green text-white border-brand-green': formData.seats.includes(seat), 'bg-gray-100 text-gray-400 cursor-not-allowed': isSeatBooked(seat) && !formData.seats.includes(seat), 'border-gray-200 bg-white': !isSeatBooked(seat) && !formData.seats.includes(seat)}" x-text="seat"></button></template></div></div></template><button @click="modals.seat = false" class="w-full mt-5 py-3 bg-gray-800 text-white font-bold rounded-xl">Selesai Pilih</button></div></div>
+    <!-- Modal Pilih Kursi — z-index di atas modal jam -->
+    <div x-show="modals.seat" class="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm" style="display: none;" x-transition.opacity>
+        <div class="absolute inset-0" @click.stop="modals.seat = false"></div>
+        <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative z-10 max-h-[90vh] overflow-y-auto mx-4" x-transition.scale.origin.center>
+            <div class="flex items-center gap-3 mb-4">
+                <button type="button" @click.stop="modals.seat = false" class="p-2 bg-gray-50 border hover:bg-gray-100 text-gray-600 rounded-full transition">✕</button>
+                <h3 class="text-lg font-bold text-gray-800">Pilih Kursi / Meja</h3>
+                <span x-show="formData.seats.length > 0" class="ml-auto bg-brand-green text-white text-xs font-black px-2 py-1 rounded-lg" x-text="formData.seats.length + ' dipilih'"></span>
+            </div>
+            <div class="flex flex-wrap gap-1.5 mb-4">
+                <template x-for="zone in seatZones">
+                    <button type="button" @click.stop="selectedSeatZone = zone.label" class="px-3 h-8 rounded-lg border text-xs font-extrabold transition" :class="selectedSeatZone === zone.label ? 'bg-gray-800 text-white border-gray-800' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'" x-text="zone.label"></button>
+                </template>
+            </div>
+            <template x-for="zone in seatZones">
+                <div x-show="selectedSeatZone === zone.label">
+                    <div class="grid grid-cols-5 gap-2">
+                        <template x-for="seat in zone.seats">
+                            <button type="button" @click.stop="toggleSeat(seat)" class="p-2.5 border-2 rounded-lg font-bold text-xs transition" :class="{'bg-brand-green text-white border-brand-green shadow-sm': formData.seats.includes(seat), 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200': isSeatBooked(seat) && !formData.seats.includes(seat), 'border-gray-200 bg-white hover:border-blue-400 hover:bg-blue-50': !isSeatBooked(seat) && !formData.seats.includes(seat)}" x-text="seat"></button>
+                        </template>
+                    </div>
+                </div>
+            </template>
+            <button type="button" @click.stop="modals.seat = false" class="w-full mt-5 py-3 bg-gray-800 text-white font-bold rounded-xl hover:bg-gray-900 transition">✓ Selesai Pilih Kursi</button>
+        </div>
+    </div>
 
     <!-- Modal Log Aktivitas -->
     <div x-show="modals.log" class="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm" style="display:none;" x-transition.opacity>
@@ -389,12 +436,14 @@
                     'akuganteng21': { role: 'owner', name: 'dev' }, 
                     'z008': { role: 'owner', name: 'Owner Hendy' } 
                 },
-                isLoading: false, toasts:[], toastCount: 0,
+                isLoading: false,
+                // FIX: State terpisah untuk proses simpan agar loading overlay tidak menutup form
+                isSaving: false,
+                toasts:[], toastCount: 0,
                 monthNames:['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
                 dayNames:['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'],
                 timeSlots: Array.from({length: 14}, (_, i) => String(i + 7).padStart(2, '0') + ':00'),
                 
-                // DATA SEAT ZONES (TERMASUK TAB "BUNGKUS")
                 seatZones:[
                     { label: 'A', seats: Array.from({length:11}, (_,i)=>'A'+(i+1)) }, 
                     { label: 'B', seats: Array.from({length:15}, (_,i)=>'B'+(i+1)) }, 
@@ -411,45 +460,68 @@
                     { label: 'R', seats: Array.from({length:24}, (_,i)=>'R'+(i+1)) }, 
                     { label: 'RM', seats: Array.from({length:10}, (_,i)=>'RM'+(i+1)) }, 
                     { label: 'Cafe', seats: Array.from({length:10}, (_,i)=>'Cafe'+(i+1))},
-                    { label: 'Bungkus', seats: ['BUNGKUS']} // <-- TAMBAHAN ZONA BUNGKUS
+                    { label: 'Bungkus', seats: ['BUNGKUS']}
                 ],
                 
                 selectedSeatZone: 'A', currentDate: new Date(), currentMonth: new Date().getMonth(), currentYear: new Date().getFullYear(), selectedDate: null,
                 reservations:[], dayReservations:[], searchQuery: '', sortColumn: 'createdAt', sortDirection: 'desc',
                 modals: { list: false, form: false, time: false, seat: false, log: false },
                 formData: { id: null, name: '', orderType: 'WA', time: '', seats:[], details: '', notes: '', paymentStatus: 'DP', paymentMethod: 'Cash', createdAt: null, dpAmount: null, dpAmountDisplay: '', phone: '', pax: '' },
-                nameError: '', phoneError: '', paxError: '', activityLogs:[], logLoading: false,
+                // FIX: Tambah state error untuk field jam
+                nameError: '', phoneError: '', paxError: '', timeError: '',
+                activityLogs:[], logLoading: false,
 
                 formatRupiah(angka) { if (!angka && angka !== 0) return ''; const num = parseInt(angka, 10); if (isNaN(num)) return ''; return 'Rp ' + num.toLocaleString('id-ID'); },
                 formatDateLong(dateStr) { if (!dateStr) return '-'; const parts = String(dateStr).split('-'); if (parts.length !== 3) return dateStr; const d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2])); if (isNaN(d.getTime())) return dateStr; return `${this.dayNames[d.getDay()]}, ${d.getDate()} ${this.monthNames[d.getMonth()]} ${d.getFullYear()}`; },
                 formatDateTime(timestamp) { if (!timestamp) return '-'; const d = new Date(timestamp); if (isNaN(d.getTime())) return '-'; return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; },
                 onPhoneInput(event) { const el = event.target; const raw = el.value.replace(/\D/g, ''); this.formData.phone = raw; el.value = raw; },
                 onDpInput(event) { const el = event.target; const raw = el.value.replace(/\D/g, ''); this.formData.dpAmountDisplay = raw ? parseInt(raw, 10).toLocaleString('id-ID') : ''; this.formData.dpAmount = raw ? parseInt(raw, 10) : null; },
-                onDpFocus(event) { event.target.select(); }, onDpBlur(event) { if (this.formData.dpAmount === 0) { this.formData.dpAmount = null; this.formData.dpAmountDisplay = ''; } },
+                onDpFocus(event) { event.target.select(); }, 
+                onDpBlur(event) { if (!this.formData.dpAmount || this.formData.dpAmount === 0) { this.formData.dpAmount = null; this.formData.dpAmountDisplay = ''; } },
                 getSeats(res) { if (!res) return[]; if (Array.isArray(res.seats) && res.seats.length > 0) return res.seats; if (res.seat) return [res.seat]; return[]; },
                 showToast(message, type = 'success') { const id = this.toastCount++; this.toasts.push({ id, message, type, show: true }); setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 3000); },
 
+                // FIX: handleEscape yang diperbaiki — ESC menutup modal bersarang dari dalam ke luar
                 handleEscape(e) {
+                    if (this.modals.seat) {
+                        e.preventDefault();
+                        this.modals.seat = false;
+                        return;
+                    }
+                    if (this.modals.time) {
+                        e.preventDefault();
+                        this.modals.time = false;
+                        return;
+                    }
+                    // Form tidak bisa ditutup dengan ESC (sesuai intent asal)
                     if (this.modals.form) {
                         e.preventDefault();
                         return;
                     }
-                    if (this.modals.time) this.modals.time = false;
-                    else if (this.modals.seat) this.modals.seat = false;
-                    else if (this.modals.log) this.modals.log = false;
-                    else if (this.modals.list) this.modals.list = false;
+                    if (this.modals.log) { this.modals.log = false; return; }
+                    if (this.modals.list) { this.modals.list = false; return; }
                 },
 
-                // TELAH DIREVISI: Langsung tutup tanpa confirm prompt
-                closeFormSafe() {
+                // FIX: closeForm menggantikan closeFormSafe — tutup semua sub-modal dulu
+                closeForm() {
+                    this.modals.time = false;
+                    this.modals.seat = false;
                     this.modals.form = false;
+                    this.nameError = '';
+                    this.timeError = '';
+                    this.paxError = '';
+                },
+
+                // FIX: openTimePicker — method eksplisit untuk buka modal jam
+                openTimePicker() {
+                    this.modals.seat = false; // tutup seat jika terbuka
+                    this.modals.time = true;
                 },
 
                 doLogin() { 
                     const pwd = this.loginForm.password; 
                     const acc = this.ACCOUNTS[pwd]; 
                     if (!acc) { this.loginForm.error = 'Kode akses tidak dikenali!'; return; } 
-                    
                     const session = { role: acc.role, name: acc.name, ts: Date.now() }; 
                     sessionStorage.setItem('s2_session', JSON.stringify(session)); 
                     this.currentUser = { role: acc.role, name: acc.name }; 
@@ -490,6 +562,7 @@
                 isToday(day) { const today = new Date(); return day === today.getDate() && this.currentMonth === today.getMonth() && this.currentYear === today.getFullYear(); },
                 
                 isPastDate(day) {
+                    if (!day) return false;
                     const checkDate = new Date(this.currentYear, this.currentMonth, day);
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);
@@ -513,35 +586,59 @@
                 openDay(day) { 
                     this.selectedDate = day; 
                     this.dayReservations = this.getReservations(day); 
+                    this.searchQuery = '';
                     this.modals.list = true; 
                 },
                 openForm(res = null) {
-                    this.nameError = ''; this.phoneError = ''; this.paxError = ''; this.selectedSeatZone = 'A';
+                    this.nameError = ''; this.phoneError = ''; this.paxError = ''; this.timeError = '';
+                    this.selectedSeatZone = 'A';
+                    this.modals.time = false;
+                    this.modals.seat = false;
                     if (res) {
                         const dpVal = res.dpAmount || res.dpamount || null;
                         this.formData = { id: res.id || null, name: res.name || '', orderType: res.orderType || 'WA', time: res.time || '', seats: Array.isArray(res.seats) ?[...res.seats] : (res.seat ?[res.seat] :[]), details: res.details || '', notes: res.notes || '', paymentStatus: res.paymentStatus || 'DP', paymentMethod: res.paymentMethod || 'Cash', createdAt: res.createdAt || null, dpAmount: dpVal, dpAmountDisplay: dpVal ? parseInt(dpVal, 10).toLocaleString('id-ID') : '', phone: res.phone || '', pax: res.pax || '' };
-                    } else { this.formData = { id: null, name: '', orderType: 'WA', time: '', seats:[], details: '', notes: '', paymentStatus: 'DP', paymentMethod: 'Cash', createdAt: null, dpAmount: null, dpAmountDisplay: '', phone: '', pax: '' }; }
+                    } else { 
+                        this.formData = { id: null, name: '', orderType: 'WA', time: '', seats:[], details: '', notes: '', paymentStatus: 'DP', paymentMethod: 'Cash', createdAt: null, dpAmount: null, dpAmountDisplay: '', phone: '', pax: '' }; 
+                    }
                     this.modals.form = true;
                 },
 
-                selectTime(time) { if (this.formData.time !== time) { this.formData.time = time; this.formData.seats =[]; } this.modals.time = false; setTimeout(() => { this.modals.seat = true; }, 150); },
-                openSeatPicker() { if (!this.formData.time) return; this.modals.seat = true; },
+                // FIX: selectTime — tutup modal jam dulu, baru buka kursi dengan delay yang cukup
+                selectTime(time) {
+                    if (this.formData.time !== time) {
+                        this.formData.time = time;
+                        this.formData.seats = [];
+                    }
+                    this.timeError = '';
+                    this.modals.time = false;
+                    // Delay sedikit agar animasi close modal jam selesai sebelum buka modal kursi
+                    setTimeout(() => {
+                        this.modals.seat = true;
+                    }, 200);
+                },
+
+                openSeatPicker() { 
+                    if (!this.formData.time) {
+                        this.timeError = 'Pilih jam terlebih dahulu!';
+                        return;
+                    }
+                    this.modals.time = false;
+                    this.modals.seat = true; 
+                },
                 toggleSeat(seat) { 
                     if (seat === 'BUNGKUS') {
                         this.formData.seats = ['BUNGKUS'];
                         return;
                     } else {
                         if (this.formData.seats.includes('BUNGKUS')) {
-                            this.formData.seats =[];
+                            this.formData.seats = [];
                         }
                     }
-
                     if (this.isSeatBooked(seat) && !this.formData.seats.includes(seat)) return; 
-                    
                     if (this.formData.seats.includes(seat)) { 
                         this.formData.seats = this.formData.seats.filter(s => s !== seat); 
                     } else { 
-                        this.formData.seats =[...this.formData.seats, seat]; 
+                        this.formData.seats = [...this.formData.seats, seat]; 
                     } 
                 },
                 isSeatBooked(seat) { 
@@ -557,14 +654,28 @@
                     }); 
                 },
 
+                // FIX: saveReservation — gunakan isSaving terpisah, validasi lebih jelas, tutup modal sub dulu
                 async saveReservation() {
+                    // Reset semua error
+                    this.nameError = '';
+                    this.timeError = '';
+                    this.paxError = '';
+
                     let hasError = false;
-                    if (!this.formData.name || !this.formData.name.trim()) { this.nameError = "Nama wajib diisi!"; hasError = true; }
-                    if (!this.formData.time) { this.showToast("Jam wajib dipilih!", "error"); hasError = true; }
+
+                    if (!this.formData.name || !this.formData.name.trim()) { 
+                        this.nameError = "Nama wajib diisi!"; 
+                        hasError = true; 
+                    }
+                    if (!this.formData.time) { 
+                        this.timeError = "Jam wajib dipilih!"; 
+                        hasError = true; 
+                    }
                     
                     let paxVal = null;
-                    if (this.formData.pax && String(this.formData.pax).trim() !== '') {
-                        paxVal = parseInt(this.formData.pax);
+                    const paxRaw = String(this.formData.pax || '').trim();
+                    if (paxRaw !== '') {
+                        paxVal = parseInt(paxRaw);
                         if (isNaN(paxVal) || paxVal <= 0) {
                             this.paxError = "Jika diisi, pax minimal 1!";
                             hasError = true;
@@ -573,10 +684,14 @@
 
                     if (hasError) return;
 
-                    this.isLoading = true;
+                    // FIX: Tutup sub-modal sebelum mulai proses simpan
+                    this.modals.time = false;
+                    this.modals.seat = false;
+
+                    this.isSaving = true;
                     try {
                         const dateStr = this.getFormattedDate(this.selectedDate);
-                        const dpAmountVal = (this.formData.paymentStatus === 'DP' && this.formData.dpAmount > 0) ? this.formData.dpAmount : null;
+                        const dpAmountVal = (this.formData.paymentStatus === 'DP' && this.formData.dpAmount && this.formData.dpAmount > 0) ? this.formData.dpAmount : null;
                         
                         const payload = { 
                             name: this.formData.name.trim(), 
@@ -595,32 +710,51 @@
                         
                         if (this.formData.id) { 
                             payload.updated_by = this.currentUser.name;
-                            await supabaseClient.from('reservations').update(payload).eq('id', this.formData.id); 
+                            const { error } = await supabaseClient.from('reservations').update(payload).eq('id', this.formData.id); 
+                            if (error) throw error;
                             await this.writeLog('UPDATE', this.formData.id, payload.name, dateStr, `Jam: ${payload.time}`);
                         } else {
                             const dateCode = dateStr.replace(/-/g, '').substring(2);
-                            let maxSeq = 0; this.dayReservations.forEach(r => { if (r.id && r.id.startsWith(`S2-${dateCode}-`)) { const seq = parseInt(r.id.split('-')[2]); if (seq > maxSeq) maxSeq = seq; } });
+                            let maxSeq = 0; 
+                            this.dayReservations.forEach(r => { 
+                                if (r.id && r.id.startsWith(`S2-${dateCode}-`)) { 
+                                    const seq = parseInt(r.id.split('-')[2]); 
+                                    if (seq > maxSeq) maxSeq = seq; 
+                                } 
+                            });
                             payload.id = `S2-${dateCode}-${String(maxSeq + 1).padStart(3, '0')}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
                             payload.createdAt = new Date().getTime();
                             payload.created_by = this.currentUser.name;
                             payload.updated_by = this.currentUser.name;
 
-                            await supabaseClient.from('reservations').insert([payload]);
+                            const { error } = await supabaseClient.from('reservations').insert([payload]);
+                            if (error) throw error;
                             await this.writeLog('INSERT', payload.id, payload.name, dateStr, `Jam: ${payload.time}`);
                         }
-                        this.showToast("Data tersimpan!"); await this.initApp(); this.modals.form = false;
+                        this.showToast("Data berhasil disimpan! ✓");
+                        await this.initApp();
+                        this.closeForm();
                     } catch (error) { 
-                        console.error("Supabase Insert Error:", error); 
-                        this.showToast("Gagal menyimpan!", "error"); 
-                    } finally { this.isLoading = false; }
+                        console.error("Supabase Save Error:", error); 
+                        this.showToast("Gagal menyimpan data. Coba lagi.", "error"); 
+                    } finally { 
+                        this.isSaving = false; 
+                    }
                 },
 
                 async deleteRes(id) { 
                     if (confirm("Hapus reservasi ini?")) { 
                         this.isLoading = true; 
-                        await supabaseClient.from('reservations').delete().eq('id', id); 
-                        await this.writeLog('DELETE', id, '-', '-', 'Dihapus');
-                        this.showToast("Dihapus."); await this.initApp(); 
+                        try {
+                            await supabaseClient.from('reservations').delete().eq('id', id); 
+                            await this.writeLog('DELETE', id, '-', '-', 'Dihapus');
+                            this.showToast("Reservasi berhasil dihapus."); 
+                            await this.initApp(); 
+                        } catch(e) {
+                            this.showToast("Gagal menghapus!", "error");
+                        } finally {
+                            this.isLoading = false;
+                        }
                     } 
                 },
 
@@ -629,12 +763,12 @@
                         await supabaseClient.from('activity_logs').insert([{ action, actor: this.currentUser.name + ' (' + this.currentUser.role + ')', reservation_id: resId || null, customer_name: customerName || null, reservation_date: resDate || null, detail: detail || null, ts: new Date().getTime(), created_at: new Date().toISOString() }]);
                     } catch(e) {}
                 },
-                async openLog() { this.logLoading = true; this.activityLogs =[]; this.modals.log = true; await this.loadLogs(); },
-                async loadLogs() { try { const { data } = await supabaseClient.from('activity_logs').select('*').order('ts', { ascending: false }).limit(200); this.activityLogs = data ||[]; } catch(e){} finally { this.logLoading = false; } },
+                async openLog() { this.logLoading = true; this.activityLogs = []; this.modals.log = true; await this.loadLogs(); },
+                async loadLogs() { try { const { data } = await supabaseClient.from('activity_logs').select('*').order('ts', { ascending: false }).limit(200); this.activityLogs = data || []; } catch(e){} finally { this.logLoading = false; } },
 
                 // ════════════ CETAK JADWAL HARIAN ════════════
                 printDailySchedule() {
-                    const list =[...this.dayReservations].sort((a,b) => (a.time||'').localeCompare(b.time||''));
+                    const list = [...this.dayReservations].sort((a,b) => (a.time||'').localeCompare(b.time||''));
                     if (list.length === 0) return;
 
                     let tableRows = '';
@@ -656,7 +790,6 @@
                     });
 
                     const printDateStr = this.formatDateLong(this.getFormattedDate(this.selectedDate));
-
                     const html = `<!DOCTYPE html>
                     <html lang="id">
                     <head>
@@ -690,27 +823,19 @@
                                     <th style="width: 30%;">Info Catatan Tambahan</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                ${tableRows}
-                            </tbody>
+                            <tbody>${tableRows}</tbody>
                         </table>
-                        <div class="footer">
-                            Dicetak oleh: ${this.currentUser.name} pada ${this.formatDateTime(new Date().getTime())}
-                        </div>
+                        <div class="footer">Dicetak oleh: ${this.currentUser.name} pada ${this.formatDateTime(new Date().getTime())}</div>
                         <script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
                     </body>
                     </html>`;
 
                     const popup = window.open('', '_blank', 'width=800,height=900,scrollbars=yes');
-                    if (popup) { 
-                        popup.document.write(html); 
-                        popup.document.close(); 
-                    } else { 
-                        this.showToast('Izinkan popup browser Anda!', 'error'); 
-                    }
+                    if (popup) { popup.document.write(html); popup.document.close(); } 
+                    else { this.showToast('Izinkan popup browser Anda!', 'error'); }
                 },
 
-                // ════════════ CETAK 1 RESERVASI (A4 Portrait) ════════════
+                // ════════════ CETAK 1 RESERVASI ════════════
                 printTicket(res) {
                     const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : '—';
                     const details = res.details || '- Tidak ada pesanan menu -';
@@ -723,12 +848,9 @@
                         combinedPayment = `DP (${res.paymentMethod || 'CASH'}) ${amt}`.trim();
                     }
                     const payLine = `<div class="row"><span class="label">Pembayaran:</span><span class="value upper" style="color:#d97706;font-weight:900;">${combinedPayment}</span></div>`;
-                    
                     const catatanLine = res.notes ? `<div class="row"><span class="label">Catatan Tambahan:</span><span class="value upper" style="color:#c2410c;font-weight:900;">${res.notes}</span></div>` : '';
                     const phoneLine = res.phone ? `<div class="row"><span class="label">No. HP:</span><span class="value">${res.phone}</span></div>` : '';
                     const paxLine = res.pax ? `<div class="row"><span class="label">Jumlah Pax:</span><span class="value">${res.pax}</span></div>` : '';
-
-                    // Data Footer Kiri Kanan
                     const createdAtStr = this.formatDateTime(res.createdAt);
                     const createdBy = res.createdBy || '-';
                     const updatedTime = res.updatedAt ? this.formatDateTime(res.updatedAt) : '-';
@@ -736,39 +858,22 @@
                     const printDate = this.formatDateTime(new Date().getTime());
 
                     const html = `<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<title>Tiket - ${res.id}</title>
+<html lang="id"><head><meta charset="UTF-8"><title>Tiket - ${res.id}</title>
 <style>
   @page { size: A4 portrait; margin: 10mm; }
   * { margin:0; padding:0; box-sizing:border-box; }
-  html, body {
-      width: 190mm; /* A4 width (210) - 20mm margin */
-      height: 277mm; /* A4 height (297) - 20mm margin */
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: white;
-      color: #1a1a1a;
-  }
-  
+  html, body { width: 190mm; height: 277mm; font-family: 'Segoe UI', Arial, sans-serif; background: white; color: #1a1a1a; }
   .print-wrapper { display: flex; flex-direction: column; height: 277mm; position: relative; }
   .header { text-align: center; border-bottom: 2px dashed #9ca3af; padding-bottom: 12px; margin-bottom: 15px; position: relative; }
-  .watermark { position: absolute; top: -5px; right: 0; font-size: 30px; font-weight: 900; color: #e5e7eb; z-index: -1; letter-spacing: 2px; }
-  
-  .row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; padding: 6px 0; break-inside: avoid; }
+  .watermark { position: absolute; top: -5px; right: 0; font-size: 30px; font-weight: 900; color: #e5e7eb; z-index: -1; }
+  .row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; padding: 6px 0; }
   .row .label { font-weight: 700; color: #6b7280; font-size: 9.5pt; white-space: nowrap; }
   .row .value { font-weight: 700; font-size: 10.5pt; text-align: right; }
-  .row .value.id  { font-family: monospace; letter-spacing: 0.5px; font-size: 10pt; }
   .row .value.jam { border: 2px solid #1a1a1a; padding: 2px 6px; border-radius: 4px; }
   .row .value.upper { text-transform: uppercase; }
-  
-  .notes-label { font-weight: 900; color: #1a1a1a; font-size: 11pt; margin-top: 15px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; break-after: avoid; }
-  
-  /* Menu diubah 2 kolom font normal */
+  .notes-label { font-weight: 900; color: #1a1a1a; font-size: 11pt; margin-top: 15px; margin-bottom: 10px; text-transform: uppercase; }
   .notes-box { font-size: 10.5pt; font-weight: 600; white-space: pre-wrap; line-height: 1.6; column-count: 2; column-gap: 10mm; flex: 1; }
-  
-  /* Styling Footer Baru */
-  .ticket-meta { display: flex; justify-content: space-between; font-size: 8pt; color: #6b7280; margin-top: 10px; border-top: 2px solid #1a1a1a; padding-top: 8px; break-inside: avoid; line-height: 1.4; font-weight: 600; text-transform:uppercase; }
+  .ticket-meta { display: flex; justify-content: space-between; font-size: 8pt; color: #6b7280; margin-top: 10px; border-top: 2px solid #1a1a1a; padding-top: 8px; line-height: 1.4; font-weight: 600; text-transform:uppercase; }
   .ticket-meta .left { text-align: left; max-width: 60%; }
   .ticket-meta .right { text-align: right; max-width: 40%; }
 </style>
@@ -777,50 +882,38 @@
 <div class="print-wrapper">
   <div class="header">
     <div class="watermark">S2</div>
-    <p style="font-size:14pt; color:#1a1a1a; font-weight:900; letter-spacing:1px; margin-bottom:2px; text-transform:uppercase;">E-TIKET RESERVASI RESMI</p>
+    <p style="font-size:14pt; font-weight:900; letter-spacing:1px; margin-bottom:2px; text-transform:uppercase;">E-TIKET RESERVASI RESMI</p>
   </div>
-  <div class="row"><span class="label">No. Reservasi:</span><span class="value id">${res.id}</span></div>
+  <div class="row"><span class="label">No. Reservasi:</span><span class="value" style="font-family:monospace;">${res.id}</span></div>
   <div class="row"><span class="label">Nama Pelanggan:</span><span class="value upper">${res.name} (${res.orderType || 'WA'})</span></div>
-  ${phoneLine}
-  ${paxLine}
+  ${phoneLine}${paxLine}
   <div class="row"><span class="label">Tgl. Kedatangan:</span><span class="value">${this.formatDateLong(res.date)}</span></div>
   <div class="row"><span class="label">Jam Kedatangan:</span><span class="value jam">${res.time} WIB</span></div>
-  ${payLine}
-  ${catatanLine}
+  ${payLine}${catatanLine}
   <div class="row"><span class="label">Spot / Kursi:</span><span class="value upper">${seats}</span></div>
-  
   <div class="notes-label">🍽 Detail Menu:</div>
   <div class="notes-box">${details}</div>
-  
   <div class="ticket-meta" style="margin-top:auto;">
-    <div class="left">
-      Input : ${createdAtStr} oleh ${createdBy}${updatedStr}
-    </div>
-    <div class="right">
-      Dicetak : ${printDate} <br>
-      oleh ${this.currentUser.name}
-    </div>
+    <div class="left">Input : ${createdAtStr} oleh ${createdBy}${updatedStr}</div>
+    <div class="right">Dicetak : ${printDate} <br>oleh ${this.currentUser.name}</div>
   </div>
 </div>
 <script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
-</body>
-</html>`;
+</body></html>`;
                     const popup = window.open('', '_blank', 'width=800,height=900,scrollbars=yes');
-                    if (popup) { popup.document.write(html); popup.document.close(); } else { this.showToast('Izinkan popup!', 'error'); }
+                    if (popup) { popup.document.write(html); popup.document.close(); } 
+                    else { this.showToast('Izinkan popup!', 'error'); }
                 },
 
-                // ════════════ CETAK HARIAN (Sekarang 2 per page A4 Portrait Kiri-Kanan) ════════════
+                // ════════════ CETAK HARIAN (2 per page) ════════════
                 printDay() {
-                    const list =[...this.dayReservations].sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+                    const list = [...this.dayReservations].sort((a,b)=>(a.time||'').localeCompare(b.time||''));
                     if (list.length === 0) return;
-                    
                     const printDate = this.formatDateTime(new Date().getTime());
 
                     const buildTicket = (res) => {
                         const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : '—';
                         const catatanLine = res.notes ? `<div class="row"><span class="label">Catatan:</span><span class="value upper" style="color:#c2410c;font-weight:700;">${res.notes}</span></div>` : '';
-                        
-                        // Pembayaran digabung
                         let combinedPayment = '';
                         if (res.paymentStatus === 'Lunas') {
                             combinedPayment = `LUNAS (${res.paymentMethod || 'CASH'})`;
@@ -829,11 +922,8 @@
                             combinedPayment = `DP (${res.paymentMethod || 'CASH'}) ${amt}`.trim();
                         }
                         const payLine = `<div class="row"><span class="label">Pembayaran:</span><span class="value upper" style="color:#d97706;font-weight:900;">${combinedPayment}</span></div>`;
-                        
                         const phoneLine = res.phone ? `<div class="row"><span class="label">No.HP:</span><span class="value">${res.phone}</span></div>` : '';
                         const paxLine = res.pax ? `<div class="row"><span class="label">Pax:</span><span class="value">${res.pax}</span></div>` : '';
-                        
-                        // Data Footer Kiri Kanan
                         const createdAtStr = this.formatDateTime(res.createdAt);
                         const createdBy = res.createdBy || '-';
                         const updatedTime = res.updatedAt ? this.formatDateTime(res.updatedAt) : '-';
@@ -841,11 +931,10 @@
 
                         return `
 <div class="ticket"><div class="watermark">S2</div>
-  <div class="header"><p style="font-size:12pt; color:#1a1a1a; font-weight:900; letter-spacing:1px; margin-bottom:2px; text-transform:uppercase;">E-TIKET RESERVASI RESMI</p></div>
+  <div class="header"><p style="font-size:12pt; font-weight:900; letter-spacing:1px; margin-bottom:2px; text-transform:uppercase;">E-TIKET RESERVASI RESMI</p></div>
   <div class="row"><span class="label">No:</span><span class="value id">${res.id}</span></div>
   <div class="row"><span class="label">Nama:</span><span class="value upper">${res.name} (${res.orderType || 'WA'})</span></div>
-  ${phoneLine}
-  ${paxLine}
+  ${phoneLine}${paxLine}
   <div class="row"><span class="label">Tgl:</span><span class="value">${this.formatDateLong(res.date)}</span></div>
   <div class="row"><span class="label">Jam:</span><span class="value jam">${res.time} WIB</span></div>
   ${payLine}
@@ -863,44 +952,32 @@
                     };
 
                     let pages = '';
-                    // Mengubah menjadi kelipatan 2 (A4 Portrait, dibagi 2 kiri kanan)
                     for (let i = 0; i < list.length; i += 2) {
                         const chunk = list.slice(i, i + 2); while (chunk.length < 2) chunk.push(null);
                         const cells = chunk.map(res => res ? buildTicket(res) : '<div class="ticket ticket-empty"></div>').join('');
                         pages += `<div class="page${i + 2 >= list.length ? '' : ' page-break'}">${cells}</div>`;
                     }
 
-                    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Tiket Harian (Portrait)</title>
+                    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Tiket Harian</title>
 <style>
   @page { size: A4 portrait; margin: 0; }
   * { margin:0; padding:0; box-sizing:border-box; }
   html, body { width:210mm; background:white; font-family:'Segoe UI',sans-serif; color:#1a1a1a; }
-  
-  /* 2 tiket berjejer kiri dan kanan, tinggi penuh 1 halaman A4 Portrait */
   .page { width:210mm; height:297mm; display:grid; grid-template-columns:105mm 105mm; grid-template-rows:297mm; }
   .page-break { page-break-after:always; }
-  
-  /* Tiket individual */
   .ticket { width:105mm; height:297mm; border-right:1px dashed #9ca3af; padding:8mm; display:flex; flex-direction:column; position:relative; font-size:10pt; }
   .ticket-empty { background:#f9fafb; border:none; border-right:1px dashed #e5e7eb; }
-  
   .watermark { position:absolute; top:8px; right:12px; font-size:24px; font-weight:900; color:#e5e7eb; }
   .header { text-align:center; border-bottom:2px dashed #9ca3af; padding-bottom:6px; margin-bottom:8px; }
-  
   .row { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e5e7eb; padding:4.5px 0; }
   .row .label { font-weight:700; color:#6b7280; font-size:8.5pt; white-space:nowrap; }
   .row .value { font-weight:700; font-size:9.5pt; text-align:right; max-width:65%; }
   .row .value.id { font-family:monospace; font-size:8pt; }
   .row .value.jam { border:2px solid #1a1a1a; padding:1px 5px; border-radius:3px; }
   .row .value.upper { text-transform:uppercase; }
-  
   .notes-label { font-weight:900; color:#1a1a1a; font-size:10pt; margin-top:8px; margin-bottom:6px; text-transform:uppercase; }
-  
-  /* Kotak Menu 2 Kolom, font normal agar enak dibaca */
   .notes-box { padding:6px; background:#f9fafb; border:1px solid #d1d5db; border-radius:4px; font-size:9.5pt; font-weight:600; white-space:pre-wrap; flex:1; overflow:hidden; line-height:1.6; }
   .notes-box.multicolumn { column-count: 2; column-gap: 8mm; column-rule: 1px dashed #d1d5db; word-break: break-word; }
-  
-  /* Styling Footer Baru Kiri Kanan */
   .footer { margin-top:auto; border-top:2px solid #1a1a1a; padding-top:6px; margin-top: 10px; }
   .meta-print { display:flex; justify-content:space-between; font-size:7pt; color:#6b7280; font-weight:600; line-height:1.4; text-transform:uppercase; }
   .meta-print .left { text-align:left; max-width: 60%; }
