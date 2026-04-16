@@ -374,8 +374,8 @@
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://kepwayqnpludozbonvbe.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlcHdheXFucGx1ZG96Ym9udmJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMzE4NTksImV4cCI6MjA5MTYwNzg1OX0.klCq5PCxFcZYGEp2Y0ckMX9aZLRt__KNhGXSRdQX3K4';
+        const SUPABASE_URL = 'https://vceqfpfdncilebiywult.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjZXFmcGZkbmNpbGViaXl3dWx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3ODU0MzgsImV4cCI6MjA4OTM2MTQzOH0.iypgbCGhJ1UUxfgetQki9Sh-g2jz0XvIgDnKrAeHscU';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener('alpine:init', () => {
@@ -440,10 +440,9 @@
                     else if (this.modals.list) this.modals.list = false;
                 },
 
+                // TELAH DIREVISI: Langsung tutup tanpa confirm prompt
                 closeFormSafe() {
-                    if (confirm('Yakin ingin membatalkan pengisian form?')) {
-                        this.modals.form = false;
-                    }
+                    this.modals.form = false;
                 },
 
                 doLogin() { 
@@ -711,13 +710,19 @@
                     }
                 },
 
-                // ════════════ CETAK 1 RESERVASI (A4 Portrait - 2 Kolom Mengalir Kiri ke Kanan) ════════════
+                // ════════════ CETAK 1 RESERVASI (A4 Portrait) ════════════
                 printTicket(res) {
                     const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : '—';
                     const details = res.details || '- Tidak ada pesanan menu -';
                     
-                    const payStatus = (res.paymentStatus || 'DP') + ' via ' + (res.paymentMethod || 'CASH');
-                    const dpLine = (res.paymentStatus === 'DP' && res.dpAmount) ? `<div class="row"><span class="label">Jml DP (${res.paymentMethod || 'CASH'}):</span><span class="value" style="color:#d97706;font-weight:900;">${this.formatRupiah(res.dpAmount)}</span></div>` : '';
+                    let combinedPayment = '';
+                    if (res.paymentStatus === 'Lunas') {
+                        combinedPayment = `LUNAS (${res.paymentMethod || 'CASH'})`;
+                    } else {
+                        const amt = res.dpAmount ? this.formatRupiah(res.dpAmount) : '';
+                        combinedPayment = `DP (${res.paymentMethod || 'CASH'}) ${amt}`.trim();
+                    }
+                    const payLine = `<div class="row"><span class="label">Pembayaran:</span><span class="value upper" style="color:#d97706;font-weight:900;">${combinedPayment}</span></div>`;
                     
                     const catatanLine = res.notes ? `<div class="row"><span class="label">Catatan Tambahan:</span><span class="value upper" style="color:#c2410c;font-weight:900;">${res.notes}</span></div>` : '';
                     const phoneLine = res.phone ? `<div class="row"><span class="label">No. HP:</span><span class="value">${res.phone}</span></div>` : '';
@@ -746,11 +751,9 @@
       color: #1a1a1a;
   }
   
-  .print-wrapper { column-count: 2; column-gap: 15mm; column-fill: auto; height: 277mm; position: relative; }
-  .header { text-align: center; border-bottom: 2px dashed #9ca3af; padding-bottom: 12px; margin-bottom: 15px; break-inside: avoid; position: relative; }
+  .print-wrapper { display: flex; flex-direction: column; height: 277mm; position: relative; }
+  .header { text-align: center; border-bottom: 2px dashed #9ca3af; padding-bottom: 12px; margin-bottom: 15px; position: relative; }
   .watermark { position: absolute; top: -5px; right: 0; font-size: 30px; font-weight: 900; color: #e5e7eb; z-index: -1; letter-spacing: 2px; }
-  .header h1 { font-size: 14pt; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
-  .header p  { font-size: 8.5pt; color: #6b7280; margin-top: 4px; font-weight: 600; }
   
   .row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; padding: 6px 0; break-inside: avoid; }
   .row .label { font-weight: 700; color: #6b7280; font-size: 9.5pt; white-space: nowrap; }
@@ -762,20 +765,19 @@
   .notes-label { font-weight: 900; color: #1a1a1a; font-size: 11pt; margin-top: 15px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; break-after: avoid; }
   
   /* Menu diubah 2 kolom font normal */
-  .notes-box { font-size: 10pt; font-weight: 600; white-space: pre-wrap; line-height: 1.6; column-count: 2; column-gap: 10mm; }
+  .notes-box { font-size: 10.5pt; font-weight: 600; white-space: pre-wrap; line-height: 1.6; column-count: 2; column-gap: 10mm; flex: 1; }
   
   /* Styling Footer Baru */
-  .ticket-meta { display: flex; justify-content: space-between; font-size: 7.5pt; color: #6b7280; margin-top: 10px; border-top: 2px solid #1a1a1a; padding-top: 8px; break-inside: avoid; line-height: 1.4; font-weight: 600; }
-  .ticket-meta .left { text-align: left; }
-  .ticket-meta .right { text-align: right; }
+  .ticket-meta { display: flex; justify-content: space-between; font-size: 8pt; color: #6b7280; margin-top: 10px; border-top: 2px solid #1a1a1a; padding-top: 8px; break-inside: avoid; line-height: 1.4; font-weight: 600; text-transform:uppercase; }
+  .ticket-meta .left { text-align: left; max-width: 60%; }
+  .ticket-meta .right { text-align: right; max-width: 40%; }
 </style>
 </head>
 <body>
 <div class="print-wrapper">
   <div class="header">
     <div class="watermark">S2</div>
-    <h1>Pemancingan Suharno 2</h1>
-    <p>E-TIKET RESERVASI PELANGGAN</p>
+    <p style="font-size:14pt; color:#1a1a1a; font-weight:900; letter-spacing:1px; margin-bottom:2px; text-transform:uppercase;">E-TIKET RESERVASI RESMI</p>
   </div>
   <div class="row"><span class="label">No. Reservasi:</span><span class="value id">${res.id}</span></div>
   <div class="row"><span class="label">Nama Pelanggan:</span><span class="value upper">${res.name} (${res.orderType || 'WA'})</span></div>
@@ -783,15 +785,14 @@
   ${paxLine}
   <div class="row"><span class="label">Tgl. Kedatangan:</span><span class="value">${this.formatDateLong(res.date)}</span></div>
   <div class="row"><span class="label">Jam Kedatangan:</span><span class="value jam">${res.time} WIB</span></div>
-  <div class="row"><span class="label">Status Bayar:</span><span class="value upper">${payStatus}</span></div>
-  ${dpLine}
+  ${payLine}
   ${catatanLine}
   <div class="row"><span class="label">Spot / Kursi:</span><span class="value upper">${seats}</span></div>
   
   <div class="notes-label">🍽 Detail Menu:</div>
   <div class="notes-box">${details}</div>
   
-  <div class="ticket-meta" style="margin-top:20px;">
+  <div class="ticket-meta" style="margin-top:auto;">
     <div class="left">
       Input : ${createdAtStr} oleh ${createdBy}${updatedStr}
     </div>
@@ -808,7 +809,7 @@
                     if (popup) { popup.document.write(html); popup.document.close(); } else { this.showToast('Izinkan popup!', 'error'); }
                 },
 
-                // ════════════ CETAK HARIAN (Sekarang 2 per page Kiri-Kanan Landscape) ════════════
+                // ════════════ CETAK HARIAN (Sekarang 2 per page A4 Portrait Kiri-Kanan) ════════════
                 printDay() {
                     const list =[...this.dayReservations].sort((a,b)=>(a.time||'').localeCompare(b.time||''));
                     if (list.length === 0) return;
@@ -840,7 +841,7 @@
 
                         return `
 <div class="ticket"><div class="watermark">S2</div>
-  <div class="header"><p style="font-size:11pt; color:#1a1a1a; font-weight:900; letter-spacing:1px; margin-bottom:2px; text-transform:uppercase;">E-TIKET RESERVASI RESMI</p></div>
+  <div class="header"><p style="font-size:12pt; color:#1a1a1a; font-weight:900; letter-spacing:1px; margin-bottom:2px; text-transform:uppercase;">E-TIKET RESERVASI RESMI</p></div>
   <div class="row"><span class="label">No:</span><span class="value id">${res.id}</span></div>
   <div class="row"><span class="label">Nama:</span><span class="value upper">${res.name} (${res.orderType || 'WA'})</span></div>
   ${phoneLine}
@@ -851,7 +852,7 @@
   <div class="row"><span class="label">Kursi:</span><span class="value upper">${seats}</span></div>
   ${catatanLine}
   <div class="notes-label">🍽 Menu:</div>
-  <div class="notes-box">${res.details || '- Tidak ada pesanan menu -'}</div>
+  <div class="notes-box multicolumn">${res.details || '- Tidak ada pesanan menu -'}</div>
   <div class="footer">
      <div class="meta-print">
         <div class="left">Input : ${createdAtStr} oleh ${createdBy}${updatedStr}</div>
@@ -862,50 +863,50 @@
                     };
 
                     let pages = '';
-                    // Mengubah menjadi kelipatan 2 (karena menggunakan A4 Landscape yang di-split 2 secara horizontal)
+                    // Mengubah menjadi kelipatan 2 (A4 Portrait, dibagi 2 kiri kanan)
                     for (let i = 0; i < list.length; i += 2) {
                         const chunk = list.slice(i, i + 2); while (chunk.length < 2) chunk.push(null);
                         const cells = chunk.map(res => res ? buildTicket(res) : '<div class="ticket ticket-empty"></div>').join('');
                         pages += `<div class="page${i + 2 >= list.length ? '' : ' page-break'}">${cells}</div>`;
                     }
 
-                    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Tiket Harian (Landscape)</title>
+                    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Tiket Harian (Portrait)</title>
 <style>
-  /* Format A4 Landscape, margin 0 untuk layout presisi */
-  @page { size: A4 landscape; margin: 0; }
+  @page { size: A4 portrait; margin: 0; }
   * { margin:0; padding:0; box-sizing:border-box; }
-  html, body { width:297mm; background:white; font-family:'Segoe UI',sans-serif; color:#1a1a1a; }
+  html, body { width:210mm; background:white; font-family:'Segoe UI',sans-serif; color:#1a1a1a; }
   
-  /* 2 tiket berjejer kiri dan kanan, tinggi penuh 1 halaman A4 Landscape */
-  .page { width:297mm; height:210mm; display:grid; grid-template-columns:148.5mm 148.5mm; grid-template-rows:210mm; }
+  /* 2 tiket berjejer kiri dan kanan, tinggi penuh 1 halaman A4 Portrait */
+  .page { width:210mm; height:297mm; display:grid; grid-template-columns:105mm 105mm; grid-template-rows:297mm; }
   .page-break { page-break-after:always; }
   
   /* Tiket individual */
-  .ticket { width:148.5mm; height:210mm; border-right:1px dashed #9ca3af; padding:8mm; display:flex; flex-direction:column; position:relative; font-size:9.5pt; }
+  .ticket { width:105mm; height:297mm; border-right:1px dashed #9ca3af; padding:8mm; display:flex; flex-direction:column; position:relative; font-size:10pt; }
   .ticket-empty { background:#f9fafb; border:none; border-right:1px dashed #e5e7eb; }
   
   .watermark { position:absolute; top:8px; right:12px; font-size:24px; font-weight:900; color:#e5e7eb; }
-  .header { text-align:center; border-bottom:2px dashed #9ca3af; padding-bottom:6px; margin-bottom:6px; }
+  .header { text-align:center; border-bottom:2px dashed #9ca3af; padding-bottom:6px; margin-bottom:8px; }
   
-  .row { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e5e7eb; padding:3.5px 0; }
-  .row .label { font-weight:700; color:#6b7280; font-size:8pt; white-space:nowrap; }
-  .row .value { font-weight:700; font-size:8.5pt; text-align:right; max-width:65%; }
-  .row .value.id { font-family:monospace; font-size:7.5pt; }
+  .row { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e5e7eb; padding:4.5px 0; }
+  .row .label { font-weight:700; color:#6b7280; font-size:8.5pt; white-space:nowrap; }
+  .row .value { font-weight:700; font-size:9.5pt; text-align:right; max-width:65%; }
+  .row .value.id { font-family:monospace; font-size:8pt; }
   .row .value.jam { border:2px solid #1a1a1a; padding:1px 5px; border-radius:3px; }
   .row .value.upper { text-transform:uppercase; }
   
-  .notes-label { font-weight:900; color:#1a1a1a; font-size:9pt; margin-top:6px; margin-bottom:4px; text-transform:uppercase; }
+  .notes-label { font-weight:900; color:#1a1a1a; font-size:10pt; margin-top:8px; margin-bottom:6px; text-transform:uppercase; }
   
   /* Kotak Menu 2 Kolom, font normal agar enak dibaca */
-  .notes-box { padding:6px; background:#f9fafb; border:1px solid #d1d5db; border-radius:4px; font-size:9pt; font-weight:600; white-space:pre-wrap; flex:1; overflow:hidden; line-height:1.5; column-count: 2; column-gap: 8mm; column-rule: 1px dashed #d1d5db; word-break: break-word; }
+  .notes-box { padding:6px; background:#f9fafb; border:1px solid #d1d5db; border-radius:4px; font-size:9.5pt; font-weight:600; white-space:pre-wrap; flex:1; overflow:hidden; line-height:1.6; }
+  .notes-box.multicolumn { column-count: 2; column-gap: 8mm; column-rule: 1px dashed #d1d5db; word-break: break-word; }
   
   /* Styling Footer Baru Kiri Kanan */
-  .footer { margin-top:auto; border-top:2px solid #1a1a1a; padding-top:6px; margin-top: 8px; }
-  .meta-print { display:flex; justify-content:space-between; font-size:6pt; color:#6b7280; font-weight:600; line-height:1.4; text-transform:uppercase; }
+  .footer { margin-top:auto; border-top:2px solid #1a1a1a; padding-top:6px; margin-top: 10px; }
+  .meta-print { display:flex; justify-content:space-between; font-size:7pt; color:#6b7280; font-weight:600; line-height:1.4; text-transform:uppercase; }
   .meta-print .left { text-align:left; max-width: 60%; }
   .meta-print .right { text-align:right; max-width: 40%; }
 </style></head><body>${pages}<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script></body></html>`;
-                    const popup = window.open('', '_blank', 'width=1100,height=700');
+                    const popup = window.open('', '_blank', 'width=1100,height=800');
                     if (popup) { popup.document.write(html); popup.document.close(); }
                 }
             }));
