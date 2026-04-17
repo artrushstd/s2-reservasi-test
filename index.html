@@ -187,7 +187,7 @@
                                             <div class="font-bold text-gray-900 text-base" x-text="res.name"></div>
                                             <div class="text-gray-500 text-xs mt-0.5" x-text="res.phone ? '📞 ' + res.phone : ''"></div>
                                             <div class="text-gray-600 font-semibold text-xs mt-1" x-text="res.pax ? '👥 ' + res.pax + ' pax' : ''"></div>
-                                            <div class="mt-1.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold border shadow-sm" :class="(res.orderType || 'WA') === 'OTS' ? 'bg-purple-100 text-purple-800 border-purple-300' : 'bg-blue-100 text-blue-800 border-blue-300'" x-text="(res.orderType || 'WA') === 'OTS' ? '🚶 On The Spot (OTS)' : ' WhatsApp (WA)'"></span></div>
+                                            <div class="mt-1.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold border shadow-sm" :class="(res.orderType || 'WA') === 'OTS' ? 'bg-purple-100 text-purple-800 border-purple-300' : ((res.orderType || 'WA') === 'PT' ? 'bg-indigo-100 text-indigo-800 border-indigo-300' : 'bg-blue-100 text-blue-800 border-blue-300')" x-text="(res.orderType || 'WA') === 'OTS' ? '🚶 On The Spot (OTS)' : ((res.orderType || 'WA') === 'PT' ? '🏢 PT' : '📱 WhatsApp (WA)')"></span></div>
                                         </td>
                                         <td class="p-4">
                                             <div class="flex flex-col gap-1.5 items-start">
@@ -197,8 +197,8 @@
                                         </td>
                                         <td class="p-4">
                                             <div class="flex flex-col gap-1 items-start">
-                                                <span class="px-2 py-0.5 rounded text-xs font-bold border shadow-sm" :class="res.paymentStatus === 'Lunas' ? 'bg-green-100 text-green-800 border-green-300' : 'bg-orange-100 text-orange-800 border-orange-300'" x-text="res.paymentStatus || 'DP'"></span>
-                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-600 border border-gray-200 uppercase" x-text="res.paymentMethod || 'Cash'"></span>
+                                                <span class="px-2 py-0.5 rounded text-xs font-bold border shadow-sm" :class="res.paymentStatus === 'Lunas' ? 'bg-green-100 text-green-800 border-green-300' : (res.paymentStatus === 'BLM BAYAR' ? 'bg-red-100 text-red-800 border-red-300' : 'bg-orange-100 text-orange-800 border-orange-300')" x-text="res.paymentStatus || 'DP'"></span>
+                                                <span x-show="res.paymentStatus !== 'BLM BAYAR'" class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-600 border border-gray-200 uppercase" x-text="res.paymentMethod || 'Cash'"></span>
                                                 <template x-if="res.paymentStatus === 'DP' && res.dpAmount && res.dpAmount > 0">
                                                     <div class="font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded text-[10px] shadow-sm mt-0.5" x-text="formatRupiah(res.dpAmount)"></div>
                                                 </template>
@@ -253,6 +253,11 @@
                                 <input type="radio" x-model="formData.orderType" value="OTS" class="hidden">
                                 <span class="font-bold text-sm" :class="formData.orderType === 'OTS' ? 'text-brand-green' : 'text-gray-600'">🚶 On The Spot (OTS)</span>
                             </label>
+                            <label class="flex items-center justify-center gap-2 cursor-pointer border-2 p-3 rounded-xl flex-1 transition bg-white select-none" 
+                                   :class="formData.orderType === 'PT' ? 'border-brand-green ring-2 ring-brand-green/20 bg-green-50' : 'border-gray-200 hover:border-brand-green'">
+                                <input type="radio" x-model="formData.orderType" value="PT" class="hidden">
+                                <span class="font-bold text-sm" :class="formData.orderType === 'PT' ? 'text-brand-green' : 'text-gray-600'">🏢 PT</span>
+                            </label>
                         </div>
                     </div>
                     
@@ -302,15 +307,20 @@
                             <label class="flex items-center gap-2 cursor-pointer border-2 p-2.5 rounded-lg flex-1 transition bg-white select-none" 
                                    :class="formData.paymentStatus === 'DP' ? 'border-orange-400 ring-2 ring-orange-400/20' : 'border-gray-200 hover:border-orange-300'">
                                 <input type="radio" x-model="formData.paymentStatus" value="DP" class="hidden">
-                                <span class="font-bold text-sm text-gray-700">DP (Uang Muka)</span>
+                                <span class="font-bold text-sm text-gray-700">DP</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer border-2 p-2.5 rounded-lg flex-1 transition bg-white select-none" 
                                    :class="formData.paymentStatus === 'Lunas' ? 'border-green-500 ring-2 ring-green-500/20' : 'border-gray-200 hover:border-green-300'">
                                 <input type="radio" x-model="formData.paymentStatus" value="Lunas" class="hidden">
                                 <span class="font-bold text-sm text-gray-700">Lunas</span>
                             </label>
+                            <label class="flex items-center gap-2 cursor-pointer border-2 p-2.5 rounded-lg flex-1 transition bg-white select-none" 
+                                   :class="formData.paymentStatus === 'BLM BAYAR' ? 'border-red-500 ring-2 ring-red-500/20' : 'border-gray-200 hover:border-red-300'">
+                                <input type="radio" x-model="formData.paymentStatus" value="BLM BAYAR" class="hidden">
+                                <span class="font-bold text-sm text-gray-700">BLM BAYAR</span>
+                            </label>
                         </div>
-                        <div class="mb-4">
+                        <div class="mb-4" x-show="formData.paymentStatus !== 'BLM BAYAR'">
                             <label class="block text-xs font-bold text-gray-500 mb-2">Pilih Metode Pembayaran</label>
                             <div class="flex gap-2">
                                 <template x-for="method in ['Transfer', 'Qris', 'EDC', 'Cash']">
@@ -548,7 +558,6 @@
                         if (error) throw error;
                         this.reservations = (data ||[]).map(r => ({
                             ...r, paymentStatus: r.paymentStatus || r.paymentstatus || 'DP', paymentMethod: r.paymentMethod || r.paymentmethod || 'Cash',
-                            // FIX: Menangani properti sesuai schema di tabel (order_type)
                             orderType: r.order_type || r.orderType || r.ordertype || 'WA',
                             createdAt: r.createdAt || r.createdat || null, 
                             updatedAt: r.updatedAt || r.updated_at || null,
@@ -668,9 +677,8 @@
                         const dateStr = this.getFormattedDate(this.selectedDate);
                         const dpAmountVal = (this.formData.paymentStatus === 'DP' && this.formData.dpAmount > 0) ? this.formData.dpAmount : null;
                         
-                        // FIX: Menyesuaikan parameter payload dengan nama kolom secara eksak pada database
                         const payload = { 
-                            order_type: this.formData.orderType, // Di DB namanya order_type (bukan orderType)
+                            order_type: this.formData.orderType,
                             name: this.formData.name.trim(), 
                             date: dateStr, 
                             time: this.formData.time, 
@@ -679,9 +687,9 @@
                             notes: this.formData.notes || null, 
                             paymentStatus: this.formData.paymentStatus, 
                             paymentMethod: this.formData.paymentMethod, 
-                            dpAmount: dpAmountVal !== null ? String(dpAmountVal) : null, // Cast ke String karena kolom tipe text
+                            dpAmount: dpAmountVal !== null ? String(dpAmountVal) : null,
                             phone: this.formData.phone || null, 
-                            pax: paxVal !== null ? String(paxVal) : null // Cast ke String karena kolom tipe text
+                            pax: paxVal !== null ? String(paxVal) : null 
                         };
                         
                         if (this.formData.id) { 
@@ -804,9 +812,16 @@
                     const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : '—';
                     const details = res.details || '- Tidak ada pesanan menu -';
                     
-                    const payText = res.paymentStatus === 'Lunas' 
-                        ? `LUNAS (${res.paymentMethod || 'CASH'})` 
-                        : `DP ${res.paymentMethod || 'CASH'}: ${res.dpAmount ? this.formatRupiah(res.dpAmount) : '-'}`;
+                    let payText = '';
+                    if (res.paymentStatus === 'Lunas') {
+                        payText = `LUNAS (${res.paymentMethod || 'CASH'})`;
+                    } else if (res.paymentStatus === 'BLM BAYAR') {
+                        payText = `BELUM BAYAR`;
+                    } else {
+                        payText = `DP ${res.paymentMethod || 'CASH'}: ${res.dpAmount ? this.formatRupiah(res.dpAmount) : '-'}`;
+                    }
+
+                    const payColor = res.paymentStatus === 'DP' ? 'color:#d97706;' : (res.paymentStatus === 'BLM BAYAR' ? 'color:#dc2626;' : '');
                     
                     const catatanLine = res.notes ? `<div class="row"><span class="label">Catatan Tambahan:</span><span class="value upper" style="color:#c2410c;font-weight:900;">${res.notes}</span></div>` : '';
                     const phoneLine = res.phone ? `<div class="row"><span class="label">No. HP:</span><span class="value">${res.phone}</span></div>` : '';
@@ -849,8 +864,7 @@
   
   .notes-label { font-weight: 900; color: #1a1a1a; font-size: 11pt; margin-top: 15px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; break-after: avoid; }
   
-  /* DETAIL MENU 2 KOLOM */
-  .notes-box { font-size: 10.5pt; font-weight: 600; white-space: pre-wrap; line-height: 1.6; column-count: 2; column-gap: 15px; column-rule: 1px dashed #d1d5db; word-break: break-word; }
+  .notes-box { font-size: 10.5pt; font-weight: 600; white-space: pre-wrap; line-height: 1.6; column-count: 2; column-fill: auto; column-gap: 15px; column-rule: 1px dashed #d1d5db; word-break: break-word; height: auto; flex: 1; }
   
   .rules { margin-top: 20px; text-align: center; font-size: 8pt; color: #6b7280; line-height: 1.6; font-weight: 700; text-transform: uppercase; break-inside: avoid; }
   .ticket-meta { display: flex; justify-content: space-between; font-size: 7.5pt; color: #6b7280; margin-top: 10px; border-top: 2px solid #1a1a1a; padding-top: 8px; break-inside: avoid; line-height: 1.4; font-weight: 600; }
@@ -871,7 +885,7 @@
   ${paxLine}
   <div class="row"><span class="label">Tgl. Kedatangan:</span><span class="value">${this.formatDateLong(res.date)}</span></div>
   <div class="row"><span class="label">Jam Kedatangan:</span><span class="value jam">${res.time} WIB</span></div>
-  <div class="row"><span class="label">Status Bayar:</span><span class="value upper" style="${res.paymentStatus === 'DP' ? 'color:#d97706;' : ''}">${payText}</span></div>
+  <div class="row"><span class="label">Status Bayar:</span><span class="value upper" style="${payColor}">${payText}</span></div>
   ${catatanLine}
   <div class="row"><span class="label">Spot / Kursi:</span><span class="value upper">${seats}</span></div>
   
@@ -909,10 +923,17 @@
                         const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : '—';
                         const catatanLine = res.notes ? `<div class="row"><span class="label">Catatan:</span><span class="value upper" style="color:#c2410c;font-weight:700;">${res.notes}</span></div>` : '';
                         
-                        const payText = res.paymentStatus === 'Lunas' 
-                            ? `LUNAS (${res.paymentMethod || 'CASH'})` 
-                            : `DP ${res.paymentMethod || 'CASH'}: ${res.dpAmount ? this.formatRupiah(res.dpAmount) : '-'}`;
+                        let payText = '';
+                        if (res.paymentStatus === 'Lunas') {
+                            payText = `LUNAS (${res.paymentMethod || 'CASH'})`;
+                        } else if (res.paymentStatus === 'BLM BAYAR') {
+                            payText = `BELUM BAYAR`;
+                        } else {
+                            payText = `DP ${res.paymentMethod || 'CASH'}: ${res.dpAmount ? this.formatRupiah(res.dpAmount) : '-'}`;
+                        }
                         
+                        const payColor = res.paymentStatus === 'DP' ? 'color:#d97706;' : (res.paymentStatus === 'BLM BAYAR' ? 'color:#dc2626;' : '');
+
                         const phoneLine = res.phone ? `<div class="row"><span class="label">No.HP:</span><span class="value">${res.phone}</span></div>` : '';
                         const paxLine = res.pax ? `<div class="row"><span class="label">Pax:</span><span class="value">${res.pax}</span></div>` : '';
                         
@@ -935,7 +956,7 @@
   ${paxLine}
   <div class="row"><span class="label">Tgl:</span><span class="value">${this.formatDateLong(res.date)}</span></div>
   <div class="row"><span class="label">Jam:</span><span class="value jam">${res.time} WIB</span></div>
-  <div class="row"><span class="label">Bayar:</span><span class="value upper" style="${res.paymentStatus === 'DP' ? 'color:#d97706;' : ''}">${payText}</span></div>
+  <div class="row"><span class="label">Bayar:</span><span class="value upper" style="${payColor}">${payText}</span></div>
   <div class="row"><span class="label">Kursi:</span><span class="value upper">${seats}</span></div>
   ${catatanLine}
   
@@ -943,7 +964,6 @@
   <div class="notes-box">${res.details || '- Tidak ada -'}</div>
   
   <div class="footer">
-     <p>Kursi berlaku maks. 3 jam.</p>
      <div class="meta-print">
         <div class="left">Input : ${createdAtStr} oleh ${createdBy}${updatedStr}</div>
         <div class="right">Dicetak : ${printDate}<br>oleh ${this.currentUser.name}</div>
@@ -988,8 +1008,8 @@
   
   .notes-label { font-weight:900; color:#1a1a1a; font-size:10pt; margin-top:10px; margin-bottom:6px; text-transform:uppercase; }
   
-  /* Box Menu disesuaikan ke layout Vertikal (2 Kolom Mengalir) */
-  .notes-box { padding:8px; background:#f9fafb; border:1px solid #d1d5db; border-radius:6px; font-size:9pt; font-weight:600; white-space:pre-wrap; flex:1; overflow:hidden; line-height:1.5; column-count: 2; column-gap: 10px; column-rule: 1px dashed #d1d5db; word-break: break-word; }
+  /* Box Menu disesuaikan ke layout Vertikal, column-fill auto membuat text mengalir ke bawah sebelum pindah kolom */
+  .notes-box { padding:8px; background:#f9fafb; border:1px solid #d1d5db; border-radius:6px; font-size:9pt; font-weight:600; white-space:pre-wrap; flex:1; overflow:hidden; line-height:1.5; column-count: 2; column-fill: auto; column-gap: 10px; column-rule: 1px dashed #d1d5db; word-break: break-word; }
   
   .footer { margin-top:auto; border-top:2px solid #1a1a1a; padding-top:8px; display:flex; flex-direction:column; gap:6px; }
   .footer p { text-align:center; font-size:7pt; color:#6b7280; text-transform:uppercase; font-weight:700; margin-bottom: 2px; }
