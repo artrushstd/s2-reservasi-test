@@ -210,6 +210,7 @@
                                             <div class="text-gray-500 text-[10px] mt-0.5 truncate max-w-[200px]" x-text="res.details || ''" :title="res.details"></div>
                                         </td>
                                         <td class="p-4 text-center space-x-1">
+                                            <button type="button" @click="printSeatLabel(res)" class="p-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition shadow-sm" title="Print Label Kursi">🏷️</button>
                                             <button type="button" @click="printTicket(res)" class="p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition shadow-sm" title="Print Tiket">️🖨️</button>
                                             <button x-show="!isPastDate(selectedDate)" type="button" @click="openForm(res)" class="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition shadow-sm" title="Edit">✏️</button>
                                             <button type="button" @click="deleteRes(res.id)" class="p-2 bg-brand-red text-white rounded-lg hover:bg-red-700 transition shadow-sm" title="Hapus">️🗑️</button>
@@ -800,6 +801,125 @@
                     </html>`;
 
                     const popup = window.open('', '_blank', 'width=800,height=900,scrollbars=yes');
+                    if (popup) { 
+                        popup.document.write(html); 
+                        popup.document.close(); 
+                    } else { 
+                        this.showToast('Izinkan popup browser Anda!', 'error'); 
+                    }
+                },
+
+                printSeatLabel(res) {
+                    const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : 'Belum Pilih Kursi';
+                    const pax = res.pax ? res.pax : '-';
+                    const time = res.time ? res.time + ' WIB' : '-';
+
+                    const html = `<!DOCTYPE html>
+                    <html lang="id">
+                    <head>
+                    <meta charset="UTF-8">
+                    <title>Print Label Kursi - ${res.name}</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;800;900&display=swap" rel="stylesheet">
+                    <style>
+                      @page { size: A4 landscape; margin: 0; }
+                      * { box-sizing: border-box; margin: 0; padding: 0; }
+                      body {
+                          width: 297mm;
+                          height: 210mm;
+                          display: flex;
+                          justify-content: center;
+                          align-items: center;
+                          font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+                          background: white;
+                          color: #1a1a1a;
+                          padding: 12mm;
+                      }
+                      .container {
+                          width: 100%;
+                          height: 100%;
+                          border: 6px solid #297c3f;
+                          border-radius: 24px;
+                          display: flex;
+                          flex-direction: column;
+                          justify-content: center;
+                          align-items: center;
+                          text-align: center;
+                          background-color: #ffffff;
+                          position: relative;
+                          box-shadow: inset 0 0 0 6px white, inset 0 0 0 10px #297c3f;
+                          overflow: hidden;
+                      }
+                      .watermark {
+                          position: absolute;
+                          font-size: 350pt;
+                          font-weight: 900;
+                          color: rgba(41, 124, 63, 0.04);
+                          z-index: 0;
+                          pointer-events: none;
+                          line-height: 1;
+                      }
+                      .content {
+                          z-index: 1;
+                          width: 95%;
+                          display: flex;
+                          flex-direction: column;
+                          align-items: center;
+                      }
+                      .line-mohon {
+                          font-size: 55pt;
+                          font-weight: 900;
+                          text-decoration: underline;
+                          text-underline-offset: 12px;
+                          margin-bottom: 25px;
+                          letter-spacing: 2px;
+                      }
+                      .line-normal {
+                          font-size: 35pt;
+                          font-weight: 700;
+                          margin-bottom: 10px;
+                          color: #333;
+                      }
+                      .line-data {
+                          font-size: 60pt;
+                          font-weight: 900;
+                          color: #e90023;
+                          margin-bottom: 20px;
+                          text-transform: uppercase;
+                          line-height: 1.1;
+                          word-wrap: break-word;
+                          max-width: 100%;
+                      }
+                      .line-footer {
+                          font-size: 32pt;
+                          font-weight: 700;
+                          margin-top: 15px;
+                          color: #1a1a1a;
+                      }
+                      .line-footer .highlight {
+                          color: #e90023;
+                          font-weight: 900;
+                      }
+                    </style>
+                    </head>
+                    <body>
+                      <div class="container">
+                          <div class="watermark">S2</div>
+                          <div class="content">
+                              <div class="line-mohon">MOHON MAAF</div>
+                              <div class="line-normal">TEMPAT DUDUK INI</div>
+                              <div class="line-data">* ${seats} *</div>
+                              <div class="line-normal">SUDAH DI RESERVASI OLEH</div>
+                              <div class="line-data">* ${res.name} *</div>
+                              <div class="line-footer">
+                                  JUMLAH: <span class="highlight">* ${pax} *</span> PAX &nbsp;&ndash;&nbsp; JAM: <span class="highlight">* ${time} *</span>
+                              </div>
+                          </div>
+                      </div>
+                      <script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
+                    </body>
+                    </html>`;
+                    
+                    const popup = window.open('', '_blank', 'width=1000,height=800');
                     if (popup) { 
                         popup.document.write(html); 
                         popup.document.close(); 
