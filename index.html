@@ -811,9 +811,7 @@
 
                 printSeatLabel(res) {
                     const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : 'Belum Pilih Kursi';
-                    const pax = res.pax ? res.pax : '-';
-                    const time = res.time ? res.time + ' WIB' : '-';
-
+                    
                     const html = `<!DOCTYPE html>
                     <html lang="id">
                     <head>
@@ -828,51 +826,60 @@
                           display: flex;
                           justify-content: center;
                           align-items: center;
-                          font-family: Arial, Helvetica, sans-serif;
+                          font-family: 'Segoe UI', Arial, sans-serif;
                           background: white;
-                          color: black;
+                          color: #1a1a1a;
+                          padding: 15mm;
                       }
                       .container {
-                          text-align: center;
                           width: 100%;
-                          padding: 20mm;
+                          height: 100%;
+                          border: 6px solid #297c3f;
+                          border-radius: 25px;
+                          display: flex;
+                          flex-direction: column;
+                          justify-content: center;
+                          align-items: center;
+                          text-align: center;
+                          padding: 40px;
+                          background-color: #f8fafc;
+                          box-shadow: inset 0 0 0 10px white, inset 0 0 0 12px #297c3f;
                       }
-                      .line-mohon {
-                          font-size: 65pt;
-                          text-decoration: underline;
-                          margin-bottom: 25px;
-                      }
-                      .line-normal {
+                      .line-1 {
                           font-size: 45pt;
-                          margin-bottom: 25px;
-                      }
-                      .line-data {
-                          font-size: 75pt;
-                          font-weight: bold;
-                          color: #ff0000;
-                          margin-bottom: 25px;
+                          font-weight: 700;
+                          color: #6b7280;
+                          margin-bottom: 30px;
                           text-transform: uppercase;
+                          letter-spacing: 2px;
                       }
-                      .line-footer {
-                          font-size: 40pt;
-                          margin-top: 30px;
+                      .line-2 {
+                          font-size: 85pt;
+                          font-weight: 900;
+                          color: #111827;
+                          margin-bottom: 40px;
+                          text-transform: uppercase;
+                          line-height: 1.1;
+                          max-width: 90%;
+                          word-wrap: break-word;
                       }
-                      .line-footer .highlight {
-                          color: #ff0000;
-                          font-weight: bold;
+                      .line-3 {
+                          font-size: 70pt;
+                          font-weight: 800;
+                          color: #ffffff;
+                          background-color: #297c3f;
+                          padding: 20px 60px;
+                          border-radius: 30px;
+                          border: 4px solid #1a4f28;
+                          box-shadow: 0 10px 20px rgba(0,0,0,0.1);
                       }
                     </style>
                     </head>
                     <body>
                       <div class="container">
-                          <div class="line-mohon">MOHON MAAF</div>
-                          <div class="line-normal">TEMPAT DUDUK INI</div>
-                          <div class="line-data">${seats}</div>
-                          <div class="line-normal">SUDAH DI RESERVASI OLEH</div>
-                          <div class="line-data">${res.name}</div>
-                          <div class="line-footer">
-                              JUMLAH: <span class="highlight">${pax}</span> PAX &ndash; JAM: <span class="highlight">${time}</span>
-                          </div>
+                          <div class="line-1">Tempat Duduk Ini Milik</div>
+                          <div class="line-2">${res.name}</div>
+                          <div class="line-3">${seats}</div>
                       </div>
                       <script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
                     </body>
