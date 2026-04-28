@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manajemen Reservasi - Pemancingan Suharno 2</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="[fonts.googleapis.com](https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;900&display=swap)" rel="stylesheet">
+    <script src="[cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+    <script src="[cdn.jsdelivr.net](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2)"></script>
+    <script defer src="[cdn.jsdelivr.net](https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js)"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -33,12 +33,16 @@
         .dp-input-wrap input { padding-left: 36px; }
         .past-date { opacity: 0.65; background-color: #f9fafb !important; }
         * { -webkit-tap-highlight-color: transparent; }
-
-        /* Log detail diff styling */
         .diff-added { background: #dcfce7; color: #166534; padding: 1px 4px; border-radius: 3px; font-weight: 700; }
         .diff-removed { background: #fee2e2; color: #991b1b; padding: 1px 4px; border-radius: 3px; font-weight: 700; text-decoration: line-through; }
         .log-row-link { cursor: pointer; }
         .log-row-link:hover td { background: #f0fdf4 !important; }
+
+        /* WA Blast Modal */
+        .wa-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 95; display: flex; align-items: center; justify-content: center; padding: 16px; }
+        .wa-modal-box { background: white; border-radius: 20px; width: 100%; max-width: 520px; max-height: 92vh; display: flex; flex-direction: column; box-shadow: 0 25px 60px rgba(0,0,0,0.3); }
+        .wa-spinner { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans antialiased" x-data="reservationApp()" x-init="checkSession(); if(isLoggedIn) initApp();" @keydown.escape.window="handleEscape($event)">
@@ -83,7 +87,7 @@
     <!-- Loading Overlay -->
     <div x-show="isLoading" class="fixed inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm transition-opacity pointer-events-auto" style="display: none; z-index: 100;">
         <div class="flex flex-col items-center">
-            <svg class="animate-spin h-10 w-10 text-brand-green mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <svg class="animate-spin h-10 w-10 text-brand-green mb-4" xmlns="[w3.org](http://www.w3.org/2000/svg)" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             <p class="text-gray-600 font-semibold animate-pulse">Memproses Data...</p>
         </div>
     </div>
@@ -95,6 +99,80 @@
                 <span class="font-bold text-sm" x-text="toast.message"></span>
             </div>
         </template>
+    </div>
+
+    <!-- ══════════════ MODAL WA BLAST ══════════════ -->
+    <div x-show="modals.waBlast" style="display:none; z-index: 95;" class="wa-modal-overlay" x-transition.opacity @click.self="modals.waBlast = false">
+        <div class="wa-modal-box" @click.stop>
+            <!-- Header -->
+            <div class="flex items-center gap-3 p-5 border-b border-gray-100 rounded-t-2xl" style="background: linear-gradient(135deg, #25d366, #128c7e);">
+                <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white text-lg font-black">📲</div>
+                <div class="flex-1">
+                    <h3 class="text-white font-extrabold text-lg">Kirim Invoice via WhatsApp</h3>
+                    <p class="text-green-100 text-xs font-medium mt-0.5">PDF invoice akan dikirim otomatis ke pelanggan</p>
+                </div>
+                <button @click="modals.waBlast = false" class="text-white/70 hover:text-white transition text-xl font-bold p-1">✕</button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 overflow-y-auto flex-1 space-y-4">
+                <!-- Info Pelanggan -->
+                <div x-show="waBlastData.res" class="bg-gray-50 rounded-xl p-4 border border-gray-200 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-gray-500 uppercase">Penerima</span>
+                        <span class="font-extrabold text-gray-800 text-sm" x-text="waBlastData.res?.name || '-'"></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-gray-500 uppercase">No. HP</span>
+                        <span class="font-bold text-green-700 text-sm" x-text="waBlastData.res?.phone || '-'"></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-gray-500 uppercase">No. Reservasi</span>
+                        <span class="font-mono font-bold text-gray-700 text-xs bg-gray-100 px-2 py-0.5 rounded" x-text="waBlastData.res?.id || '-'"></span>
+                    </div>
+                </div>
+
+                <!-- Preview Pesan -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">📝 Pesan Pengantar</label>
+                    <textarea x-model="waBlastData.caption" rows="6" class="w-full border border-gray-200 p-3 rounded-xl text-sm bg-gray-50 focus:bg-white focus:border-green-500 focus:ring-2 focus:ring-green-400/20 outline-none transition font-medium resize-none"></textarea>
+                    <p class="text-xs text-gray-400 mt-1 font-medium">Pesan ini akan dikirim bersama PDF invoice ke WhatsApp pelanggan.</p>
+                </div>
+
+                <!-- Status Generate -->
+                <div x-show="waBlastData.status !== ''" class="rounded-xl p-4 text-sm font-bold flex items-center gap-3 transition"
+                    :class="{
+                        'bg-blue-50 border border-blue-200 text-blue-700': waBlastData.status === 'generating',
+                        'bg-green-50 border border-green-200 text-green-700': waBlastData.status === 'success',
+                        'bg-red-50 border border-red-200 text-red-700': waBlastData.status === 'error'
+                    }">
+                    <span x-show="waBlastData.status === 'generating'" class="wa-spinner"></span>
+                    <span x-show="waBlastData.status === 'success'">✅</span>
+                    <span x-show="waBlastData.status === 'error'">❌</span>
+                    <span x-text="waBlastData.statusMessage"></span>
+                </div>
+
+                <!-- PDF Preview Link -->
+                <div x-show="waBlastData.pdfUrl" class="bg-gray-50 border border-gray-200 rounded-xl p-3 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center text-red-600 text-lg shrink-0">📄</div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-bold text-gray-800 text-sm">Invoice PDF siap</p>
+                        <a :href="waBlastData.pdfUrl" target="_blank" class="text-blue-600 text-xs font-medium hover:underline truncate block" x-text="waBlastData.pdfUrl"></a>
+                    </div>
+                    <a :href="waBlastData.pdfUrl" target="_blank" class="px-3 py-1.5 bg-red-500 text-white text-xs font-bold rounded-lg hover:bg-red-600 transition shrink-0">Buka</a>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-5 border-t border-gray-100 flex gap-3 bg-gray-50 rounded-b-2xl">
+                <button @click="modals.waBlast = false" class="px-5 py-2.5 border border-gray-300 rounded-xl text-gray-600 hover:bg-gray-200 font-bold transition bg-white shadow-sm flex-1">Batal</button>
+                <button @click="generateAndSendWA()" :disabled="waBlastData.status === 'generating'" class="flex-1 py-2.5 font-extrabold rounded-xl transition shadow-md flex items-center justify-center gap-2 text-white"
+                    :class="waBlastData.status === 'generating' ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'">
+                    <span x-show="waBlastData.status !== 'generating'">📲 Generate & Kirim</span>
+                    <span x-show="waBlastData.status === 'generating'" class="flex items-center gap-2"><span class="wa-spinner"></span> Membuat PDF...</span>
+                </button>
+            </div>
+        </div>
     </div>
 
     <header class="bg-brand-green text-white shadow-md sticky top-0 z-30">
@@ -156,7 +234,6 @@
                             <button x-show="!isPastDate(selectedDate)" type="button" @click="openForm()" class="py-2.5 px-6 bg-brand-green text-white font-bold rounded-xl hover:bg-green-700 transition flex items-center justify-center gap-2 shadow-md">+ Reservasi Baru</button>
                             <button type="button" @click="printDailySchedule()" :disabled="dayReservations.length === 0" class="py-2.5 px-5 font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-sm" :class="dayReservations.length === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' : 'bg-purple-600 text-white hover:bg-purple-700 border border-purple-700'">📋 Cetak Jadwal</button>
                             <button type="button" @click="printDay()" :disabled="dayReservations.length === 0" class="py-2.5 px-5 font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-sm" :class="dayReservations.length === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' : 'bg-gray-800 text-white hover:bg-black border border-gray-700'">🖨️ Print Tiket <span x-show="dayReservations.length > 0" class="bg-white/20 text-white text-xs font-black px-1.5 py-0.5 rounded-md" x-text="dayReservations.length + ' tiket'"></span></button>
-                            <!-- TOMBOL BARU: Print Timbangan -->
                             <button type="button" @click="printDayTimbangan()" :disabled="dayReservations.length === 0" class="py-2.5 px-5 font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-sm" :class="dayReservations.length === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' : 'bg-teal-600 text-white hover:bg-teal-700 border border-teal-700'">⚖️ Print Timbangan <span x-show="dayReservations.length > 0" class="bg-white/20 text-white text-xs font-black px-1.5 py-0.5 rounded-md" x-text="dayReservations.length + ' data'"></span></button>
                         </div>
                         <div class="flex gap-3 w-full sm:max-w-md">
@@ -215,15 +292,14 @@
                                             <div class="text-[10px] text-gray-400 mb-1">Tgl Input: <span x-text="formatDateTime(res.createdAt)"></span></div>
                                             <div class="text-orange-600 text-xs mt-0.5 font-bold truncate max-w-[200px]" x-text="res.notes || ''" :title="res.notes"></div>
                                             <div class="text-gray-500 text-[10px] mt-0.5 truncate max-w-[200px]" x-text="res.details || ''" :title="res.details"></div>
-                                            <!-- Timbangan preview -->
                                             <template x-if="res.fishWeight">
                                                 <div class="text-teal-700 text-[10px] mt-1 font-bold bg-teal-50 border border-teal-200 px-1.5 py-0.5 rounded truncate max-w-[200px]" x-text="'⚖️ ' + (res.fishWeight || '')" :title="res.fishWeight"></div>
                                             </template>
                                         </td>
                                         <td class="p-4 text-center">
                                             <div class="flex flex-wrap gap-1 justify-center">
-                                                <!-- TOMBOL BARU: WhatsApp Blast -->
-                                                <button type="button" @click="blastWhatsapp(res)" :disabled="!res.phone" class="p-2 rounded-lg transition shadow-sm text-sm" :class="res.phone ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-100 text-gray-400 cursor-not-allowed'" :title="res.phone ? 'Kirim konfirmasi via WhatsApp' : 'Nomor HP belum diisi'">📲</button>
+                                                <!-- TOMBOL WA BLAST → buka modal -->
+                                                <button type="button" @click="openWaBlastModal(res)" :disabled="!res.phone" class="p-2 rounded-lg transition shadow-sm text-sm" :class="res.phone ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-100 text-gray-400 cursor-not-allowed'" :title="res.phone ? 'Kirim Invoice PDF via WhatsApp' : 'Nomor HP belum diisi'">📲</button>
                                                 <button type="button" @click="printSeatLabel(res)" class="p-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition shadow-sm" title="Print Label Kursi">🏷️</button>
                                                 <button type="button" @click="printTicket(res)" class="p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition shadow-sm" title="Print Tiket">🖨️</button>
                                                 <button x-show="!isPastDate(selectedDate)" type="button" @click="openForm(res)" class="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition shadow-sm" title="Edit">✏️</button>
@@ -245,13 +321,10 @@
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto" @click.stop="closeFormSafe()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
             <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl relative pointer-events-auto flex flex-col max-h-[95vh]" @click.stop>
-                <!-- Header -->
                 <div class="flex items-center gap-3 p-5 border-b border-gray-100 shrink-0 bg-white rounded-t-2xl sticky top-0 z-10">
                     <button type="button" @click="closeFormSafe()" class="p-2 bg-gray-50 border shadow-sm hover:bg-gray-100 text-gray-600 rounded-full transition focus:outline-none">✕</button>
                     <h3 class="text-xl font-extrabold flex-1 text-gray-800" x-text="formData.id ? 'Edit Data Reservasi' : 'Form Reservasi Baru'"></h3>
                 </div>
-                
-                <!-- Body -->
                 <div class="p-6 overflow-y-auto space-y-5 flex-1 bg-white">
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-2">Jenis Order (Sumber) <span class="text-red-500">*</span></label>
@@ -270,13 +343,11 @@
                             </label>
                         </div>
                     </div>
-                    
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1.5">Nama Pemesan <span class="text-red-500">*</span></label>
                         <input type="text" id="inputName" x-model="formData.name" @input="nameError = ''" class="w-full border p-3 rounded-xl outline-none transition bg-gray-50 focus:bg-white" :class="nameError ? 'border-red-400 focus:ring-red-500 text-red-700' : 'border-gray-200 focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green'" placeholder="Masukkan nama lengkap">
                         <div x-show="nameError" x-transition.opacity><p class="text-sm text-red-600 font-bold mt-1.5" x-text="nameError"></p></div>
                     </div>
-                    
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-1.5">Nomor HP <span class="text-gray-400 font-normal text-xs">(opsional)</span></label>
@@ -288,7 +359,6 @@
                             <div x-show="paxError" x-transition.opacity><p class="text-[11px] text-red-600 font-bold mt-1" x-text="paxError"></p></div>
                         </div>
                     </div>
-                    
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-1.5">Pilih Jam <span class="text-red-500">*</span></label>
@@ -303,7 +373,6 @@
                             </button>
                         </div>
                     </div>
-
                     <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
                         <label class="block text-sm font-bold text-gray-800 mb-3">Status Pembayaran</label>
                         <div class="flex gap-3 mb-4">
@@ -339,18 +408,14 @@
                             </div>
                         </div>
                     </div>
-
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1.5">Catatan Tambahan <span class="text-gray-400 font-normal text-xs">(maks 30 karakter, opsional)</span></label>
                         <input type="text" maxlength="30" x-model="formData.notes" class="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green outline-none transition bg-gray-50 focus:bg-white" placeholder="Contoh: Sound + MIC...">
                     </div>
-
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1.5">Detail Pesanan Menu</label>
                         <textarea x-model="formData.details" rows="3" class="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green outline-none transition bg-gray-50 focus:bg-white" placeholder="Contoh: 2 Gurami Bakar..."></textarea>
                     </div>
-
-                    <!-- KOLOM BARU: Detail Timbangan Ikan -->
                     <div class="bg-teal-50 p-4 rounded-xl border border-teal-200">
                         <div class="flex items-center gap-2 mb-2">
                             <span class="text-lg">⚖️</span>
@@ -363,13 +428,8 @@
                             <span class="font-mono">Total: Rp 243.500</span>
                         </p>
                         <textarea x-model="formData.fishWeight" rows="4" class="w-full border border-teal-300 p-3 rounded-xl focus:ring-2 focus:ring-teal-400/30 focus:border-teal-500 outline-none transition bg-white font-mono text-sm" placeholder="Gurami: 2.5 kg × Rp 65.000 = Rp 162.500&#10;Nila: 1.8 kg&#10;Total: Rp ..."></textarea>
-                        <p class="text-[10px] text-teal-500 font-medium mt-2">
-                            📋 Panduan Supabase: Kolom <code class="bg-teal-100 px-1 rounded font-mono">fish_weight</code> (type: <strong>text</strong>, nullable) di tabel <code class="bg-teal-100 px-1 rounded font-mono">reservations</code>
-                        </p>
                     </div>
                 </div>
-
-                <!-- Footer -->
                 <div class="p-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50 rounded-b-2xl shrink-0">
                     <button type="button" @click="closeFormSafe()" class="px-5 py-2.5 border border-gray-300 rounded-xl text-gray-600 hover:bg-gray-200 font-bold transition bg-white shadow-sm">Batal</button>
                     <button type="button" @click="saveReservation()" class="px-6 py-2.5 bg-brand-green text-white rounded-xl hover:bg-green-700 font-bold shadow-md transition">Simpan Data</button>
@@ -378,7 +438,7 @@
         </div>
     </div>
 
-    <!-- Modals Time (Z-Index 70) -->
+    <!-- Modals Time -->
     <div x-show="modals.time" style="display: none; z-index: 70;" class="fixed inset-0" x-transition.opacity>
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm pointer-events-auto" @click="modals.time = false"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
@@ -393,7 +453,7 @@
         </div>
     </div>
     
-    <!-- Modals Seat (Z-Index 80) -->
+    <!-- Modals Seat -->
     <div x-show="modals.seat" style="display: none; z-index: 80;" class="fixed inset-0" x-transition.opacity>
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm pointer-events-auto" @click="modals.seat = false"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
@@ -422,20 +482,18 @@
         </div>
     </div>
 
-    <!-- ══════════════ MODAL LOG AKTIVITAS (REVISI DETAIL) ══════════════ -->
+    <!-- MODAL LOG AKTIVITAS -->
     <div x-show="modals.log" style="display: none; z-index: 90;" class="fixed inset-0" x-transition.opacity>
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto" @click="modals.log = false"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
             <div class="bg-white rounded-2xl w-full max-w-6xl h-[92vh] flex flex-col shadow-2xl relative pointer-events-auto">
-                <!-- Header Log -->
                 <div class="p-5 border-b flex items-center gap-4 bg-gray-50 rounded-t-2xl shrink-0">
                     <button type="button" @click="modals.log = false" class="p-2 bg-white border shadow-sm hover:bg-gray-100 text-gray-600 rounded-full transition flex items-center justify-center">✕</button>
                     <div class="flex-1">
                         <h3 class="text-xl font-bold text-gray-800">📋 Log Aktivitas Sistem</h3>
-                        <p class="text-xs text-gray-500 mt-0.5">Klik baris untuk melihat detail lengkap perubahan. Klik ID reservasi untuk buka data.</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Klik baris untuk melihat detail lengkap perubahan.</p>
                     </div>
                     <div class="flex gap-2">
-                        <!-- Filter log -->
                         <select x-model="logFilter" @change="filterLogs()" class="border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-gray-600 bg-white outline-none focus:border-brand-green">
                             <option value="">Semua Aksi</option>
                             <option value="INSERT">INSERT (Baru)</option>
@@ -451,8 +509,6 @@
                         <button @click="loadLogs()" class="px-4 py-2 bg-brand-green text-white text-sm font-bold rounded-lg hover:bg-green-700 transition">🔄 Refresh</button>
                     </div>
                 </div>
-
-                <!-- Stats Bar -->
                 <div class="px-6 py-3 bg-white border-b flex gap-6 shrink-0">
                     <div class="flex items-center gap-2">
                         <span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span>
@@ -470,7 +526,6 @@
                         Menampilkan <span class="font-bold text-gray-700" x-text="filteredLogs.length"></span> dari <span class="font-bold text-gray-700" x-text="activityLogs.length"></span> entri
                     </div>
                 </div>
-
                 <div class="px-6 pb-6 pt-4 overflow-y-auto flex-1">
                     <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm bg-white">
                         <table class="w-full text-left text-sm min-w-max">
@@ -504,7 +559,7 @@
                                         <td class="p-3 font-bold text-gray-800 text-xs whitespace-nowrap" x-text="log.actor"></td>
                                         <td class="p-3">
                                             <template x-if="log.reservation_id">
-                                                <button type="button" @click.stop="jumpToReservation(log)" class="font-mono text-xs bg-gray-100 hover:bg-brand-green hover:text-white px-2 py-1 rounded border border-gray-300 hover:border-brand-green transition font-bold" :title="'Buka reservasi ' + log.reservation_id" x-text="log.reservation_id"></button>
+                                                <button type="button" @click.stop="jumpToReservation(log)" class="font-mono text-xs bg-gray-100 hover:bg-brand-green hover:text-white px-2 py-1 rounded border border-gray-300 hover:border-brand-green transition font-bold" x-text="log.reservation_id"></button>
                                             </template>
                                             <template x-if="!log.reservation_id">
                                                 <span class="text-gray-400 text-xs">-</span>
@@ -519,7 +574,6 @@
                                             <span class="text-gray-400 text-xs" x-text="log.changes_json ? (log._expanded ? '▲' : '▼') : '—'"></span>
                                         </td>
                                     </tr>
-                                    <!-- ROW DETAIL EXPAND -->
                                     <tr x-show="log._expanded && log.changes_json" class="bg-purple-50/60">
                                         <td colspan="9" class="px-6 py-4">
                                             <div class="bg-white rounded-xl border border-purple-200 p-4 shadow-sm">
@@ -552,8 +606,9 @@
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://kepwayqnpludozbonvbe.supabase.co';
+        const SUPABASE_URL = '[kepwayqnpludozbonvbe.supabase.co](https://kepwayqnpludozbonvbe.supabase.co)';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlcHdheXFucGx1ZG96Ym9udmJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMzE4NTksImV4cCI6MjA5MTYwNzg1OX0.klCq5PCxFcZYGEp2Y0ckMX9aZLRt__KNhGXSRdQX3K4';
+        const FONTE_API_TOKEN = 'KPqigFs8ZsBe2FPUnKNg';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener('alpine:init', () => {
@@ -593,15 +648,23 @@
                 
                 selectedSeatZone: 'A', currentDate: new Date(), currentMonth: new Date().getMonth(), currentYear: new Date().getFullYear(), selectedDate: null,
                 reservations:[], dayReservations:[], searchQuery: '', sortColumn: 'createdAt', sortDirection: 'desc',
-                modals: { list: false, form: false, time: false, seat: false, log: false },
+                modals: { list: false, form: false, time: false, seat: false, log: false, waBlast: false },
                 formData: { id: null, orderType: 'WA', name: '', time: '', seats:[], details: '', fishWeight: '', notes: '', paymentStatus: 'DP', paymentMethod: 'Cash', createdAt: null, dpAmount: null, dpAmountDisplay: '', phone: '', pax: '' },
                 nameError: '', phoneError: '', paxError: '',
+
+                // WA Blast state
+                waBlastData: {
+                    res: null,
+                    caption: '',
+                    status: '',       // '' | 'generating' | 'success' | 'error'
+                    statusMessage: '',
+                    pdfUrl: ''
+                },
                 
                 // Log state
                 activityLogs:[], filteredLogs: [], logLoading: false, logFilter: '', logActorFilter: '',
                 get logActors() {
-                    const actors = [...new Set(this.activityLogs.map(l => l.actor).filter(Boolean))];
-                    return actors;
+                    return [...new Set(this.activityLogs.map(l => l.actor).filter(Boolean))];
                 },
 
                 formatRupiah(angka) { if (!angka && angka !== 0) return ''; const num = parseInt(angka, 10); if (isNaN(num)) return ''; return 'Rp ' + num.toLocaleString('id-ID'); },
@@ -614,6 +677,7 @@
                 showToast(message, type = 'success') { const id = this.toastCount++; this.toasts.push({ id, message, type, show: true }); setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 3000); },
 
                 handleEscape(e) {
+                    if (this.modals.waBlast) { this.modals.waBlast = false; return; }
                     if (this.modals.time) { this.modals.time = false; return; }
                     if (this.modals.seat) { this.modals.seat = false; return; }
                     if (this.modals.form) { e.preventDefault(); return; } 
@@ -763,7 +827,6 @@
                         const dateStr = this.getFormattedDate(this.selectedDate);
                         const dpAmountVal = (this.formData.paymentStatus === 'DP' && this.formData.dpAmount > 0) ? this.formData.dpAmount : null;
                         
-                        // Ambil data sebelumnya untuk diff log
                         let prevData = null;
                         if (this.formData.id) {
                             prevData = this.reservations.find(r => r.id === this.formData.id) || null;
@@ -788,8 +851,6 @@
                         if (this.formData.id) { 
                             payload.updated_by = this.currentUser.name;
                             await supabaseClient.from('reservations').update(payload).eq('id', this.formData.id); 
-                            
-                            // Build diff untuk log
                             const diff = this.buildDiff(prevData, payload, this.formData.id);
                             await this.writeLog('UPDATE', this.formData.id, payload.name, dateStr, diff.summary, diff.changesJson);
                         } else {
@@ -799,7 +860,6 @@
                             payload.createdAt = new Date().getTime();
                             payload.created_by = this.currentUser.name;
                             payload.updated_by = this.currentUser.name;
-
                             await supabaseClient.from('reservations').insert([payload]);
                             const insertSummary = `Nama: ${payload.name} | Jam: ${payload.time} | Kursi: ${(payload.seats||[]).join(', ')||'-'} | Bayar: ${payload.paymentStatus}`;
                             await this.writeLog('INSERT', payload.id, payload.name, dateStr, insertSummary, null);
@@ -813,7 +873,6 @@
                     } finally { this.isLoading = false; }
                 },
 
-                // Build diff antara data lama dan baru
                 buildDiff(prev, next, resId) {
                     const fieldLabels = {
                         'name': 'Nama', 'time': 'Jam', 'seats': 'Kursi', 'details': 'Menu',
@@ -821,19 +880,15 @@
                         'paymentMethod': 'Metode Bayar', 'dpAmount': 'Jumlah DP', 'phone': 'No HP',
                         'pax': 'Jumlah Pax', 'order_type': 'Jenis Order'
                     };
-                    
                     if (!prev) return { summary: `Edit reservasi ${resId}`, changesJson: null };
-                    
                     const changes = {};
                     const checkFields = ['name', 'time', 'seats', 'details', 'fish_weight', 'notes', 'paymentStatus', 'paymentMethod', 'dpAmount', 'phone', 'pax', 'order_type'];
-                    
                     const getVal = (obj, key) => {
                         if (key === 'seats') return Array.isArray(obj.seats) ? obj.seats.join(', ') : (obj.seat || '');
                         if (key === 'fish_weight') return obj.fish_weight || obj.fishWeight || '';
                         if (key === 'order_type') return obj.order_type || obj.orderType || '';
                         return obj[key] || '';
                     };
-                    
                     let summaryParts = [];
                     checkFields.forEach(field => {
                         const fromVal = String(getVal(prev, field) || '').trim();
@@ -843,7 +898,6 @@
                             summaryParts.push(`${fieldLabels[field] || field}: "${fromVal}" → "${toVal}"`);
                         }
                     });
-                    
                     return {
                         summary: summaryParts.length > 0 ? summaryParts.join(' | ') : 'Tidak ada perubahan terdeteksi',
                         changesJson: Object.keys(changes).length > 0 ? JSON.stringify(changes) : null
@@ -872,7 +926,6 @@
                             ts: new Date().getTime(), 
                             created_at: new Date().toISOString()
                         };
-                        // Tambahkan changes_json jika kolom ada
                         if (changesJson !== undefined) logPayload.changes_json = changesJson;
                         await supabaseClient.from('activity_logs').insert([logPayload]);
                     } catch(e) { console.warn('Log write error:', e); }
@@ -901,91 +954,324 @@
                     this.filteredLogs = filtered;
                 },
 
-                toggleLogDetail(log) {
-                    log._expanded = !log._expanded;
-                },
+                toggleLogDetail(log) { log._expanded = !log._expanded; },
 
                 parseChanges(changesJson) {
                     if (!changesJson) return [];
                     try {
                         const obj = typeof changesJson === 'string' ? JSON.parse(changesJson) : changesJson;
                         return Object.entries(obj).map(([field, val]) => ({
-                            field,
-                            from: val.from !== undefined ? val.from : undefined,
-                            to: val.to !== undefined ? val.to : undefined
+                            field, from: val.from !== undefined ? val.from : undefined, to: val.to !== undefined ? val.to : undefined
                         }));
                     } catch(e) { return []; }
                 },
 
-                // Klik ID reservasi di log → buka hari reservasi itu
                 jumpToReservation(log) {
                     if (!log.reservation_date) { this.showToast('Tanggal reservasi tidak diketahui', 'error'); return; }
                     const parts = log.reservation_date.split('-');
                     if (parts.length !== 3) return;
-                    const year = parseInt(parts[0]);
-                    const month = parseInt(parts[1]) - 1;
-                    const day = parseInt(parts[2]);
-                    this.currentYear = year;
-                    this.currentMonth = month;
-                    this.selectedDate = day;
-                    this.dayReservations = this.getReservations(day);
+                    this.currentYear = parseInt(parts[0]);
+                    this.currentMonth = parseInt(parts[1]) - 1;
+                    this.selectedDate = parseInt(parts[2]);
+                    this.dayReservations = this.getReservations(this.selectedDate);
                     this.modals.log = false;
                     this.modals.list = true;
                 },
 
-                // ══════════════ WHATSAPP BLAST ══════════════
-                blastWhatsapp(res) {
+                // ══════════════ WA BLAST — BUKA MODAL ══════════════
+                openWaBlastModal(res) {
                     if (!res.phone) { this.showToast('Nomor HP belum diisi!', 'error'); return; }
-                    
+
                     const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : '-';
                     const pax = res.pax ? res.pax + ' orang' : '-';
                     const tgl = this.formatDateLong(res.date);
                     const jam = res.time ? res.time + ' WIB' : '-';
-                    
-                    let statusBayar = '';
-                    if (res.paymentStatus === 'Lunas') {
-                        statusBayar = `✅ LUNAS (${res.paymentMethod || 'Cash'})`;
-                    } else if (res.paymentStatus === 'BLM BAYAR') {
-                        statusBayar = '⚠️ BELUM BAYAR';
-                    } else {
-                        const dpStr = res.dpAmount ? this.formatRupiah(res.dpAmount) : '-';
-                        statusBayar = `🟡 DP (${res.paymentMethod || 'Cash'}): ${dpStr}`;
-                    }
-                    
                     const orderTypeMap = { 'WA': 'WhatsApp', 'OTS': 'On The Spot', 'PT': 'PT/Perusahaan' };
                     const orderType = orderTypeMap[res.orderType || 'WA'] || res.orderType || '-';
 
-                    const pesan = `🎣 *KONFIRMASI RESERVASI*
-*Pemancingan Suharno 2*
-━━━━━━━━━━━━━━━━━
+                    let statusBayar = '';
+                    if (res.paymentStatus === 'Lunas') {
+                        statusBayar = `LUNAS (${res.paymentMethod || 'Cash'})`;
+                    } else if (res.paymentStatus === 'BLM BAYAR') {
+                        statusBayar = 'BELUM BAYAR';
+                    } else {
+                        const dpStr = res.dpAmount ? this.formatRupiah(res.dpAmount) : '-';
+                        statusBayar = `DP (${res.paymentMethod || 'Cash'}): ${dpStr}`;
+                    }
+
+                    const caption = `Halo *${res.name}*! 👋
+
+Berikut kami kirimkan *Invoice / Tanda Jadi Reservasi* Anda di *Pemancingan Suharno 2*.
+
 📋 *No. Reservasi:* ${res.id}
-👤 *Nama:* ${res.name}
 📅 *Tanggal:* ${tgl}
-🕐 *Jam Kedatangan:* ${jam}
-💺 *Kursi / Spot:* ${seats}
+🕐 *Jam:* ${jam}
+💺 *Kursi:* ${seats}
 👥 *Jumlah Pax:* ${pax}
-📱 *Sumber Order:* ${orderType}
+📱 *Sumber:* ${orderType}
 💳 *Status Bayar:* ${statusBayar}
-${res.notes ? `📌 *Catatan:* ${res.notes}` : ''}
-${res.details ? `🍽️ *Pesanan Menu:*\n${res.details}` : ''}
-━━━━━━━━━━━━━━━━━
-Mohon hadir tepat waktu sesuai jadwal. Kursi berlaku maks. *3 jam* dari waktu tertera.
 
-Terima kasih sudah reservasi di *Pemancingan Suharno 2*! 🐟`;
+Mohon simpan invoice ini sebagai bukti reservasi. Tunjukkan kepada kasir saat kedatangan.
 
-                    // Format nomor WA (buang 0 di depan, tambah 62)
-                    let phoneWA = res.phone.replace(/\D/g, '');
-                    if (phoneWA.startsWith('0')) phoneWA = '62' + phoneWA.substring(1);
-                    else if (!phoneWA.startsWith('62')) phoneWA = '62' + phoneWA;
-                    
-                    const encodedMsg = encodeURIComponent(pesan);
-                    const waUrl = `https://wa.me/${phoneWA}?text=${encodedMsg}`;
-                    
-                    window.open(waUrl, '_blank');
-                    this.showToast(`Membuka WhatsApp untuk ${res.name}...`);
+Terima kasih sudah mempercayai kami! 🐟🎣`;
+
+                    this.waBlastData = {
+                        res: res,
+                        caption: caption,
+                        status: '',
+                        statusMessage: '',
+                        pdfUrl: ''
+                    };
+                    this.modals.waBlast = true;
                 },
 
-                // ══════════════ PRINT TIMBANGAN (1 HARI, A4 DIBAGI 6) ══════════════
+                // ══════════════ GENERATE PDF + BUKA WA ══════════════
+                async generateAndSendWA() {
+                    const res = this.waBlastData.res;
+                    if (!res) return;
+
+                    this.waBlastData.status = 'generating';
+                    this.waBlastData.statusMessage = 'Membuat PDF invoice...';
+                    this.waBlastData.pdfUrl = '';
+
+                    try {
+                        const htmlContent = this.buildInvoiceHtml(res);
+                        const pdfUrl = await this.generatePdfViaFonte(htmlContent, `invoice-${res.id}`);
+                        
+                        this.waBlastData.pdfUrl = pdfUrl;
+                        this.waBlastData.status = 'success';
+                        this.waBlastData.statusMessage = 'PDF berhasil dibuat! Membuka WhatsApp...';
+
+                        // Format nomor WA
+                        let phoneWA = res.phone.replace(/\D/g, '');
+                        if (phoneWA.startsWith('0')) phoneWA = '62' + phoneWA.substring(1);
+                        else if (!phoneWA.startsWith('62')) phoneWA = '62' + phoneWA;
+
+                        // Gabungkan caption + link PDF
+                        const fullMessage = this.waBlastData.caption.trim() + '\n\n📄 *Invoice PDF:*\n' + pdfUrl;
+                        const encodedMsg = encodeURIComponent(fullMessage);
+                        const waUrl = `[wa.me](https://wa.me/${phoneWA}?text=${encodedMsg})`;
+
+                        setTimeout(() => {
+                            window.open(waUrl, '_blank');
+                            this.showToast(`Invoice dikirim ke ${res.name}! ✅`);
+                        }, 500);
+
+                    } catch (err) {
+                        console.error('PDF generation error:', err);
+                        this.waBlastData.status = 'error';
+                        this.waBlastData.statusMessage = 'Gagal membuat PDF: ' + (err.message || 'Error tidak diketahui');
+                        this.showToast('Gagal generate PDF!', 'error');
+                    }
+                },
+
+                // ══════════════ CALL FONTE API (HTML → PDF URL) ══════════════
+                async generatePdfViaFonte(htmlContent, filename) {
+                    const response = await fetch('[api.fonnte.com](https://api.fonnte.com/pdf)', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': FONTE_API_TOKEN,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            html: htmlContent,
+                            filename: filename || 'invoice'
+                        })
+                    });
+
+                    if (!response.ok) {
+                        // Coba endpoint alternatif Fonnte
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
+                    const result = await response.json();
+
+                    // Fonnte mengembalikan { url: '...' } atau { file: '...' }
+                    const pdfUrl = result.url || result.file || result.link || result.data?.url;
+                    if (!pdfUrl) {
+                        throw new Error('URL PDF tidak ditemukan dalam response: ' + JSON.stringify(result));
+                    }
+                    return pdfUrl;
+                },
+
+                // ══════════════ BUILD HTML INVOICE ══════════════
+                buildInvoiceHtml(res) {
+                    const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : '—';
+                    const tgl = this.formatDateLong(res.date);
+                    const pax = res.pax ? res.pax + ' orang' : '-';
+                    const printDate = this.formatDateTime(new Date().getTime());
+                    const createdAtStr = this.formatDateTime(res.createdAt);
+                    const orderTypeMap = { 'WA': '📱 WhatsApp (WA)', 'OTS': '🚶 On The Spot (OTS)', 'PT': '🏢 PT/Perusahaan' };
+                    const orderTypeLabel = orderTypeMap[res.orderType || 'WA'] || res.orderType || '-';
+
+                    let statusBayarLabel = '', statusColor = '#374151', statusBg = '#f3f4f6';
+                    if (res.paymentStatus === 'Lunas') {
+                        statusBayarLabel = `✅ LUNAS (${res.paymentMethod || 'Cash'})`;
+                        statusColor = '#065f46'; statusBg = '#d1fae5';
+                    } else if (res.paymentStatus === 'BLM BAYAR') {
+                        statusBayarLabel = '⚠️ BELUM BAYAR';
+                        statusColor = '#991b1b'; statusBg = '#fee2e2';
+                    } else {
+                        const dpStr = res.dpAmount ? this.formatRupiah(res.dpAmount) : '-';
+                        statusBayarLabel = `🟡 DP (${res.paymentMethod || 'Cash'}): ${dpStr}`;
+                        statusColor = '#92400e'; statusBg = '#fef3c7';
+                    }
+
+                    const notesRow = res.notes ? `
+                        <tr>
+                            <td style="padding:10px 16px;border-bottom:1px solid #e5e7eb;color:#6b7280;font-weight:600;font-size:13px;width:40%;">📌 Catatan</td>
+                            <td style="padding:10px 16px;border-bottom:1px solid #e5e7eb;font-weight:700;color:#c2410c;">${res.notes}</td>
+                        </tr>` : '';
+
+                    const detailsSection = res.details ? `
+                        <div style="margin-top:24px;">
+                            <div style="font-weight:800;font-size:14px;color:#1f2937;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;">🍽️ Detail Pesanan Menu</div>
+                            <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;font-size:13px;font-weight:600;line-height:1.7;white-space:pre-wrap;color:#374151;">${res.details}</div>
+                        </div>` : '';
+
+                    const fishSection = res.fishWeight ? `
+                        <div style="margin-top:16px;">
+                            <div style="font-weight:800;font-size:14px;color:#0f766e;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;">⚖️ Detail Timbangan Ikan</div>
+                            <div style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:10px;padding:14px 16px;font-size:13px;font-weight:600;line-height:1.8;white-space:pre-wrap;color:#134e4a;font-family:monospace;">${res.fishWeight}</div>
+                        </div>` : '';
+
+                    return `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invoice Reservasi - ${res.id}</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f3f4f6; color: #1a1a1a; padding: 24px; }
+  .card { background: white; max-width: 600px; margin: 0 auto; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.10); }
+  .header { background: linear-gradient(135deg, #1a4f28 0%, #297c3f 100%); padding: 28px 28px 20px; color: white; }
+  .logo-row { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+  .logo-box { width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; border: 1.5px solid rgba(255,255,255,0.3); }
+  .logo-text h1 { font-size: 18px; font-weight: 900; letter-spacing: -0.3px; }
+  .logo-text p { font-size: 12px; color: #bbf7d0; font-weight: 600; margin-top: 2px; }
+  .invoice-label { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 8px; padding: 10px 16px; display: inline-block; }
+  .invoice-label .title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #bbf7d0; font-weight: 700; }
+  .invoice-label .id { font-size: 20px; font-weight: 900; font-family: monospace; letter-spacing: 1px; margin-top: 2px; }
+  .stamp { display: inline-block; border: 3px solid; border-radius: 8px; padding: 6px 16px; font-weight: 900; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; margin-top: 12px; }
+  .body { padding: 24px 28px; }
+  table { width: 100%; border-collapse: collapse; }
+  .section-title { font-weight: 800; font-size: 14px; color: #1f2937; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; padding-top: 20px; }
+  .footer { background: #f9fafb; border-top: 1px solid #e5e7eb; padding: 16px 28px; }
+  .footer p { font-size: 11px; color: #6b7280; font-weight: 600; line-height: 1.6; }
+  .barcode-area { text-align: center; padding: 16px 0 8px; }
+  .barcode-text { font-family: monospace; font-size: 13px; letter-spacing: 3px; color: #374151; font-weight: 700; background: #f3f4f6; display: inline-block; padding: 6px 16px; border-radius: 6px; border: 1px solid #e5e7eb; }
+  .watermark { text-align: center; font-size: 60px; font-weight: 900; color: #f3f4f6; padding: 8px 0 0; user-select: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <!-- Header -->
+  <div class="header">
+    <div class="logo-row">
+      <div class="logo-box">S2</div>
+      <div class="logo-text">
+        <h1>Pemancingan Suharno 2</h1>
+        <p>Sistem Manajemen Reservasi</p>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;">
+      <div class="invoice-label">
+        <div class="title">Invoice / Tanda Jadi</div>
+        <div class="id">${res.id}</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="stamp" style="color:${statusColor};border-color:${statusColor};background:rgba(255,255,255,0.12);">${res.paymentStatus === 'Lunas' ? '✅ LUNAS' : (res.paymentStatus === 'BLM BAYAR' ? '⚠️ BELUM BAYAR' : '🟡 DP')}</div>
+        <div style="font-size:11px;color:#bbf7d0;margin-top:6px;font-weight:600;">Dicetak: ${printDate}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="body">
+    <!-- Data Pelanggan -->
+    <div class="section-title" style="padding-top:0;">👤 Data Pemesan</div>
+    <table>
+      <tr>
+        <td style="padding:10px 16px;border-bottom:1px solid #e5e7eb;color:#6b7280;font-weight:600;font-size:13px;width:40%;">Nama Lengkap</td>
+        <td style="padding:10px 16px;border-bottom:1px solid #e5e7eb;font-weight:800;font-size:16px;color:#111827;">${res.name.toUpperCase()}</td>
+      </tr>
+      ${res.phone ? `<tr>
+        <td style="padding:10px 16px;border-bottom:1px solid #e5e7eb;color:#6b7280;font-weight:600;font-size:13px;">📞 No. HP</td>
+        <td style="padding:10px 16px;border-bottom:1px solid #e5e7eb;font-weight:700;">${res.phone}</td>
+      </tr>` : ''}
+      ${res.pax ? `<tr>
+        <td style="padding:10px 16px;border-bottom:1px solid #e5e7eb;color:#6b7280;font-weight:600;font-size:13px;">👥 Jumlah Pax</td>
+        <td style="padding:10px 16px;border-bottom:1px solid #e5e7eb;font-weight:700;">${pax}</td>
+      </tr>` : ''}
+      <tr>
+        <td style="padding:10px 16px;border-bottom:1px solid #e5e7eb;color:#6b7280;font-weight:600;font-size:13px;">📱 Sumber Order</td>
+        <td style="padding:10px 16px;border-bottom:1px solid #e5e7eb;font-weight:700;">${orderTypeLabel}</td>
+      </tr>
+    </table>
+
+    <!-- Detail Reservasi -->
+    <div class="section-title">📅 Detail Reservasi</div>
+    <table>
+      <tr>
+        <td style="padding:10px 16px;border-bottom:1px solid #e5e7eb;color:#6b7280;font-weight:600;font-size:13px;width:40%;">Tanggal Kedatangan</td>
+        <td style="padding:10px 16px;border-bottom:1px solid #e5e7eb;font-weight:800;font-size:15px;color:#111827;">${tgl}</td>
+      </tr>
+      <tr>
+        <td style="padding:10px 16px;border-bottom:1px solid #e5e7eb;color:#6b7280;font-weight:600;font-size:13px;">🕐 Jam Kedatangan</td>
+        <td style="padding:10px 16px;border-bottom:1px solid #e5e7eb;">
+          <span style="background:#dcfce7;color:#166534;font-weight:900;font-size:15px;padding:4px 12px;border-radius:8px;border:1.5px solid #bbf7d0;">${res.time} WIB</span>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:10px 16px;border-bottom:1px solid #e5e7eb;color:#6b7280;font-weight:600;font-size:13px;">💺 Kursi / Spot</td>
+        <td style="padding:10px 16px;border-bottom:1px solid #e5e7eb;">
+          <span style="background:#dbeafe;color:#1e40af;font-weight:900;font-size:14px;padding:4px 12px;border-radius:8px;border:1.5px solid #bfdbfe;">${seats}</span>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Pembayaran -->
+    <div class="section-title">💳 Status Pembayaran</div>
+    <table>
+      <tr>
+        <td style="padding:10px 16px;border-bottom:1px solid #e5e7eb;color:#6b7280;font-weight:600;font-size:13px;width:40%;">Status</td>
+        <td style="padding:10px 16px;border-bottom:1px solid #e5e7eb;">
+          <span style="background:${statusBg};color:${statusColor};font-weight:900;font-size:13px;padding:5px 14px;border-radius:8px;border:1.5px solid ${statusColor}40;">${statusBayarLabel}</span>
+        </td>
+      </tr>
+      ${notesRow}
+    </table>
+
+    ${detailsSection}
+    ${fishSection}
+
+    <!-- Barcode visual -->
+    <div class="barcode-area">
+      <div class="barcode-text">${res.id}</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p style="text-align:center;font-weight:700;color:#374151;font-size:12px;margin-bottom:8px;">
+      ⚠️ Tunjukkan invoice ini kepada kasir saat kedatangan.<br>
+      Kursi berlaku maks. <strong>3 jam</strong> dari waktu yang tertera.
+    </p>
+    <p style="text-align:center;color:#9ca3af;font-size:11px;">
+      Input: ${createdAtStr} oleh ${res.createdBy || '-'}
+      ${res.updatedBy ? ' · Diubah oleh ' + res.updatedBy : ''}
+    </p>
+    <p style="text-align:center;margin-top:6px;color:#d1d5db;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">
+      Pemancingan Suharno 2 · Sistem Reservasi Digital
+    </p>
+  </div>
+</div>
+</body>
+</html>`;
+                },
+
+                // ══════════════ PRINT TIMBANGAN ══════════════
                 printDayTimbangan() {
                     const list = [...this.dayReservations].sort((a,b) => (a.time||'').localeCompare(b.time||''));
                     if (list.length === 0) return;
@@ -1012,20 +1298,17 @@ Terima kasih sudah reservasi di *Pemancingan Suharno 2*! 🐟`;
 </div>`;
                     };
 
-                    // Susun cells: 3 kolom × 2 baris per halaman = 6 per page
                     const CELLS_PER_PAGE = 6;
                     const COLS = 3;
                     let pages = '';
                     for (let pageStart = 0; pageStart < list.length; pageStart += CELLS_PER_PAGE) {
                         const chunk = list.slice(pageStart, pageStart + CELLS_PER_PAGE);
                         while (chunk.length < CELLS_PER_PAGE) chunk.push(null);
-                        
                         const rows = [];
                         for (let row = 0; row < 2; row++) {
                             const rowCells = chunk.slice(row * COLS, row * COLS + COLS).map(r => buildCell(r)).join('');
                             rows.push(`<div class="row">${rowCells}</div>`);
                         }
-                        
                         const isLastPage = pageStart + CELLS_PER_PAGE >= list.length;
                         pages += `<div class="page${isLastPage ? '' : ' page-break'}">
             <div class="page-header">
@@ -1037,83 +1320,33 @@ Terima kasih sudah reservasi di *Pemancingan Suharno 2*! 🐟`;
                     }
 
                     const html = `<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<title>Timbangan Ikan - ${printDateStr}</title>
+<html lang="id"><head><meta charset="UTF-8"><title>Timbangan Ikan - ${printDateStr}</title>
 <style>
   @page { size: A4 portrait; margin: 8mm; }
   * { margin:0; padding:0; box-sizing:border-box; }
   html, body { font-family: 'Segoe UI', Arial, sans-serif; background: white; color: #111; width: 194mm; }
-  
   .page { width: 194mm; height: 281mm; display: flex; flex-direction: column; }
   .page-break { page-break-after: always; }
-
-  .page-header { 
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 5px 0 7px; border-bottom: 2px solid #000; margin-bottom: 6px;
-  }
+  .page-header { display: flex; justify-content: space-between; align-items: center; padding: 5px 0 7px; border-bottom: 2px solid #000; margin-bottom: 6px; }
   .page-title { font-size: 13pt; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
   .page-meta { font-size: 7.5pt; color: #6b7280; font-weight: 600; }
-
   .row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5mm; flex: 1; }
-  
-  .cell {
-      border: 1.5px solid #111;
-      border-radius: 6px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      min-height: 0;
-  }
-  .cell-empty { 
-      border: 1.5px dashed #d1d5db;
-      border-radius: 6px;
-      background: #f9fafb;
-  }
-
-  .cell-header { 
-      background: #1a1a1a; color: white;
-      padding: 6px 8px; 
-  }
+  .cell { border: 1.5px solid #111; border-radius: 6px; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+  .cell-empty { border: 1.5px dashed #d1d5db; border-radius: 6px; background: #f9fafb; }
+  .cell-header { background: #1a1a1a; color: white; padding: 6px 8px; }
   .cell-name { font-size: 12pt; font-weight: 900; text-transform: uppercase; line-height: 1.2; }
   .cell-jam { font-size: 7.5pt; color: #9ca3af; margin-top: 2px; font-weight: 600; }
-
-  .cell-timbangan-label { 
-      background: #f0fdf4; border-bottom: 1px solid #d1fae5;
-      padding: 4px 8px; font-size: 8pt; font-weight: 900; 
-      color: #065f46; text-transform: uppercase; letter-spacing: 0.3px;
-  }
-  .cell-timbangan-body { 
-      flex: 1; padding: 8px; font-size: 9.5pt; font-weight: 600; 
-      line-height: 1.7; white-space: pre-wrap; font-family: 'Consolas', 'Courier New', monospace;
-      word-break: break-word;
-      min-height: 60px;
-  }
+  .cell-timbangan-label { background: #f0fdf4; border-bottom: 1px solid #d1fae5; padding: 4px 8px; font-size: 8pt; font-weight: 900; color: #065f46; text-transform: uppercase; letter-spacing: 0.3px; }
+  .cell-timbangan-body { flex: 1; padding: 8px; font-size: 9.5pt; font-weight: 600; line-height: 1.7; white-space: pre-wrap; font-family: 'Consolas', 'Courier New', monospace; word-break: break-word; min-height: 60px; }
   .empty-fish { color: #9ca3af; font-style: italic; font-family: 'Segoe UI', sans-serif; font-size: 9pt; font-weight: 400; }
-
-  .cell-footer { 
-      border-top: 1.5px dashed #d1d5db; padding: 5px 8px;
-      display: flex; justify-content: space-between; align-items: center;
-  }
+  .cell-footer { border-top: 1.5px dashed #d1d5db; padding: 5px 8px; display: flex; justify-content: space-between; align-items: center; }
   .cell-id { font-family: monospace; font-size: 7pt; color: #6b7280; font-weight: 700; }
-  .cell-total-box { 
-      border: 1.5px solid #111; border-radius: 4px;
-      padding: 3px 8px; font-size: 8.5pt; font-weight: 900;
-      letter-spacing: 0.3px;
-  }
-
-  @media print {
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  }
-</style>
-</head>
-<body>
+  .cell-total-box { border: 1.5px solid #111; border-radius: 4px; padding: 3px 8px; font-size: 8.5pt; font-weight: 900; letter-spacing: 0.3px; }
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+</style></head><body>
 ${pages}
 <script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
-</body>
-</html>`;
-
+</body></html>`;
                     const popup = window.open('', '_blank', 'width=900,height=800');
                     if (popup) { popup.document.write(html); popup.document.close(); } 
                     else { this.showToast('Izinkan popup browser Anda!', 'error'); }
@@ -1122,71 +1355,40 @@ ${pages}
                 printDailySchedule() {
                     const list =[...this.dayReservations].sort((a,b) => (a.time||'').localeCompare(b.time||''));
                     if (list.length === 0) return;
-
                     let tableRows = '';
                     list.forEach((res, index) => {
                         const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : '-';
                         const pax = res.pax ? res.pax + ' Org' : '-';
                         const notes = res.notes ? res.notes : '-';
-                        
-                        tableRows += `
-                            <tr>
-                                <td style="text-align:center;">${index + 1}</td>
-                                <td style="text-align:center; font-weight:bold;">${res.time}</td>
-                                <td style="text-transform: uppercase;">${res.name} (${res.orderType || 'WA'})</td>
-                                <td style="text-align:center;">${pax}</td>
-                                <td style="text-align:center; font-weight:bold;">${seats}</td>
-                                <td style="text-transform: uppercase; color:#c2410c; font-weight:600;">${notes}</td>
-                            </tr>
-                        `;
+                        tableRows += `<tr>
+                            <td style="text-align:center;">${index + 1}</td>
+                            <td style="text-align:center; font-weight:bold;">${res.time}</td>
+                            <td style="text-transform: uppercase;">${res.name} (${res.orderType || 'WA'})</td>
+                            <td style="text-align:center;">${pax}</td>
+                            <td style="text-align:center; font-weight:bold;">${seats}</td>
+                            <td style="text-transform: uppercase; color:#c2410c; font-weight:600;">${notes}</td>
+                        </tr>`;
                     });
-
                     const printDateStr = this.formatDateLong(this.getFormattedDate(this.selectedDate));
-
-                    const html = `<!DOCTYPE html>
-                    <html lang="id">
-                    <head>
-                        <meta charset="UTF-8">
-                        <title>Daftar Reservasi Hari Ini - ${this.selectedDateString}</title>
-                        <style>
-                            @page { size: A4 portrait; margin: 15mm; }
-                            body { font-family: 'Segoe UI', Arial, sans-serif; color: #000; }
-                            .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-                            .header h1 { font-size: 18pt; margin: 0; text-transform: uppercase; }
-                            .header p { font-size: 12pt; margin: 5px 0 0 0; font-weight: bold; }
-                            table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11pt; }
-                            th, td { border: 1px solid #000; padding: 8px; }
-                            th { background-color: #f0f0f0; text-transform: uppercase; }
-                            .footer { margin-top: 20px; font-size: 9pt; text-align: right; font-style: italic; }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="header">
-                            <h1>DAFTAR RESERVASI HARI INI</h1>
-                            <p style="font-size: 12pt; margin-top: 8px;">(${printDateStr})</p>
-                        </div>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th style="width: 5%;">No</th>
-                                    <th style="width: 10%;">Jam</th>
-                                    <th style="width: 25%;">Nama</th>
-                                    <th style="width: 10%;">Pax</th>
-                                    <th style="width: 20%;">Meja / Kursi</th>
-                                    <th style="width: 30%;">Info Catatan Tambahan</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${tableRows}
-                            </tbody>
-                        </table>
-                        <div class="footer">
-                            Dicetak oleh: ${this.currentUser.name} pada ${this.formatDateTime(new Date().getTime())}
-                        </div>
-                        <script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
-                    </body>
-                    </html>`;
-
+                    const html = `<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><title>Jadwal - ${this.selectedDateString}</title>
+<style>
+  @page { size: A4 portrait; margin: 15mm; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #000; }
+  .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+  .header h1 { font-size: 18pt; margin: 0; text-transform: uppercase; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11pt; }
+  th, td { border: 1px solid #000; padding: 8px; }
+  th { background-color: #f0f0f0; text-transform: uppercase; }
+  .footer { margin-top: 20px; font-size: 9pt; text-align: right; font-style: italic; }
+</style></head><body>
+<div class="header"><h1>DAFTAR RESERVASI HARI INI</h1><p style="font-size:12pt;margin-top:8px;">(${printDateStr})</p></div>
+<table><thead><tr>
+  <th style="width:5%;">No</th><th style="width:10%;">Jam</th><th style="width:25%;">Nama</th>
+  <th style="width:10%;">Pax</th><th style="width:20%;">Meja/Kursi</th><th style="width:30%;">Catatan</th>
+</tr></thead><tbody>${tableRows}</tbody></table>
+<div class="footer">Dicetak oleh: ${this.currentUser.name} pada ${this.formatDateTime(new Date().getTime())}</div>
+<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
+</body></html>`;
                     const popup = window.open('', '_blank', 'width=800,height=900,scrollbars=yes');
                     if (popup) { popup.document.write(html); popup.document.close(); } 
                     else { this.showToast('Izinkan popup browser Anda!', 'error'); }
@@ -1196,39 +1398,35 @@ ${pages}
                     const seatsText = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : 'Belum Pilih Kursi';
                     const pax = res.pax ? res.pax : '-';
                     const time = res.time ? res.time + ' WIB' : '-';
-
                     let seatFontSize = '85pt';
                     if (seatsText.length > 40) { seatFontSize = '40pt'; } 
                     else if (seatsText.length > 25) { seatFontSize = '55pt'; } 
                     else if (seatsText.length > 15) { seatFontSize = '70pt'; }
-
-                    const html = `<!DOCTYPE html>
-                    <html lang="id"><head><meta charset="UTF-8"><title>Print Label Kursi - ${res.name}</title>
-                    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;900&display=swap" rel="stylesheet">
-                    <style>
-                      @page { size: A4 landscape; margin: 0; }
-                      * { box-sizing: border-box; margin: 0; padding: 0; }
-                      body { width:297mm; height:210mm; margin:0; display:flex; justify-content:center; align-items:center; font-family:'Plus Jakarta Sans',Arial,sans-serif; background:white; color:#000; overflow:hidden; }
-                      .container { width:100%; height:100%; padding:10mm 15mm; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; }
-                      .line-mohon { font-size:55pt; font-weight:900; text-decoration:underline; text-underline-offset:12px; margin-bottom:20px; letter-spacing:3px; line-height:1; }
-                      .line-normal { font-size:38pt; font-weight:700; margin-bottom:10px; color:#1a1a1a; line-height:1; }
-                      .line-seat { font-size:${seatFontSize}; font-weight:900; color:#e90023; margin-bottom:15px; line-height:1.1; word-wrap:break-word; word-break:break-word; max-width:98%; }
-                      .line-name { font-size:65pt; font-weight:900; color:#e90023; margin-bottom:25px; text-transform:uppercase; line-height:1.1; word-wrap:break-word; word-break:break-word; max-width:98%; }
-                      .line-footer { font-size:32pt; font-weight:900; color:#000; padding:12px 40px; border:6px solid #000; border-radius:20px; display:inline-block; background-color:#f8f8f8; }
-                      .line-footer .highlight { color:#e90023; }
-                      @media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } }
-                    </style></head>
-                    <body><div class="container">
-                      <div class="line-mohon">MOHON MAAF</div>
-                      <div class="line-normal">TEMPAT DUDUK INI</div>
-                      <div class="line-seat">${seatsText}</div>
-                      <div class="line-normal">SUDAH DI RESERVASI OLEH</div>
-                      <div class="line-name">${res.name}</div>
-                      <div class="line-footer">JUMLAH: <span class="highlight">${pax}</span> PAX &nbsp;&ndash;&nbsp; JAM: <span class="highlight">${time}</span></div>
-                    </div>
-                    <script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
-                    </body></html>`;
-                    
+                    const html = `<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><title>Label Kursi - ${res.name}</title>
+<link href="[fonts.googleapis.com](https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;900&display=swap)" rel="stylesheet">
+<style>
+  @page { size: A4 landscape; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width:297mm; height:210mm; margin:0; display:flex; justify-content:center; align-items:center; font-family:'Plus Jakarta Sans',Arial,sans-serif; background:white; color:#000; overflow:hidden; }
+  .container { width:100%; height:100%; padding:10mm 15mm; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; }
+  .line-mohon { font-size:55pt; font-weight:900; text-decoration:underline; text-underline-offset:12px; margin-bottom:20px; letter-spacing:3px; line-height:1; }
+  .line-normal { font-size:38pt; font-weight:700; margin-bottom:10px; color:#1a1a1a; line-height:1; }
+  .line-seat { font-size:${seatFontSize}; font-weight:900; color:#e90023; margin-bottom:15px; line-height:1.1; word-wrap:break-word; word-break:break-word; max-width:98%; }
+  .line-name { font-size:65pt; font-weight:900; color:#e90023; margin-bottom:25px; text-transform:uppercase; line-height:1.1; word-wrap:break-word; word-break:break-word; max-width:98%; }
+  .line-footer { font-size:32pt; font-weight:900; color:#000; padding:12px 40px; border:6px solid #000; border-radius:20px; display:inline-block; background-color:#f8f8f8; }
+  .line-footer .highlight { color:#e90023; }
+  @media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } }
+</style></head>
+<body><div class="container">
+  <div class="line-mohon">MOHON MAAF</div>
+  <div class="line-normal">TEMPAT DUDUK INI</div>
+  <div class="line-seat">${seatsText}</div>
+  <div class="line-normal">SUDAH DI RESERVASI OLEH</div>
+  <div class="line-name">${res.name}</div>
+  <div class="line-footer">JUMLAH: <span class="highlight">${pax}</span> PAX &nbsp;&ndash;&nbsp; JAM: <span class="highlight">${time}</span></div>
+</div>
+<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
+</body></html>`;
                     const popup = window.open('', '_blank', 'width=1000,height=800');
                     if (popup) { popup.document.write(html); popup.document.close(); } 
                     else { this.showToast('Izinkan popup browser Anda!', 'error'); }
@@ -1237,12 +1435,10 @@ ${pages}
                 printTicket(res) {
                     const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : '—';
                     const details = res.details || '- Tidak ada pesanan menu -';
-                    
                     let payText = '';
                     if (res.paymentStatus === 'Lunas') { payText = `LUNAS (${res.paymentMethod || 'CASH'})`; } 
                     else if (res.paymentStatus === 'BLM BAYAR') { payText = `BELUM BAYAR`; } 
                     else { payText = `DP ${res.paymentMethod || 'CASH'}: ${res.dpAmount ? this.formatRupiah(res.dpAmount) : '-'}`; }
-
                     const payColor = res.paymentStatus === 'DP' ? 'color:#d97706;' : (res.paymentStatus === 'BLM BAYAR' ? 'color:#dc2626;' : '');
                     const catatanLine = res.notes ? `<div class="row"><span class="label">Catatan Tambahan:</span><span class="value upper" style="color:#c2410c;font-weight:900;">${res.notes}</span></div>` : '';
                     const phoneLine = res.phone ? `<div class="row"><span class="label">No. HP:</span><span class="value">${res.phone}</span></div>` : '';
@@ -1252,7 +1448,6 @@ ${pages}
                     const updatedTime = res.updatedAt ? this.formatDateTime(res.updatedAt) : '-';
                     const updatedStr = res.updatedBy ? `<br>Diubah : ${updatedTime} oleh ${res.updatedBy}` : '';
                     const printDate = this.formatDateTime(new Date().getTime());
-
                     const html = `<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><title>Tiket - ${res.id}</title>
 <style>
   @page { size: A4 portrait; margin: 10mm; }
@@ -1275,8 +1470,7 @@ ${pages}
   .ticket-meta { display:flex; justify-content:space-between; font-size:7.5pt; color:#6b7280; margin-top:10px; border-top:2px solid #1a1a1a; padding-top:8px; break-inside:avoid; line-height:1.4; font-weight:600; }
   .ticket-meta .left { text-align:left; }
   .ticket-meta .right { text-align:right; }
-</style>
-</head><body>
+</style></head><body>
 <div class="print-wrapper">
   <div class="header"><div class="watermark">S2</div><h1>Pemancingan Suharno 2</h1><p>E-TIKET RESERVASI PELANGGAN</p></div>
   <div class="row"><span class="label">No. Reservasi:</span><span class="value id">${res.id}</span></div>
@@ -1305,18 +1499,14 @@ ${pages}
                 printDay() {
                     const list =[...this.dayReservations].sort((a,b)=>(a.time||'').localeCompare(b.time||''));
                     if (list.length === 0) return;
-                    
                     const printDate = this.formatDateTime(new Date().getTime());
-
                     const buildTicket = (res) => {
                         const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : '—';
                         const catatanLine = res.notes ? `<div class="row"><span class="label">Catatan:</span><span class="value upper" style="color:#c2410c;font-weight:700;">${res.notes}</span></div>` : '';
-                        
                         let payText = '';
                         if (res.paymentStatus === 'Lunas') { payText = `LUNAS (${res.paymentMethod || 'CASH'})`; } 
                         else if (res.paymentStatus === 'BLM BAYAR') { payText = `BELUM BAYAR`; } 
                         else { payText = `DP ${res.paymentMethod || 'CASH'}: ${res.dpAmount ? this.formatRupiah(res.dpAmount) : '-'}`; }
-                        
                         const payColor = res.paymentStatus === 'DP' ? 'color:#d97706;' : (res.paymentStatus === 'BLM BAYAR' ? 'color:#dc2626;' : '');
                         const phoneLine = res.phone ? `<div class="row"><span class="label">No.HP:</span><span class="value">${res.phone}</span></div>` : '';
                         const paxLine = res.pax ? `<div class="row"><span class="label">Pax:</span><span class="value">${res.pax}</span></div>` : '';
@@ -1324,7 +1514,6 @@ ${pages}
                         const createdBy = res.createdBy || '-';
                         const updatedTime = res.updatedAt ? this.formatDateTime(res.updatedAt) : '-';
                         const updatedStr = res.updatedBy ? `<br>Diubah : ${updatedTime} oleh ${res.updatedBy}` : '';
-
                         return `
 <div class="ticket">
   <div class="watermark">S2</div>
@@ -1347,14 +1536,12 @@ ${pages}
   </div>
 </div>`;
                     };
-
                     let pages = '';
                     for (let i = 0; i < list.length; i += 2) {
                         const chunk = list.slice(i, i + 2); while (chunk.length < 2) chunk.push(null);
                         const cells = chunk.map(res => res ? buildTicket(res) : '<div class="ticket ticket-empty"></div>').join('');
                         pages += `<div class="page${i + 2 >= list.length ? '' : ' page-break'}">${cells}</div>`;
                     }
-
                     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Tiket Harian</title>
 <style>
   @page { size: A4 portrait; margin: 0; }
@@ -1382,7 +1569,9 @@ ${pages}
   .meta-print { display:flex; justify-content:space-between; font-size:6.5pt; color:#9ca3af; font-weight:600; line-height:1.4; }
   .meta-print .left { text-align:left; max-width:55%; }
   .meta-print .right { text-align:right; max-width:45%; }
-</style></head><body>${pages}<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script></body></html>`;
+</style></head><body>${pages}
+<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
+</body></html>`;
                     const popup = window.open('', '_blank', 'width=900,height=800');
                     if (popup) { popup.document.write(html); popup.document.close(); }
                 }
