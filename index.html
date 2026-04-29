@@ -437,7 +437,7 @@
                                     <th class="p-4">Pelaku</th>
                                     <th class="p-4 text-center">Aksi</th>
                                     <th class="p-4">Data Target</th>
-                                    <th class="p-4">Detail Tambahan & Perubahan</th>
+                                    <th class="p-4">Detail Perubahan</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
@@ -450,7 +450,7 @@
                                         <td class="p-4 text-xs text-gray-500 font-medium align-top" x-text="formatDateTime(log.ts)"></td>
                                         <td class="p-4 font-bold text-gray-800 text-xs align-top" x-text="log.actor"></td>
                                         <td class="p-4 text-center align-top">
-                                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-black border uppercase" 
+                                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-black border uppercase block mx-auto w-max" 
                                                   :class="{
                                                       'bg-green-100 text-green-800 border-green-200': log.action === 'INSERT',
                                                       'bg-blue-100 text-blue-800 border-blue-200': log.action === 'UPDATE',
@@ -458,31 +458,30 @@
                                                   }" x-text="log.action"></span>
                                         </td>
                                         <td class="p-4 align-top">
-                                            <div class="flex flex-col items-start">
-                                                <div x-show="log.reservation_id" 
-                                                     @click="openReservationFromLog(log.reservation_id, log.reservation_date)"
-                                                     class="font-extrabold text-blue-600 font-mono tracking-tight text-[11px] bg-blue-50 border border-blue-200 hover:bg-blue-100 hover:text-blue-800 px-2 py-1 rounded inline-block w-max cursor-pointer transition shadow-sm mb-1.5"
-                                                     title="Lihat Detail Reservasi">
-                                                     <span x-text="log.reservation_id"></span> ↗
-                                                </div>
-                                                <div class="text-gray-800 text-sm font-bold" x-show="log.customer_name" x-text="log.customer_name"></div>
-                                                <div class="text-[10px] text-gray-500 font-medium mt-0.5" x-show="log.reservation_date">Tgl Reservasi: <span class="font-bold text-gray-600" x-text="log.reservation_date"></span></div>
+                                            <div class="flex flex-col gap-0.5 items-start">
+                                                <button type="button" x-show="log.reservation_id" @click="openReservationFromLog(log.reservation_id)" class="font-extrabold text-blue-600 hover:text-white hover:bg-blue-600 transition-colors font-mono tracking-tight text-xs bg-blue-50 border border-blue-200 px-2 py-0.5 rounded inline-block w-max shadow-sm cursor-pointer" title="Klik untuk edit data ini">
+                                                    <span x-text="log.reservation_id"></span>
+                                                    <span class="inline-block ml-1 text-[10px]">↗</span>
+                                                </button>
+                                                <div class="text-gray-800 text-sm font-bold mt-1" x-show="log.customer_name" x-text="log.customer_name"></div>
+                                                <div class="text-[10px] text-gray-500 font-medium" x-show="log.reservation_date">Tgl Reservasi: <span class="font-bold text-gray-600" x-text="log.reservation_date"></span></div>
                                                 <div x-show="!log.reservation_id && !log.customer_name" class="text-xs text-gray-400 italic">-</div>
                                             </div>
                                         </td>
                                         <td class="p-4 text-xs text-gray-600 whitespace-normal min-w-[250px] max-w-md leading-relaxed align-top">
-                                            <div x-text="log.detail || '-'"></div>
+                                            <div x-text="log.detail || '-'" class="font-bold text-gray-800 mb-1"></div>
                                             
-                                            <!-- Fitur Diff Log (Sebelum & Sesudah) -->
-                                            <template x-if="log.changes_json">
-                                                <div class="mt-2 space-y-1.5">
-                                                    <template x-for="(change, key) in parseChanges(log.changes_json)" :key="key">
-                                                        <div class="text-[10px] bg-gray-50 border border-gray-200 p-1.5 rounded flex flex-col gap-0.5 shadow-sm">
-                                                            <span class="font-black text-gray-700 uppercase tracking-wider" x-text="formatLogKey(key)"></span>
-                                                            <div class="flex items-center gap-1.5 break-words max-w-full flex-wrap">
-                                                                <span class="line-through text-red-500 font-medium px-1 bg-red-50 rounded border border-red-100" x-text="change.old || '(kosong)'"></span> 
-                                                                <span class="text-gray-400 font-bold text-[8px]">➔</span> 
-                                                                <span class="text-green-600 font-bold px-1 bg-green-50 rounded border border-green-100" x-text="change.new || '(kosong)'"></span>
+                                            <!-- Box Info Perubahan Detail Data -->
+                                            <template x-if="log.parsedChanges">
+                                                <div class="mt-2 bg-white border border-gray-200 rounded-lg p-2.5 text-[10px] space-y-1.5 shadow-sm">
+                                                    <div class="text-[9px] uppercase font-black text-gray-400 mb-1 tracking-wider border-b pb-1">Detail Perubahan:</div>
+                                                    <template x-for="(change, label) in log.parsedChanges" :key="label">
+                                                        <div class="grid grid-cols-[80px_1fr] gap-1 items-start">
+                                                            <span class="font-bold text-gray-700" x-text="label + ':'"></span> 
+                                                            <div class="flex flex-wrap items-center gap-1.5">
+                                                                <span class="line-through text-red-500 font-medium px-1 bg-red-50 border border-red-100 rounded" x-text="change.old"></span> 
+                                                                <span class="text-gray-400 text-[8px]">▶</span> 
+                                                                <span class="text-green-700 font-bold px-1 bg-green-50 border border-green-100 rounded" x-text="change.new"></span>
                                                             </div>
                                                         </div>
                                                     </template>
@@ -706,6 +705,41 @@
                     }); 
                 },
 
+                // Fungsi helper untuk mencatat perbedaan data sebelum & sesudah diedit
+                getChanges(oldData, payload) {
+                    if (!oldData) return null;
+                    let changes = {};
+                    const fields =[
+                        { oldKey: 'name', newKey: 'name', label: 'Nama' },
+                        { oldKey: 'time', newKey: 'time', label: 'Jam' },
+                        { oldKey: 'orderType', newKey: 'order_type', label: 'Tipe Order' },
+                        { oldKey: 'paymentStatus', newKey: 'paymentStatus', label: 'Status Bayar' },
+                        { oldKey: 'paymentMethod', newKey: 'paymentMethod', label: 'Metode Bayar' },
+                        { oldKey: 'dpAmount', newKey: 'dpAmount', label: 'Jumlah DP' },
+                        { oldKey: 'phone', newKey: 'phone', label: 'No. HP' },
+                        { oldKey: 'pax', newKey: 'pax', label: 'Jumlah Pax' },
+                        { oldKey: 'notes', newKey: 'notes', label: 'Catatan' },
+                        { oldKey: 'details', newKey: 'details', label: 'Detail Menu' },
+                        { oldKey: 'fish_weight', newKey: 'fish_weight', label: 'Timbangan Ikan' }
+                    ];
+
+                    fields.forEach(f => {
+                        let o = oldData[f.oldKey] || '-';
+                        let n = payload[f.newKey] || '-';
+                        if (String(o) !== String(n)) {
+                            changes[f.label] = { old: o, new: n };
+                        }
+                    });
+
+                    let oldSeats = (Array.isArray(oldData.seats) ? oldData.seats :[]).join(', ') || '-';
+                    let newSeats = (Array.isArray(payload.seats) ? payload.seats :[]).join(', ') || '-';
+                    if (oldSeats !== newSeats) {
+                        changes['Kursi'] = { old: oldSeats, new: newSeats };
+                    }
+
+                    return Object.keys(changes).length > 0 ? changes : null;
+                },
+
                 async saveReservation() {
                     let hasError = false;
                     if (!this.formData.name || !this.formData.name.trim()) { this.nameError = "Nama wajib diisi!"; hasError = true; }
@@ -744,35 +778,12 @@
                         };
                         
                         if (this.formData.id) { 
-                            // Hitung changes untuk log sebelum update
-                            let changes = {};
-                            const oldData = this.reservations.find(r => r.id === this.formData.id);
-                            if (oldData) {
-                                const checkKeys =['name', 'time', 'date', 'order_type', 'details', 'notes', 'paymentStatus', 'paymentMethod', 'dpAmount', 'phone', 'pax', 'fish_weight'];
-                                checkKeys.forEach(k => {
-                                    let oldVal = oldData[k];
-                                    let newVal = payload[k];
-                                    if (k === 'dpAmount') oldVal = oldData.dpAmount || oldData.dpamount;
-                                    if (k === 'order_type') oldVal = oldData.orderType || oldData.ordertype || oldData.order_type;
-                                    
-                                    oldVal = (oldVal === null || oldVal === undefined) ? '' : String(oldVal).trim();
-                                    newVal = (newVal === null || newVal === undefined) ? '' : String(newVal).trim();
-                                    
-                                    if (oldVal !== newVal) {
-                                        changes[k] = { old: oldVal, new: newVal };
-                                    }
-                                });
-                                // Hitung diff untuk array seats
-                                const oldSeats = this.getSeats(oldData).sort().join(', ');
-                                const newSeats = (payload.seats || []).sort().join(', ');
-                                if (oldSeats !== newSeats) {
-                                    changes['seats'] = { old: oldSeats || '(kosong)', new: newSeats || '(kosong)' };
-                                }
-                            }
-
                             payload.updated_by = this.currentUser.name;
+                            const oldData = this.reservations.find(r => r.id === this.formData.id);
+                            const changes = this.getChanges(oldData, payload);
+
                             await supabaseClient.from('reservations').update(payload).eq('id', this.formData.id); 
-                            await this.writeLog('UPDATE', this.formData.id, payload.name, dateStr, `Diubah melalui form edit`, Object.keys(changes).length > 0 ? JSON.stringify(changes) : null);
+                            await this.writeLog('UPDATE', this.formData.id, payload.name, dateStr, `Memperbarui data reservasi`, changes);
                         } else {
                             const dateCode = dateStr.replace(/-/g, '').substring(2);
                             let maxSeq = 0; this.dayReservations.forEach(r => { if (r.id && r.id.startsWith(`S2-${dateCode}-`)) { const seq = parseInt(r.id.split('-')[2]); if (seq > maxSeq) maxSeq = seq; } });
@@ -782,7 +793,7 @@
                             payload.updated_by = this.currentUser.name;
 
                             await supabaseClient.from('reservations').insert([payload]);
-                            await this.writeLog('INSERT', payload.id, payload.name, dateStr, `Reservasi baru dibuat`);
+                            await this.writeLog('INSERT', payload.id, payload.name, dateStr, `Membuat reservasi baru di jam: ${payload.time}`);
                         }
                         this.showToast("Data tersimpan!"); await this.initApp(); this.modals.form = false;
                     } catch (error) { 
@@ -794,21 +805,15 @@
                 async deleteRes(id) { 
                     if (confirm("Hapus reservasi ini?")) { 
                         this.isLoading = true; 
-                        const res = this.reservations.find(r => r.id === id); // Fetch existing untuk log
+                        const res = this.reservations.find(r => r.id === id);
                         await supabaseClient.from('reservations').delete().eq('id', id); 
-                        
-                        let changesJSON = null;
-                        if(res) {
-                            changesJSON = JSON.stringify({ "Status Reservasi": { old: "Terdaftar", new: "Dihapus Permanen" } });
-                        }
-                        await this.writeLog('DELETE', id, res?.name || '-', res?.date || '-', 'Dihapus oleh sistem', changesJSON);
-                        
+                        await this.writeLog('DELETE', id, res ? res.name : '-', res ? res.date : '-', 'Menghapus data reservasi');
                         this.showToast("Dihapus."); await this.initApp(); 
                     } 
                 },
 
-                // Fungsi Modifikasi Log
-                async writeLog(action, resId, customerName, resDate, detail, changesJson = null) {
+                // Pembaruan Log untuk menyimpan changes_json
+                async writeLog(action, resId, customerName, resDate, detail, changes_json = null) {
                     try {
                         await supabaseClient.from('activity_logs').insert([{ 
                             action, 
@@ -816,52 +821,12 @@
                             reservation_id: resId || null, 
                             customer_name: customerName || null, 
                             reservation_date: resDate || null, 
-                            detail: detail || null,
-                            changes_json: changesJson, // Insert diffs!
+                            detail: detail || null, 
+                            changes_json: changes_json ? JSON.stringify(changes_json) : null,
                             ts: new Date().getTime(), 
                             created_at: new Date().toISOString() 
                         }]);
-                    } catch(e) {}
-                },
-                
-                parseChanges(jsonStr) {
-                    if (!jsonStr) return {};
-                    try { return JSON.parse(jsonStr); } catch (e) { return {}; }
-                },
-
-                formatLogKey(key) {
-                    const keyMap = {
-                        name: 'Nama', time: 'Jam', seats: 'Kursi', details: 'Detail Pesanan', 
-                        notes: 'Catatan', paymentStatus: 'Status Bayar', paymentMethod: 'Metode Bayar', 
-                        dpAmount: 'DP', phone: 'No HP', pax: 'Pax', order_type: 'Order Via', fish_weight: 'Timbangan Ikan', date: 'Tanggal'
-                    };
-                    return keyMap[key] || key;
-                },
-
-                // Fitur untuk meng-klik ID Reservasi pada Activity Log
-                openReservationFromLog(id, dateStr) {
-                    const res = this.reservations.find(r => r.id === id);
-                    if (res) {
-                        // Arahkan kalender dan state ke tanggal reservasi terpilih
-                        const parts = res.date.split('-');
-                        if(parts.length === 3) {
-                            this.currentYear = parseInt(parts[0], 10);
-                            this.currentMonth = parseInt(parts[1], 10) - 1;
-                            this.selectedDate = parseInt(parts[2], 10);
-                            this.dayReservations = this.getReservations(this.selectedDate);
-                            
-                            // Menutup log, membuka view
-                            this.modals.log = false;
-                            this.modals.list = true;
-                            
-                            // Buka Form sekalian untuk melihat detailsnya
-                            setTimeout(() => {
-                                this.openForm(res);
-                            }, 300);
-                        }
-                    } else {
-                        this.showToast("Data reservasi ini tidak ditemukan (Mungkin sudah dihapus).", "error");
-                    }
+                    } catch(e) { console.error("Write log error", e); }
                 },
                 
                 async openLog() { 
@@ -873,10 +838,16 @@
                 
                 async loadLogs() { 
                     try { 
-                        // Query akan otomatis mengambil kolom changes_json jika ada di Supabase
                         const { data, error } = await supabaseClient.from('activity_logs').select('*').order('ts', { ascending: false }).limit(200); 
                         if (error) throw error;
-                        this.activityLogs = data ||[]; 
+                        
+                        this.activityLogs = (data ||[]).map(log => {
+                            let parsedChanges = null;
+                            if (log.changes_json) {
+                                try { parsedChanges = JSON.parse(log.changes_json); } catch(e) {}
+                            }
+                            return { ...log, parsedChanges };
+                        });
                     } catch(e){
                         console.error("Supabase Load Logs Error:", e);
                         this.showToast("Gagal memuat log aktivitas!", "error");
@@ -885,15 +856,36 @@
                     } 
                 },
 
-                // FUNGSI BLAST WA FONNTE
+                // Fungsi baru: Buka form edit dari Log Aktivitas berdasarkan nomor Reservasi
+                openReservationFromLog(id) {
+                    const res = this.reservations.find(r => r.id === id);
+                    if (res) {
+                        // Sesuaikan kalender ke bulan dan tanggal reservasi tersebut
+                        const parts = res.date.split('-');
+                        if(parts.length === 3) {
+                            this.currentYear = parseInt(parts[0]);
+                            this.currentMonth = parseInt(parts[1]) - 1;
+                            this.selectedDate = parseInt(parts[2]);
+                            this.dayReservations = this.getReservations(this.selectedDate);
+                        }
+                        
+                        this.modals.log = false; // Tutup log supaya form modal bisa tampil 
+                        
+                        // Beri sedikit delay untuk memuluskan transisi modal
+                        setTimeout(() => {
+                            this.openForm(res);
+                        }, 250);
+                    } else {
+                        this.showToast('Data reservasi tidak ditemukan (mungkin sudah dihapus).', 'error');
+                    }
+                },
+
                 async sendWhatsAppInvoice(res) {
-                    // Validasi Nomor HP Kosong
                     if (!res.phone || res.phone.trim() === '') {
                         alert("❌ GAGAL: Nomor HP pelanggan belum diisi pada reservasi ini!");
                         return;
                     }
 
-                    // Format nomor HP (Hapus selain angka, pastikan awalan 62)
                     let targetPhone = res.phone.replace(/\D/g, '');
                     if (targetPhone.startsWith('0')) {
                         targetPhone = '62' + targetPhone.substring(1);
@@ -901,7 +893,6 @@
                         targetPhone = '62' + targetPhone.substring(3);
                     }
 
-                    // Validasi Panjang Nomor
                     if (targetPhone.length < 10) {
                         alert("❌ GAGAL: Nomor HP terlihat tidak valid! Mohon cek ulang nomor telepon pelanggan.");
                         return;
@@ -924,16 +915,13 @@
                             payText = `DP ${res.paymentMethod || 'CASH'} (${res.dpAmount ? this.formatRupiah(res.dpAmount) : '-'})`;
                         }
 
-                        // Pesan WA yang rapi (Bertindak sebagai E-Tiket / Invoice)
                         const message = `*E-TIKET RESERVASI - PEMANCINGAN SUHARNO 2*\n🎣🎣🎣🎣🎣🎣🎣🎣🎣🎣🎣\n\nHalo *${res.name}*,\nTerima kasih telah melakukan reservasi. Berikut adalah detail e-tiket Anda:\n\n📋 *No. Reservasi:* ${res.id}\n📅 *Tanggal:* ${dateLong}\n⏰ *Jam:* ${res.time} WIB\n👥 *Jumlah Pax:* ${res.pax ? res.pax + ' Orang' : '-'}\n🪑 *Kursi/Meja:* ${seatsText}\n\n💳 *Status Pembayaran:* ${payText}\n\n🍽 *Pesanan Menu:*\n${res.details || '- Tidak ada pesanan awal -'}\n\n📝 *Catatan Tambahan:*\n${res.notes || '-'}\n\n----------------------------------------------------\n⚠️ *Info Penting:*\n- Mohon tunjukkan pesan ini di loket kasir 3 saat kedatangan Anda.\n- Kursi berlaku maksimal 3 jam dari waktu yang tertera di atas.\n\nTerima kasih, kami tunggu kedatangannya! 😊\n*Manajemen Pemancingan Suharno 2*`;
 
-                        // Form data parameter untuk dikirim ke API Fonnte
                         const formData = new FormData();
                         formData.append('target', targetPhone);
                         formData.append('message', message);
                         formData.append('delay', '1');
 
-                        // Hit API Fonnte dengan FETCH
                         const response = await fetch('https://api.fonnte.com/send', {
                             method: 'POST',
                             headers: {
@@ -944,22 +932,17 @@
 
                         const result = await response.json();
 
-                        // Cek status keberhasilan dari Fonnte
                         if (result.status === true) {
-                            // Muncul Alert sukses (Supaya Admin benar-benar tahu bahwa sukses)
                             alert(`✅ BERHASIL!\n\nInvoice E-Tiket telah sukses dikirim ke WhatsApp:\n${targetPhone} (a.n. ${res.name}).`);
                             this.showToast("WhatsApp berhasil dikirim!", "success");
                             
-                            // Catat ke log aktivitas
                             await this.writeLog('UPDATE', res.id, res.name, res.date, `Blast WA sukses ke ${targetPhone}`);
                         } else {
-                            // Fonnte menolak (Mungkin Token salah, Kuota Habis, atau HP Disconnected)
                             console.error("Fonnte Error Response:", result);
                             alert(`❌ GAGAL MENGIRIM WHATSAPP!\n\nAlasan Penolakan dari Server Fonnte:\n"${result.reason || result.detail || 'Cek koneksi dan status device API Anda'}"\n\nTips: Pastikan HP Fonnte Anda terkoneksi (Online) dan Token masih valid.`);
                             this.showToast("Gagal kirim WA!", "error");
                         }
                     } catch (error) {
-                        // Error koneksi internet atau CORS
                         console.error("Fonnte Fetch Error:", error);
                         if (error.message === 'Failed to fetch') {
                             alert(`❌ GAGAL MENGIRIM WHATSAPP!\n\nTerjadi masalah koneksi atau terblokir oleh browser (CORS). \nPastikan koneksi internet stabil dan Token Fonnte valid.`);
@@ -1391,7 +1374,7 @@
                 },
 
                 printFishWeight() {
-                    const list = [...this.dayReservations].sort((a,b) => (a.time||'').localeCompare(b.time||''));
+                    const list =[...this.dayReservations].sort((a,b) => (a.time||'').localeCompare(b.time||''));
                     if (list.length === 0) return;
                     
                     const buildCard = (res) => {
