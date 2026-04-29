@@ -75,7 +75,7 @@
     <div x-show="isLoggedIn" style="display:none;">
     
     <!-- Loading Overlay -->
-    <div x-show="isLoading" class="fixed inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm transition-opacity pointer-events-auto" style="display: none; z-index: 100;">
+    <div x-show="isLoading" class="fixed inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm transition-opacity pointer-events-auto" style="display: none; z-index: 150;">
         <div class="flex flex-col items-center">
             <svg class="animate-spin h-10 w-10 text-brand-green mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             <p class="text-gray-600 font-semibold animate-pulse">Memproses Data...</p>
@@ -83,7 +83,7 @@
     </div>
 
     <!-- Toast Notifications -->
-    <div class="fixed top-5 right-5 flex flex-col gap-3 pointer-events-none" style="z-index: 110;">
+    <div class="fixed top-5 right-5 flex flex-col gap-3 pointer-events-none" style="z-index: 160;">
         <template x-for="toast in toasts" :key="toast.id">
             <div x-show="toast.show" x-transition.duration.300ms class="px-6 py-4 rounded-xl shadow-xl flex items-center gap-3 text-white min-w-[300px]" :class="toast.type === 'error' ? 'bg-red-500' : 'bg-brand-green'">
                 <span class="font-bold text-sm" x-text="toast.message"></span>
@@ -227,8 +227,8 @@
     </div>
 
     <!-- FORM MODAL (FIXED LAYER & BUTTONS) -->
-    <!-- Z-Index 60: Di atas List (40), di bawah Time (70) -->
-    <div x-show="modals.form" style="display: none; z-index: 60;" class="fixed inset-0" x-transition.opacity>
+    <!-- Z-Index 100: Di Atas Log & List -->
+    <div x-show="modals.form" style="display: none; z-index: 100;" class="fixed inset-0" x-transition.opacity>
         <!-- Overlay dengan click.stop agar tidak menutup modal lain secara tidak sengaja -->
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto" @click.stop="closeFormSafe()"></div>
         
@@ -323,7 +323,7 @@
                         <div class="mb-4" x-show="formData.paymentStatus !== 'BLM BAYAR'">
                             <label class="block text-xs font-bold text-gray-500 mb-2">Pilih Metode Pembayaran</label>
                             <div class="flex gap-2">
-                                <template x-for="method in['Transfer', 'Qris', 'EDC', 'Cash']">
+                                <template x-for="method in ['Transfer', 'Qris', 'EDC', 'Cash']">
                                     <label class="flex-1 flex items-center justify-center gap-1 cursor-pointer border-2 py-2 px-1 rounded-lg transition bg-white select-none" 
                                            :class="formData.paymentMethod === method ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm' : 'border-gray-200 text-gray-500 hover:border-gray-300'">
                                         <input type="radio" x-model="formData.paymentMethod" :value="method" class="hidden">
@@ -366,8 +366,8 @@
         </div>
     </div>
 
-    <!-- Modals Time (Z-Index 70: Di atas Form) -->
-    <div x-show="modals.time" style="display: none; z-index: 70;" class="fixed inset-0" x-transition.opacity>
+    <!-- Modals Time (Z-Index 110: Di atas Form) -->
+    <div x-show="modals.time" style="display: none; z-index: 110;" class="fixed inset-0" x-transition.opacity>
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm pointer-events-auto" @click="modals.time = false"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
             <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl relative pointer-events-auto" @click.stop>
@@ -383,8 +383,8 @@
         </div>
     </div>
     
-    <!-- Modals Seat (Z-Index 80: Paling Atas) -->
-    <div x-show="modals.seat" style="display: none; z-index: 80;" class="fixed inset-0" x-transition.opacity>
+    <!-- Modals Seat (Z-Index 120: Paling Atas) -->
+    <div x-show="modals.seat" style="display: none; z-index: 120;" class="fixed inset-0" x-transition.opacity>
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm pointer-events-auto" @click="modals.seat = false"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
             <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative pointer-events-auto max-h-[90vh] flex flex-col" @click.stop>
@@ -416,7 +416,7 @@
         </div>
     </div>
 
-    <!-- Modal Log Aktivitas -->
+    <!-- Modal Log Aktivitas (Z-Index 90) -->
     <div x-show="modals.log" style="display: none; z-index: 90;" class="fixed inset-0" x-transition.opacity>
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto" @click="modals.log = false"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
@@ -424,52 +424,106 @@
                 <div class="p-5 border-b flex items-center gap-4 bg-gray-50 rounded-t-2xl shrink-0">
                     <button type="button" @click="modals.log = false" class="p-2 bg-white border shadow-sm hover:bg-gray-100 text-gray-600 rounded-full transition flex items-center justify-center">✕</button>
                     <div class="flex-1">
-                        <h3 class="text-xl font-bold text-gray-800">Log Aktivitas Sistem</h3>
+                        <h3 class="text-xl font-extrabold text-gray-800 flex items-center gap-2">
+                            <span>📑</span> Log Aktivitas Sistem
+                        </h3>
+                        <p class="text-sm text-gray-500 font-medium mt-1">Riwayat penambahan, perubahan, dan penghapusan data reservasi</p>
                     </div>
+                    <button type="button" @click="loadLogs()" class="p-2 bg-white border shadow-sm hover:bg-gray-100 text-gray-600 rounded-xl transition flex items-center gap-2 text-sm font-bold">
+                        <span>🔄</span> Refresh
+                    </button>
                 </div>
                 <div class="px-6 pb-6 pt-4 overflow-y-auto flex-1 bg-white">
                     <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm bg-white">
                         <table class="w-full text-left text-sm whitespace-nowrap min-w-max">
-                            <thead class="bg-gray-100 text-gray-600 font-bold border-b border-gray-200 text-xs uppercase">
+                            <thead class="bg-gray-100 text-gray-600 font-bold border-b border-gray-200 text-[11px] uppercase tracking-wider">
                                 <tr>
-                                    <th class="p-4 text-center w-12">No.</th>
-                                    <th class="p-4">Waktu</th>
-                                    <th class="p-4">Pelaku</th>
-                                    <th class="p-4 text-center">Aksi</th>
-                                    <th class="p-4">Data Target</th>
-                                    <th class="p-4">Detail Perubahan</th>
+                                    <th class="p-4 text-center w-12 border-r border-gray-200">No.</th>
+                                    <th class="p-4 w-48 border-r border-gray-200">Info Waktu & User</th>
+                                    <th class="p-4 w-64 border-r border-gray-200">Informasi Target</th>
+                                    <th class="p-4">Detail Aktivitas & Perubahan Data</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-100">
-                                <tr x-show="logLoading"><td colspan="6" class="p-10 text-center text-gray-500 font-medium">Memuat data log aktivitas...</td></tr>
-                                <tr x-show="!logLoading && activityLogs.length === 0"><td colspan="6" class="p-10 text-center text-gray-500 font-medium">Belum ada data log aktivitas tercatat.</td></tr>
+                            <tbody class="divide-y divide-gray-200">
+                                <tr x-show="logLoading"><td colspan="4" class="p-12 text-center text-gray-500 font-bold">Memuat data riwayat aktivitas...</td></tr>
+                                <tr x-show="!logLoading && activityLogs.length === 0"><td colspan="4" class="p-12 text-center text-gray-500 font-bold">Belum ada data log aktivitas tercatat.</td></tr>
                                 
                                 <template x-for="(log, idx) in activityLogs" :key="log.id || idx">
-                                    <tr x-show="!logLoading" class="hover:bg-gray-50 transition">
-                                        <td class="p-4 text-center text-gray-400 font-bold text-xs" x-text="idx+1"></td>
-                                        <td class="p-4 text-xs text-gray-500 font-medium" x-text="formatDateTime(log.ts)"></td>
-                                        <td class="p-4 font-bold text-gray-800 text-xs" x-text="log.actor"></td>
-                                        <td class="p-4 text-center">
-                                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-black border uppercase" 
-                                                  :class="{
-                                                      'bg-green-100 text-green-800 border-green-200': log.action === 'INSERT',
-                                                      'bg-blue-100 text-blue-800 border-blue-200': log.action === 'UPDATE',
-                                                      'bg-red-100 text-red-700 border-red-200': log.action === 'DELETE'
-                                                  }" x-text="log.action"></span>
-                                        </td>
-                                        <td class="p-4">
-                                            <div class="flex flex-col gap-0.5">
-                                                <div x-show="log.reservation_id" 
-                                                     @click="openResFromLog(log.reservation_id)" 
-                                                     class="font-extrabold text-blue-600 hover:text-blue-800 hover:bg-blue-100 cursor-pointer font-mono tracking-tight text-xs bg-gray-100 px-2 py-0.5 rounded inline-block w-max transition-colors" 
-                                                     title="Klik untuk membuka data reservasi ini"
-                                                     x-text="log.reservation_id"></div>
-                                                <div class="text-gray-800 text-sm font-bold mt-1" x-show="log.customer_name" x-text="log.customer_name"></div>
-                                                <div class="text-[10px] text-gray-500 font-medium" x-show="log.reservation_date">Tgl Reservasi: <span class="font-bold text-gray-600" x-text="log.reservation_date"></span></div>
-                                                <div x-show="!log.reservation_id && !log.customer_name" class="text-xs text-gray-400 italic">-</div>
+                                    <tr x-show="!logLoading" class="hover:bg-gray-50/50 transition">
+                                        <td class="p-4 text-center text-gray-400 font-bold text-xs border-r border-gray-100" x-text="idx+1"></td>
+                                        <td class="p-4 align-top border-r border-gray-100">
+                                            <div class="flex flex-col gap-2">
+                                                <div class="text-xs text-gray-600 font-bold flex items-center gap-1.5 bg-gray-100 w-max px-2.5 py-1.5 rounded-md border border-gray-200 shadow-sm">
+                                                    <span>🕒</span> <span x-text="formatDateTime(log.ts)"></span>
+                                                </div>
+                                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-white border border-gray-200 w-max shadow-sm mt-1">
+                                                    <span class="text-gray-800 font-bold text-xs" x-text="(log.actor || 'System').split(' (')[0]"></span>
+                                                    <span class="text-[10px] uppercase font-black px-1.5 py-0.5 rounded bg-gray-100 text-gray-600" x-text="(log.actor || '').includes('(') ? (log.actor || '').split('(')[1].replace(')','') : 'SYSTEM'"></span>
+                                                </div>
                                             </div>
                                         </td>
-                                        <td class="p-4 text-xs text-gray-600 whitespace-normal min-w-[250px] max-w-md leading-relaxed" x-html="formatLogDetail(log.detail)"></td>
+                                        <td class="p-4 align-top border-r border-gray-100">
+                                            <div class="flex flex-col gap-2">
+                                                <template x-if="log.reservation_id">
+                                                    <button type="button" @click="openReservationFromLog(log.reservation_id)" class="font-extrabold text-blue-700 font-mono tracking-tight text-xs bg-blue-50 px-3 py-1.5 rounded-md inline-block w-max cursor-pointer hover:bg-blue-100 border border-blue-200 transition shadow-sm flex items-center gap-1.5" title="Buka form edit data reservasi ini">
+                                                        <span>🔍</span> <span x-text="log.reservation_id"></span>
+                                                    </button>
+                                                </template>
+                                                <div x-show="!log.reservation_id" class="text-xs text-gray-400 italic font-medium px-2 py-1 bg-gray-50 rounded w-max border border-gray-100">Tidak ada ID Ref.</div>
+                                                
+                                                <div class="flex flex-col gap-0.5 mt-1">
+                                                    <div class="text-gray-800 text-sm font-bold truncate max-w-[200px]" x-show="log.customer_name" x-text="log.customer_name" :title="log.customer_name"></div>
+                                                    <div class="text-[11px] text-gray-500 font-medium flex items-center gap-1" x-show="log.reservation_date">
+                                                        <span>📅</span> <span class="font-bold text-gray-600" x-text="formatDateLong(log.reservation_date)"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="p-4 align-top whitespace-normal min-w-[350px]">
+                                            <div class="mb-2.5">
+                                                <span class="px-3 py-1 rounded-md text-[10px] font-black border uppercase shadow-sm tracking-wide inline-flex items-center gap-1" 
+                                                      :class="{
+                                                          'bg-green-100 text-green-800 border-green-300': log.action === 'INSERT',
+                                                          'bg-blue-100 text-blue-800 border-blue-300': log.action === 'UPDATE',
+                                                          'bg-red-100 text-red-800 border-red-300': log.action === 'DELETE'
+                                                      }">
+                                                    <span x-text="log.action === 'INSERT' ? '✨ TAMBAH BARU' : (log.action === 'UPDATE' ? '✏️ EDIT DATA' : '🗑️ HAPUS DATA')"></span>
+                                                </span>
+                                            </div>
+                                            
+                                            <!-- Render changes jika bentuk JSON terdeteksi -->
+                                            <template x-if="!parseLogDetail(log.detail).isText && parseLogDetail(log.detail).changes.length > 0">
+                                                <div class="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                                                    <table class="w-full text-[11px] text-left border-collapse">
+                                                        <thead class="bg-gray-200/60 text-gray-700">
+                                                            <tr>
+                                                                <th class="py-2 px-3 font-bold border-b border-gray-200 w-[20%]">Data Yang Diubah</th>
+                                                                <th class="py-2 px-3 font-bold border-b border-gray-200 w-[40%] text-red-700">Sebelum Diedit</th>
+                                                                <th class="py-2 px-3 font-bold border-b border-gray-200 w-[40%] text-green-700">Setelah Diedit</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody class="divide-y divide-gray-200">
+                                                            <template x-for="change in parseLogDetail(log.detail).changes" :key="change.field">
+                                                                <tr class="hover:bg-white transition">
+                                                                    <td class="py-2.5 px-3 font-bold text-gray-800 border-r border-gray-200 bg-white/50" x-text="change.field"></td>
+                                                                    <td class="py-2.5 px-3 text-red-700 bg-red-50/40 whitespace-pre-wrap break-words border-r border-gray-200 leading-relaxed font-medium" x-text="change.old || '-'"></td>
+                                                                    <td class="py-2.5 px-3 text-green-700 bg-green-50/40 whitespace-pre-wrap break-words leading-relaxed font-medium" x-text="change.new || '-'"></td>
+                                                                </tr>
+                                                            </template>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </template>
+                                            
+                                            <template x-if="!parseLogDetail(log.detail).isText && parseLogDetail(log.detail).changes.length === 0">
+                                                <div class="text-xs text-gray-500 mt-1.5 font-semibold bg-gray-50 px-3 py-2 rounded-lg border border-gray-200 italic">Disimpan tanpa ada perubahan data spesifik.</div>
+                                            </template>
+
+                                            <!-- Render text biasa (misalnya Log Hapus / Insert) -->
+                                            <template x-if="parseLogDetail(log.detail).isText">
+                                                <div class="text-xs text-gray-700 mt-1.5 font-semibold bg-gray-50 px-3.5 py-2.5 rounded-lg border border-gray-200 leading-relaxed" x-text="parseLogDetail(log.detail).text"></div>
+                                            </template>
+                                        </td>
                                     </tr>
                                 </template>
                             </tbody>
@@ -485,7 +539,6 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlcHdheXFucGx1ZG96Ym9udmJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMzE4NTksImV4cCI6MjA5MTYwNzg1OX0.klCq5PCxFcZYGEp2Y0ckMX9aZLRt__KNhGXSRdQX3K4';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Token Fonnte untuk Broadcast WhatsApp
         const FONNTE_TOKEN = 'KPqigFs8ZsBe2FPUnKNg';
 
         document.addEventListener('alpine:init', () => {
@@ -636,6 +689,7 @@
                     this.dayReservations = this.getReservations(day); 
                     this.modals.list = true; 
                 },
+                
                 openForm(res = null) {
                     this.nameError = ''; this.phoneError = ''; this.paxError = ''; this.selectedSeatZone = 'A';
                     if (res) {
@@ -645,29 +699,21 @@
                     this.modals.form = true;
                 },
 
-                // FITUR BUKA RESERVASI DARI LOG AKTIVITAS
-                openResFromLog(id) {
+                // Fitur untuk log aktivitas: klik ID langsung buka modal edit form
+                openReservationFromLog(id) {
                     const res = this.reservations.find(r => r.id === id);
-                    if (!res) {
-                        this.showToast("Data sudah tidak ada (Mungkin telah dihapus).", "error");
-                        return;
-                    }
-
-                    // Setting background context bulan dan tanggal
-                    const parts = res.date.split('-');
-                    if (parts.length === 3) {
-                        this.currentYear = parseInt(parts[0]);
-                        this.currentMonth = parseInt(parts[1]) - 1;
-                        this.selectedDate = parseInt(parts[2]);
-                        this.dayReservations = this.getReservations(this.selectedDate);
-                    }
-
-                    // Tutup modal log, tampilkan list hari tsb & buka popup form
-                    this.modals.log = false;
-                    this.modals.list = true;
-                    setTimeout(() => {
+                    if (res) {
+                        const resDateParts = res.date.split('-');
+                        if (resDateParts.length === 3) {
+                            this.selectedDate = parseInt(resDateParts[2], 10);
+                            this.currentMonth = parseInt(resDateParts[1], 10) - 1;
+                            this.currentYear = parseInt(resDateParts[0], 10);
+                            this.dayReservations = this.getReservations(this.selectedDate);
+                        }
                         this.openForm(res);
-                    }, 50);
+                    } else {
+                        this.showToast("Data reservasi tidak ditemukan (mungkin sudah dihapus).", "error");
+                    }
                 },
 
                 selectTime(time) { 
@@ -750,39 +796,60 @@
                         };
                         
                         if (this.formData.id) { 
-                            // CEK DIFF UNTUK LOG AKTIVITAS (BEFORE - AFTER)
-                            const oldData = this.reservations.find(r => r.id === this.formData.id) || {};
-                            let changes =[];
+                            // Ambil data sebelum update untuk log perubahan
+                            const oldData = this.reservations.find(r => r.id === this.formData.id);
                             
-                            const oldName = oldData.name || '';
-                            if (oldName !== payload.name) changes.push(`Nama: ${oldName} ➔ ${payload.name}`);
-
-                            const oldTime = oldData.time || '';
-                            if (oldTime !== payload.time) changes.push(`Jam: ${oldTime} ➔ ${payload.time}`);
-
-                            const oldSeats = this.getSeats(oldData).join(', ') || 'Belum pilih';
-                            const newSeats = payload.seats.join(', ') || 'Belum pilih';
-                            if (oldSeats !== newSeats) changes.push(`Kursi: ${oldSeats} ➔ ${newSeats}`);
-
-                            const oldStatus = oldData.paymentStatus || 'DP';
-                            if (oldStatus !== payload.paymentStatus) changes.push(`Status: ${oldStatus} ➔ ${payload.paymentStatus}`);
-
-                            const oldMethod = oldData.paymentMethod || 'Cash';
-                            if (oldMethod !== payload.paymentMethod && payload.paymentStatus !== 'BLM BAYAR') changes.push(`Metode: ${oldMethod} ➔ ${payload.paymentMethod}`);
-
-                            const oldDp = oldData.dpAmount ? parseInt(oldData.dpAmount) : 0;
-                            const newDp = payload.dpAmount ? parseInt(payload.dpAmount) : 0;
-                            if (oldDp !== newDp && payload.paymentStatus === 'DP') changes.push(`Nominal DP: ${this.formatRupiah(oldDp)} ➔ ${this.formatRupiah(newDp)}`);
-
-                            const oldOrderType = oldData.orderType || oldData.order_type || 'WA';
-                            if (oldOrderType !== payload.order_type) changes.push(`Sumber: ${oldOrderType} ➔ ${payload.order_type}`);
-
-                            let detailMsg = changes.length > 0 ? "Perubahan Data:\n• " + changes.join("\n• ") : "Disimpan/Diedit tanpa mengubah detail utama.";
-
                             payload.updated_by = this.currentUser.name;
                             await supabaseClient.from('reservations').update(payload).eq('id', this.formData.id); 
-                            await this.writeLog('UPDATE', this.formData.id, payload.name, dateStr, detailMsg);
+                            
+                            // Hitung log Perubahan (sebelum & sesudah)
+                            let changes =[];
+                            const fieldLabels = {
+                                order_type: 'Jenis Order', name: 'Nama Pelanggan', date: 'Tanggal Reservasi', time: 'Jam Datang', 
+                                seats: 'Kursi / Meja', details: 'Pesanan Menu', notes: 'Catatan Khusus', 
+                                paymentStatus: 'Status Pembayaran', paymentMethod: 'Metode Bayar', 
+                                dpAmount: 'Uang DP', phone: 'Nomor HP', pax: 'Jumlah Orang (Pax)', fish_weight: 'Timbangan Ikan'
+                            };
+
+                            for (let key in payload) {
+                                if (['id', 'updated_by', 'createdAt', 'created_by'].includes(key)) continue;
+                                
+                                let oldVal = oldData ? oldData[key] : null;
+                                let newVal = payload[key];
+                                
+                                // Penyesuaian format agar log mudah dibaca
+                                if (key === 'seats') {
+                                    oldVal = this.getSeats(oldData).join(', ');
+                                    newVal = (Array.isArray(newVal) ? newVal :[]).join(', ');
+                                } else if (key === 'dpAmount') {
+                                    oldVal = oldVal ? this.formatRupiah(oldVal) : '';
+                                    newVal = newVal ? this.formatRupiah(newVal) : '';
+                                } else if (key === 'date') {
+                                    oldVal = oldVal ? this.formatDateLong(oldVal) : '';
+                                    newVal = newVal ? this.formatDateLong(newVal) : '';
+                                } else if (key === 'time') {
+                                    oldVal = oldVal ? oldVal + ' WIB' : '';
+                                    newVal = newVal ? newVal + ' WIB' : '';
+                                }
+
+                                let oldStr = (oldVal === null || oldVal === undefined) ? '' : String(oldVal);
+                                let newStr = (newVal === null || newVal === undefined) ? '' : String(newVal);
+
+                                if (oldStr !== newStr) {
+                                    changes.push({
+                                        field: fieldLabels[key] || key,
+                                        old: oldStr === '' ? '(Kosong)' : oldStr,
+                                        new: newStr === '' ? '(Dikosongkan)' : newStr
+                                    });
+                                }
+                            }
+
+                            // Simpan detail log sebagai JSON string
+                            let detailStr = changes.length > 0 ? JSON.stringify({ type: 'changes', data: changes }) : 'Disimpan tanpa merubah data spesifik.';
+                            await this.writeLog('UPDATE', this.formData.id, payload.name, dateStr, detailStr);
+                            
                         } else {
+                            // Penambahan data baru
                             const dateCode = dateStr.replace(/-/g, '').substring(2);
                             let maxSeq = 0; this.dayReservations.forEach(r => { if (r.id && r.id.startsWith(`S2-${dateCode}-`)) { const seq = parseInt(r.id.split('-')[2]); if (seq > maxSeq) maxSeq = seq; } });
                             payload.id = `S2-${dateCode}-${String(maxSeq + 1).padStart(3, '0')}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
@@ -791,22 +858,36 @@
                             payload.updated_by = this.currentUser.name;
 
                             await supabaseClient.from('reservations').insert([payload]);
-                            await this.writeLog('INSERT', payload.id, payload.name, dateStr, `Reservasi baru telah ditambahkan.\n• Jam: ${payload.time}\n• Kursi: ${payload.seats.join(', ') || '-'}`);
+                            await this.writeLog('INSERT', payload.id, payload.name, dateStr, 'Reservasi baru ditambahkan ke sistem.');
                         }
-                        this.showToast("Data tersimpan!"); await this.initApp(); this.modals.form = false;
+                        
+                        this.showToast("Data tersimpan!"); 
+                        await this.initApp(); 
+                        this.modals.form = false;
                     } catch (error) { 
-                        console.error("Supabase Insert/Update Error:", error); 
+                        console.error("Supabase Insert Error:", error); 
                         this.showToast("Gagal menyimpan!", "error"); 
-                    } finally { this.isLoading = false; }
+                    } finally { 
+                        this.isLoading = false; 
+                    }
                 },
 
                 async deleteRes(id) { 
                     if (confirm("Hapus reservasi ini?")) { 
-                        const resData = this.reservations.find(r => r.id === id) || {};
                         this.isLoading = true; 
-                        await supabaseClient.from('reservations').delete().eq('id', id); 
-                        await this.writeLog('DELETE', id, resData.name || '-', resData.date || '-', 'Data reservasi dibatalkan dan dihapus dari sistem.');
-                        this.showToast("Dihapus."); await this.initApp(); 
+                        const oldData = this.reservations.find(r => r.id === id);
+                        try {
+                            await supabaseClient.from('reservations').delete().eq('id', id); 
+                            const name = oldData ? oldData.name : '-';
+                            const date = oldData ? oldData.date : '-';
+                            await this.writeLog('DELETE', id, name, date, 'Data reservasi dihapus dari sistem.');
+                            this.showToast("Dihapus."); 
+                            await this.initApp(); 
+                        } catch(e) {
+                            this.showToast("Gagal menghapus!", "error");
+                        } finally {
+                            this.isLoading = false;
+                        }
                     } 
                 },
 
@@ -836,15 +917,16 @@
                     } 
                 },
 
-                formatLogDetail(detail) {
-                    if (!detail) return '-';
-                    // Escape basic HTML to prevent cross-site scripting
-                    let safeStr = detail.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                    // Parse custom diff formatting
-                    return safeStr
-                        .replace(/\n/g, '<br>')
-                        .replace(/•/g, '<span class="text-brand-green mr-1 font-bold">•</span>')
-                        .replace(/➔/g, '<span class="text-blue-500 font-black mx-1 tracking-tighter">➔</span>');
+                // Fungsi parser untuk membaca log berbentuk JSON / Text biasa
+                parseLogDetail(detail) {
+                    if (!detail) return { isText: true, text: '-' };
+                    try {
+                        const parsed = JSON.parse(detail);
+                        if (parsed && parsed.type === 'changes' && Array.isArray(parsed.data)) {
+                            return { isText: false, changes: parsed.data };
+                        }
+                    } catch(e) {}
+                    return { isText: true, text: detail };
                 },
 
                 async sendWhatsAppInvoice(res) {
@@ -891,7 +973,9 @@
 
                         const response = await fetch('https://api.fonnte.com/send', {
                             method: 'POST',
-                            headers: { 'Authorization': FONNTE_TOKEN },
+                            headers: {
+                                'Authorization': FONNTE_TOKEN
+                            },
                             body: formData
                         });
 
@@ -900,7 +984,7 @@
                         if (result.status === true) {
                             alert(`✅ BERHASIL!\n\nInvoice E-Tiket telah sukses dikirim ke WhatsApp:\n${targetPhone} (a.n. ${res.name}).`);
                             this.showToast("WhatsApp berhasil dikirim!", "success");
-                            await this.writeLog('UPDATE', res.id, res.name, res.date, `Mengirim E-Tiket via WhatsApp (Blast Sukses)\n• Target: ${targetPhone}`);
+                            await this.writeLog('UPDATE', res.id, res.name, res.date, `Mengirim E-Tiket Invoice ke WhatsApp (${targetPhone}) sukses.`);
                         } else {
                             console.error("Fonnte Error Response:", result);
                             alert(`❌ GAGAL MENGIRIM WHATSAPP!\n\nAlasan Penolakan dari Server Fonnte:\n"${result.reason || result.detail || 'Cek koneksi dan status device API Anda'}"\n\nTips: Pastikan HP Fonnte Anda terkoneksi (Online) dan Token masih valid.`);
@@ -1338,7 +1422,7 @@
                 },
 
                 printFishWeight() {
-                    const list = [...this.dayReservations].sort((a,b) => (a.time||'').localeCompare(b.time||''));
+                    const list =[...this.dayReservations].sort((a,b) => (a.time||'').localeCompare(b.time||''));
                     if (list.length === 0) return;
                     
                     const buildCard = (res) => {
