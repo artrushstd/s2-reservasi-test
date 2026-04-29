@@ -264,11 +264,12 @@
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-1.5">Nama Pemesan <span class="text-red-500">*</span></label>
-                        <input type="text" id="inputName" x-model="formData.name" @input="nameError = ''" class="w-full border p-3 rounded-xl outline-none transition bg-gray-50 focus:bg-white" 
+                            <label class="block text-sm font-bold text-gray-700 mb-1.5">Nama Pemesan <span class="text-red-500">*</span></label>
+                            <!-- Tambahkan class 'uppercase' dan modifikasi @input untuk mengubah value ke ToUpperCase() -->
+                            <input type="text" id="inputName" x-model="formData.name" @input="formData.name = $event.target.value.toUpperCase(); nameError = ''" class="w-full border p-3 rounded-xl outline-none transition bg-gray-50 focus:bg-white uppercase" 
                                :class="nameError ? 'border-red-400 focus:ring-red-500 text-red-700' : 'border-gray-200 focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green'" 
-                               placeholder="Masukkan nama lengkap">
-                        <div x-show="nameError" x-transition.opacity><p class="text-sm text-red-600 font-bold mt-1.5" x-text="nameError"></p></div>
+                                placeholder="MASUKKAN NAMA LENGKAP">
+                            <div x-show="nameError" x-transition.opacity><p class="text-sm text-red-600 font-bold mt-1.5" x-text="nameError"></p></div>
                     </div>
                     
                     <div class="grid grid-cols-2 gap-4">
