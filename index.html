@@ -355,7 +355,8 @@
 
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1.5">Detail Timbangan Ikan</label>
-                        <input type="text" x-model="formData.fish_weight" class="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green outline-none transition bg-gray-50 focus:bg-white" placeholder="Contoh: Nila 1.5kg">
+                        <!-- Menggunakan textarea agar admin lebih leluasa ketik kebawah -->
+                        <textarea x-model="formData.fish_weight" rows="4" class="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green outline-none transition bg-gray-50 focus:bg-white" placeholder="Contoh:&#10;Nila 1.5kg&#10;Gurami 2kg"></textarea>
                     </div>
                 </div>
 
@@ -1249,31 +1250,23 @@
                 },
 
                 printFishWeight() {
-                    const list =[...this.dayReservations].sort((a,b) => (a.time||'').localeCompare(b.time||''));
+                    const list = [...this.dayReservations].sort((a,b) => (a.time||'').localeCompare(b.time||''));
                     if (list.length === 0) return;
                     
-                    const printDate = this.formatDateTime(new Date().getTime());
-
                     const buildCard = (res) => {
                         const fishWeightText = res.fish_weight || '';
                         return `
                         <div class="card">
-                          <div class="header">
-                            <h2>TIMBANGAN IKAN</h2>
-                            <div class="date-time">${this.formatDateLong(res.date)} - <strong style="font-size:11pt; background:#f0f0f0; padding:2px 6px; border:1px solid #000; border-radius:4px;">${res.time} WIB</strong></div>
-                          </div>
                           <div class="content">
-                            <div class="row">
-                              <div class="label">NAMA PEMESAN</div>
+                            <div class="name-time-row">
                               <div class="value name">${res.name}</div>
+                              <div class="dash">&mdash;</div>
+                              <div class="jam-box">${res.time} WIB</div>
                             </div>
-                            <div class="row" style="flex:1;">
+                            <div class="detail-wrapper">
                               <div class="label">DETAIL TIMBANGAN IKAN</div>
                               <div class="value detail-box">${fishWeightText}</div>
                             </div>
-                          </div>
-                          <div class="footer">
-                             ID: ${res.id} | Cetak: ${printDate} oleh ${this.currentUser.name}
                           </div>
                         </div>`;
                     };
@@ -1296,27 +1289,44 @@
                   .page { width:210mm; height:297mm; display:grid; grid-template-columns:105mm 105mm; grid-template-rows:99mm 99mm 99mm; }
                   .page-break { page-break-after:always; }
                   
-                  .card { width:105mm; height:99mm; border-right:1px dashed #9ca3af; border-bottom:1px dashed #9ca3af; padding:8mm; display:flex; flex-direction:column; position:relative; }
+                  .card { width:105mm; height:99mm; border-right:1px dashed #9ca3af; border-bottom:1px dashed #9ca3af; padding:10mm 8mm; display:flex; flex-direction:column; position:relative; }
                   .card:nth-child(2n) { border-right:none; }
                   .card:nth-last-child(-n+2) { border-bottom:none; }
                   .card.empty { border:none; border-right:1px dashed transparent; border-bottom:1px dashed transparent; background:#fff; }
                   .card.empty:nth-child(2n) { border-right:none; }
                   
-                  .header { text-align:center; border-bottom:2px solid #1a1a1a; padding-bottom:6px; margin-bottom:10px; }
-                  .header h2 { font-size:14pt; font-weight:900; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
-                  .header .date-time { font-size:9pt; color:#4b5563; font-weight:600; }
+                  .content { flex:1; display:flex; flex-direction:column; height: 100%; }
                   
-                  .content { flex:1; display:flex; flex-direction:column; gap:10px; }
-                  .row { display:flex; flex-direction:column; gap:4px; }
-                  .label { font-weight:700; color:#6b7280; font-size:8.5pt; text-transform:uppercase; letter-spacing:0.5px; }
-                  .value.name { font-size:16pt; font-weight:900; text-transform:uppercase; line-height:1.1; }
+                  .name-time-row { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+                  .value.name { font-size:16pt; font-weight:900; text-transform:uppercase; line-height:1.1; max-width:60%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+                  .dash { font-size:16pt; font-weight:900; color:#e90023; }
+                  .jam-box { font-size:14pt; font-weight:900; color:#e90023; border:2px solid #e90023; padding:4px 8px; border-radius:6px; }
+                  
+                  .detail-wrapper { flex:1; display:flex; flex-direction:column; min-height:0; }
+                  .label { font-weight:800; color:#1a1a1a; font-size:9pt; text-transform:uppercase; margin-bottom:6px; }
+                  
                   .value.detail-box { 
-                      flex:1; min-height:45px; border:2px dashed #d1d5db; border-radius:6px; padding:8px; 
-                      font-size:12pt; font-weight:700; color:#1a1a1a; background:#f9fafb; white-space:pre-wrap; word-break:break-word; 
+                      flex:1; 
+                      height: 100%;
+                      border:2px dashed #d1d5db; 
+                      border-radius:6px; 
+                      padding:8px; 
+                      font-size:11pt; 
+                      font-weight:700; 
+                      color:#1a1a1a; 
+                      background:#f9fafb; 
+                      white-space:pre-wrap; 
+                      word-break:break-word; 
+                      
+                      /* Fitur 2 Kolom Kiri ke Kanan */
+                      column-count: 2;
+                      column-fill: auto;
+                      column-gap: 12px;
+                      column-rule: 2px dashed #d1d5db;
+                      overflow: hidden;
                   }
-                  
-                  .footer { margin-top:10px; font-size:7pt; color:#9ca3af; text-align:center; border-top:1px solid #e5e7eb; padding-top:6px; }
                 </style></head><body>${pages}<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script></body></html>`;
+                    
                     const popup = window.open('', '_blank', 'width=900,height=800');
                     if (popup) { popup.document.write(html); popup.document.close(); } else { this.showToast('Izinkan popup browser Anda!', 'error'); }
                 }
