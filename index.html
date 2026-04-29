@@ -214,7 +214,7 @@
                                             <button type="button" @click="printSeatLabel(res)" class="p-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition shadow-sm" title="Print Label Kursi">🏷️</button>
                                             <button type="button" @click="printTicket(res)" class="p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition shadow-sm" title="Print Tiket">️🖨️</button>
                                             <button x-show="!isPastDate(selectedDate)" type="button" @click="openForm(res)" class="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition shadow-sm" title="Edit">✏️</button>
-                                            <button type="button" @click="deleteRes(res)" class="p-2 bg-brand-red text-white rounded-lg hover:bg-red-700 transition shadow-sm" title="Hapus">️🗑️</button>
+                                            <button type="button" @click="deleteRes(res.id)" class="p-2 bg-brand-red text-white rounded-lg hover:bg-red-700 transition shadow-sm" title="Hapus">️🗑️</button>
                                         </td>
                                     </tr>
                                 </template>
@@ -430,7 +430,7 @@
                 <div class="px-6 pb-6 pt-4 overflow-y-auto flex-1 bg-white">
                     <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm bg-white">
                         <table class="w-full text-left text-sm whitespace-nowrap min-w-max">
-                            <thead class="bg-gray-100 text-gray-600 font-bold border-b border-gray-200 text-xs uppercase tracking-wide">
+                            <thead class="bg-gray-100 text-gray-600 font-bold border-b border-gray-200 text-xs uppercase">
                                 <tr>
                                     <th class="p-4 text-center w-12">No.</th>
                                     <th class="p-4">Waktu</th>
@@ -441,69 +441,35 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
-                                <tr x-show="logLoading">
-                                    <td colspan="6" class="p-12 text-center text-gray-500 font-bold bg-gray-50/50">
-                                        <svg class="animate-spin h-6 w-6 text-brand-green mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                        Memuat data log aktivitas...
-                                    </td>
-                                </tr>
-                                <tr x-show="!logLoading && activityLogs.length === 0">
-                                    <td colspan="6" class="p-12 text-center text-gray-500 font-bold bg-gray-50/50">
-                                        <span class="text-3xl block mb-2">📭</span>
-                                        Belum ada data log aktivitas tercatat.
-                                    </td>
-                                </tr>
+                                <tr x-show="logLoading"><td colspan="6" class="p-10 text-center text-gray-500 font-medium">Memuat data log aktivitas...</td></tr>
+                                <tr x-show="!logLoading && activityLogs.length === 0"><td colspan="6" class="p-10 text-center text-gray-500 font-medium">Belum ada data log aktivitas tercatat.</td></tr>
                                 
                                 <template x-for="(log, idx) in activityLogs" :key="log.id || idx">
-                                    <tr x-show="!logLoading" class="hover:bg-gray-50/70 transition">
-                                        <td class="p-4 align-top text-center text-gray-400 font-bold text-xs" x-text="idx+1"></td>
-                                        <td class="p-4 align-top text-xs text-gray-500 font-medium whitespace-nowrap" x-text="formatDateTime(log.ts)"></td>
-                                        <td class="p-4 align-top font-bold text-gray-800 text-xs whitespace-nowrap" x-text="log.actor"></td>
-                                        <td class="p-4 align-top text-center whitespace-nowrap">
-                                            <span class="px-2.5 py-1.5 rounded-lg text-[10px] font-black border uppercase shadow-sm tracking-wide" 
+                                    <tr x-show="!logLoading" class="hover:bg-gray-50 transition">
+                                        <td class="p-4 text-center text-gray-400 font-bold text-xs" x-text="idx+1"></td>
+                                        <td class="p-4 text-xs text-gray-500 font-medium" x-text="formatDateTime(log.ts)"></td>
+                                        <td class="p-4 font-bold text-gray-800 text-xs" x-text="log.actor"></td>
+                                        <td class="p-4 text-center">
+                                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-black border uppercase" 
                                                   :class="{
                                                       'bg-green-100 text-green-800 border-green-200': log.action === 'INSERT',
                                                       'bg-blue-100 text-blue-800 border-blue-200': log.action === 'UPDATE',
                                                       'bg-red-100 text-red-700 border-red-200': log.action === 'DELETE'
                                                   }" x-text="log.action"></span>
                                         </td>
-                                        <td class="p-4 align-top">
-                                            <div class="flex flex-col gap-1 items-start">
-                                                <template x-if="log.reservation_id">
-                                                    <div @click="openResFromLog(log.reservation_id)" 
-                                                         class="font-extrabold text-blue-700 font-mono tracking-tight text-xs bg-blue-50 border border-blue-200 px-2.5 py-1 rounded cursor-pointer hover:bg-blue-600 hover:text-white hover:border-blue-700 hover:shadow-md active:scale-95 transition-all w-max flex items-center gap-1 group"
-                                                         title="Klik untuk membuka Form Edit data ini">
-                                                         <span x-text="log.reservation_id"></span>
-                                                         <svg class="w-3.5 h-3.5 text-blue-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                                                    </div>
-                                                </template>
-                                                <template x-if="!log.reservation_id">
-                                                    <div class="text-xs text-gray-400 italic bg-gray-50 border px-2 py-0.5 rounded">-</div>
-                                                </template>
-                                                <div class="text-gray-800 text-sm font-bold mt-1.5" x-show="log.customer_name" x-text="log.customer_name"></div>
-                                                <div class="text-[10px] text-gray-500 font-medium mt-0.5" x-show="log.reservation_date">
-                                                    Tgl Acara: <span class="font-bold text-gray-700" x-text="formatDateLong(log.reservation_date)"></span>
-                                                </div>
+                                        <td class="p-4">
+                                            <div class="flex flex-col gap-0.5">
+                                                <div x-show="log.reservation_id" 
+                                                     @click="openResFromLog(log.reservation_id)" 
+                                                     class="font-extrabold text-blue-600 hover:text-blue-800 hover:bg-blue-100 cursor-pointer font-mono tracking-tight text-xs bg-gray-100 px-2 py-0.5 rounded inline-block w-max transition-colors" 
+                                                     title="Klik untuk membuka data reservasi ini"
+                                                     x-text="log.reservation_id"></div>
+                                                <div class="text-gray-800 text-sm font-bold mt-1" x-show="log.customer_name" x-text="log.customer_name"></div>
+                                                <div class="text-[10px] text-gray-500 font-medium" x-show="log.reservation_date">Tgl Reservasi: <span class="font-bold text-gray-600" x-text="log.reservation_date"></span></div>
+                                                <div x-show="!log.reservation_id && !log.customer_name" class="text-xs text-gray-400 italic">-</div>
                                             </div>
                                         </td>
-                                        <td class="p-4 align-top text-xs text-gray-600 whitespace-normal min-w-[250px] max-w-md leading-relaxed">
-                                            <!-- Khusus Log Update yang berisi diff panah (➔) -->
-                                            <template x-if="log.detail && log.detail.includes('➔')">
-                                                <div class="space-y-1.5">
-                                                    <template x-for="(line, lIdx) in log.detail.split('\n')" :key="lIdx">
-                                                        <div x-show="line.trim() !== ''" class="flex items-start gap-1.5">
-                                                            <span class="text-blue-500 mt-0.5 font-bold text-[10px]">●</span>
-                                                            <div x-html="formatLogLine(line)" class="flex-1"></div>
-                                                        </div>
-                                                    </template>
-                                                </div>
-                                            </template>
-                                            
-                                            <!-- Log Standar (Teks Biasa) -->
-                                            <template x-if="!log.detail || !log.detail.includes('➔')">
-                                                <div class="whitespace-pre-wrap leading-relaxed bg-gray-50 border border-gray-100 p-2 rounded-lg text-[11px] font-medium text-gray-700" x-text="log.detail || '-'"></div>
-                                            </template>
-                                        </td>
+                                        <td class="p-4 text-xs text-gray-600 whitespace-normal min-w-[250px] max-w-md leading-relaxed" x-html="formatLogDetail(log.detail)"></td>
                                     </tr>
                                 </template>
                             </tbody>
@@ -571,87 +537,6 @@
                 onDpFocus(event) { event.target.select(); }, onDpBlur(event) { if (this.formData.dpAmount === 0) { this.formData.dpAmount = null; this.formData.dpAmountDisplay = ''; } },
                 getSeats(res) { if (!res) return[]; if (Array.isArray(res.seats) && res.seats.length > 0) return res.seats; if (res.seat) return[res.seat]; return[]; },
                 showToast(message, type = 'success') { const id = this.toastCount++; this.toasts.push({ id, message, type, show: true }); setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 3000); },
-
-                // Utils Pengecekan Aman (Escape HTML) dari XSS sebelum merender custom HTML
-                escapeHtml(str) {
-                    return String(str)
-                        .replace(/&/g, "&amp;")
-                        .replace(/</g, "&lt;")
-                        .replace(/>/g, "&gt;")
-                        .replace(/"/g, "&quot;")
-                        .replace(/'/g, "&#039;");
-                },
-
-                // Fungsi Render HTML Khusus Log Perubahan
-                formatLogLine(line) {
-                    if (!line.includes('➔')) return this.escapeHtml(line);
-                    const colonIdx = line.indexOf(':');
-                    if (colonIdx === -1) return this.escapeHtml(line);
-                    
-                    const label = line.substring(0, colonIdx);
-                    const changes = line.substring(colonIdx + 1);
-                    
-                    const parts = changes.split('➔');
-                    if (parts.length !== 2) return this.escapeHtml(line);
-                    
-                    const oldVal = parts[0].trim();
-                    const newVal = parts[1].trim();
-                    
-                    return `<span class="font-bold text-gray-700 min-w-[70px] inline-block">${this.escapeHtml(label)}</span> ` +
-                           `<span class="text-red-500 line-through text-[11px] bg-red-50 px-1.5 py-0.5 rounded border border-red-100">${this.escapeHtml(oldVal)}</span> ` +
-                           `<span class="text-gray-400 font-bold mx-1 text-[10px]">➔</span> ` +
-                           `<span class="text-green-600 font-bold text-[11px] bg-green-50 px-1.5 py-0.5 rounded border border-green-200 shadow-sm">${this.escapeHtml(newVal)}</span>`;
-                },
-
-                // Fungsi Membuat Diff Text antara Old Data dan New Data Saat Update Data
-                generateDiffText(oldData, payload) {
-                    let diffs = [];
-                    const fields =[
-                        { key: 'order_type', oldKey: 'orderType', label: 'Sumber' },
-                        { key: 'name', oldKey: 'name', label: 'Nama' },
-                        { key: 'time', oldKey: 'time', label: 'Jam' },
-                        { key: 'seats', oldKey: 'seats', label: 'Kursi' },
-                        { key: 'paymentStatus', oldKey: 'paymentStatus', label: 'Sts Bayar' },
-                        { key: 'paymentMethod', oldKey: 'paymentMethod', label: 'Mtd Bayar' },
-                        { key: 'dpAmount', oldKey: 'dpAmount', label: 'DP' },
-                        { key: 'phone', oldKey: 'phone', label: 'No. HP' },
-                        { key: 'pax', oldKey: 'pax', label: 'Pax' },
-                        { key: 'notes', oldKey: 'notes', label: 'Catatan' },
-                        { key: 'details', oldKey: 'details', label: 'Menu' },
-                        { key: 'fish_weight', oldKey: 'fish_weight', label: 'Ikan' }
-                    ];
-
-                    fields.forEach(f => {
-                        let oldVal = oldData[f.oldKey];
-                        let newVal = payload[f.key];
-
-                        if (f.key === 'seats') {
-                            oldVal = Array.isArray(oldVal) ? oldVal.join(', ') : '';
-                            newVal = Array.isArray(newVal) ? newVal.join(', ') : '';
-                        }
-
-                        if (oldVal === undefined || oldVal === null) oldVal = '';
-                        if (newVal === undefined || newVal === null) newVal = '';
-                        
-                        let oldStr = String(oldVal).trim();
-                        let newStr = String(newVal).trim();
-
-                        if (oldStr !== newStr) {
-                            // Ganti enter di dalam isian dengan karakter lain agar format baris per field tidak rusak
-                            let oText = oldStr === '' ? '(kosong)' : oldStr.replace(/\n/g, ' ↲ ');
-                            let nText = newStr === '' ? '(dikosongkan)' : newStr.replace(/\n/g, ' ↲ ');
-                            
-                            if (f.key === 'dpAmount') {
-                                oText = oldStr === '' ? '(kosong)' : this.formatRupiah(oldStr);
-                                nText = newStr === '' ? '(dikosongkan)' : this.formatRupiah(newStr);
-                            }
-
-                            diffs.push(`${f.label}: ${oText} ➔ ${nText}`);
-                        }
-                    });
-
-                    return diffs.length > 0 ? diffs.join('\n') : 'Edit data tanpa ada perubahan isian';
-                },
 
                 handleEscape(e) {
                     if (this.modals.time) { this.modals.time = false; return; }
@@ -760,29 +645,29 @@
                     this.modals.form = true;
                 },
 
-                // Fungsi Tambahan: Buka Form Data Langsung dari Klik ID di Tabel Log
+                // FITUR BUKA RESERVASI DARI LOG AKTIVITAS
                 openResFromLog(id) {
                     const res = this.reservations.find(r => r.id === id);
                     if (!res) {
-                        this.showToast("Data reservasi tidak ditemukan (Mungkin sudah terhapus).", "error");
+                        this.showToast("Data sudah tidak ada (Mungkin telah dihapus).", "error");
                         return;
                     }
-                    
-                    // Set Calendar agar cocok dengan bulan data tersebut
+
+                    // Setting background context bulan dan tanggal
                     const parts = res.date.split('-');
                     if (parts.length === 3) {
-                        this.currentYear = parseInt(parts[0], 10);
-                        this.currentMonth = parseInt(parts[1], 10) - 1;
-                        this.selectedDate = parseInt(parts[2], 10);
+                        this.currentYear = parseInt(parts[0]);
+                        this.currentMonth = parseInt(parts[1]) - 1;
+                        this.selectedDate = parseInt(parts[2]);
                         this.dayReservations = this.getReservations(this.selectedDate);
                     }
-                    
-                    this.modals.log = false; // Tutup log modal
-                    this.modals.list = true; // Buka list harian (berada di belakang modal form agar flow lebih enak)
-                    
+
+                    // Tutup modal log, tampilkan list hari tsb & buka popup form
+                    this.modals.log = false;
+                    this.modals.list = true;
                     setTimeout(() => {
-                        this.openForm(res); // Buka modal form editing
-                    }, 100);
+                        this.openForm(res);
+                    }, 50);
                 },
 
                 selectTime(time) { 
@@ -865,17 +750,38 @@
                         };
                         
                         if (this.formData.id) { 
-                            payload.updated_by = this.currentUser.name;
-                            const oldData = this.reservations.find(r => r.id === this.formData.id);
+                            // CEK DIFF UNTUK LOG AKTIVITAS (BEFORE - AFTER)
+                            const oldData = this.reservations.find(r => r.id === this.formData.id) || {};
+                            let changes =[];
                             
-                            // Hitung perbedaan perubahan (Diff) untuk log histori
-                            let diffText = "Update Data";
-                            if (oldData) {
-                                diffText = this.generateDiffText(oldData, payload);
-                            }
+                            const oldName = oldData.name || '';
+                            if (oldName !== payload.name) changes.push(`Nama: ${oldName} ➔ ${payload.name}`);
 
+                            const oldTime = oldData.time || '';
+                            if (oldTime !== payload.time) changes.push(`Jam: ${oldTime} ➔ ${payload.time}`);
+
+                            const oldSeats = this.getSeats(oldData).join(', ') || 'Belum pilih';
+                            const newSeats = payload.seats.join(', ') || 'Belum pilih';
+                            if (oldSeats !== newSeats) changes.push(`Kursi: ${oldSeats} ➔ ${newSeats}`);
+
+                            const oldStatus = oldData.paymentStatus || 'DP';
+                            if (oldStatus !== payload.paymentStatus) changes.push(`Status: ${oldStatus} ➔ ${payload.paymentStatus}`);
+
+                            const oldMethod = oldData.paymentMethod || 'Cash';
+                            if (oldMethod !== payload.paymentMethod && payload.paymentStatus !== 'BLM BAYAR') changes.push(`Metode: ${oldMethod} ➔ ${payload.paymentMethod}`);
+
+                            const oldDp = oldData.dpAmount ? parseInt(oldData.dpAmount) : 0;
+                            const newDp = payload.dpAmount ? parseInt(payload.dpAmount) : 0;
+                            if (oldDp !== newDp && payload.paymentStatus === 'DP') changes.push(`Nominal DP: ${this.formatRupiah(oldDp)} ➔ ${this.formatRupiah(newDp)}`);
+
+                            const oldOrderType = oldData.orderType || oldData.order_type || 'WA';
+                            if (oldOrderType !== payload.order_type) changes.push(`Sumber: ${oldOrderType} ➔ ${payload.order_type}`);
+
+                            let detailMsg = changes.length > 0 ? "Perubahan Data:\n• " + changes.join("\n• ") : "Disimpan/Diedit tanpa mengubah detail utama.";
+
+                            payload.updated_by = this.currentUser.name;
                             await supabaseClient.from('reservations').update(payload).eq('id', this.formData.id); 
-                            await this.writeLog('UPDATE', this.formData.id, payload.name, dateStr, diffText);
+                            await this.writeLog('UPDATE', this.formData.id, payload.name, dateStr, detailMsg);
                         } else {
                             const dateCode = dateStr.replace(/-/g, '').substring(2);
                             let maxSeq = 0; this.dayReservations.forEach(r => { if (r.id && r.id.startsWith(`S2-${dateCode}-`)) { const seq = parseInt(r.id.split('-')[2]); if (seq > maxSeq) maxSeq = seq; } });
@@ -884,23 +790,22 @@
                             payload.created_by = this.currentUser.name;
                             payload.updated_by = this.currentUser.name;
 
-                            let insertDetail = `Jam: ${payload.time}\nKursi: ${payload.seats.length > 0 ? payload.seats.join(', ') : 'Belum pilih'}\nStatus: ${payload.paymentStatus}`;
-
                             await supabaseClient.from('reservations').insert([payload]);
-                            await this.writeLog('INSERT', payload.id, payload.name, dateStr, insertDetail);
+                            await this.writeLog('INSERT', payload.id, payload.name, dateStr, `Reservasi baru telah ditambahkan.\n• Jam: ${payload.time}\n• Kursi: ${payload.seats.join(', ') || '-'}`);
                         }
                         this.showToast("Data tersimpan!"); await this.initApp(); this.modals.form = false;
                     } catch (error) { 
-                        console.error("Supabase Insert Error:", error); 
+                        console.error("Supabase Insert/Update Error:", error); 
                         this.showToast("Gagal menyimpan!", "error"); 
                     } finally { this.isLoading = false; }
                 },
 
-                async deleteRes(resObj) { 
-                    if (confirm(`Hapus reservasi atas nama ${resObj.name}?`)) { 
+                async deleteRes(id) { 
+                    if (confirm("Hapus reservasi ini?")) { 
+                        const resData = this.reservations.find(r => r.id === id) || {};
                         this.isLoading = true; 
-                        await supabaseClient.from('reservations').delete().eq('id', resObj.id); 
-                        await this.writeLog('DELETE', resObj.id, resObj.name, resObj.date, `Jam: ${resObj.time}\nKursi: ${this.getSeats(resObj).join(', ')}\nData dihapus.`);
+                        await supabaseClient.from('reservations').delete().eq('id', id); 
+                        await this.writeLog('DELETE', id, resData.name || '-', resData.date || '-', 'Data reservasi dibatalkan dan dihapus dari sistem.');
                         this.showToast("Dihapus."); await this.initApp(); 
                     } 
                 },
@@ -929,6 +834,17 @@
                     } finally { 
                         this.logLoading = false; 
                     } 
+                },
+
+                formatLogDetail(detail) {
+                    if (!detail) return '-';
+                    // Escape basic HTML to prevent cross-site scripting
+                    let safeStr = detail.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    // Parse custom diff formatting
+                    return safeStr
+                        .replace(/\n/g, '<br>')
+                        .replace(/•/g, '<span class="text-brand-green mr-1 font-bold">•</span>')
+                        .replace(/➔/g, '<span class="text-blue-500 font-black mx-1 tracking-tighter">➔</span>');
                 },
 
                 async sendWhatsAppInvoice(res) {
@@ -975,9 +891,7 @@
 
                         const response = await fetch('https://api.fonnte.com/send', {
                             method: 'POST',
-                            headers: {
-                                'Authorization': FONNTE_TOKEN
-                            },
+                            headers: { 'Authorization': FONNTE_TOKEN },
                             body: formData
                         });
 
@@ -986,7 +900,7 @@
                         if (result.status === true) {
                             alert(`✅ BERHASIL!\n\nInvoice E-Tiket telah sukses dikirim ke WhatsApp:\n${targetPhone} (a.n. ${res.name}).`);
                             this.showToast("WhatsApp berhasil dikirim!", "success");
-                            await this.writeLog('UPDATE', res.id, res.name, res.date, `Blast WA sukses ke ${targetPhone}`);
+                            await this.writeLog('UPDATE', res.id, res.name, res.date, `Mengirim E-Tiket via WhatsApp (Blast Sukses)\n• Target: ${targetPhone}`);
                         } else {
                             console.error("Fonnte Error Response:", result);
                             alert(`❌ GAGAL MENGIRIM WHATSAPP!\n\nAlasan Penolakan dari Server Fonnte:\n"${result.reason || result.detail || 'Cek koneksi dan status device API Anda'}"\n\nTips: Pastikan HP Fonnte Anda terkoneksi (Online) dan Token masih valid.`);
