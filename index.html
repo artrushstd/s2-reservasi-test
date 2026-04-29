@@ -210,9 +210,7 @@
                                             <div class="text-gray-500 text-[10px] mt-0.5 truncate max-w-[200px]" x-text="res.details || ''" :title="res.details"></div>
                                         </td>
                                         <td class="p-4 text-center space-x-1">
-                                            <!-- Tombol Blast WA Baru -->
                                             <button type="button" @click.stop="sendWhatsAppInvoice(res)" class="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition shadow-sm" title="Kirim Invoice E-Tiket via WhatsApp">📱</button>
-                                            
                                             <button type="button" @click="printSeatLabel(res)" class="p-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition shadow-sm" title="Print Label Kursi">🏷️</button>
                                             <button type="button" @click="printTicket(res)" class="p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition shadow-sm" title="Print Tiket">️🖨️</button>
                                             <button x-show="!isPastDate(selectedDate)" type="button" @click="openForm(res)" class="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition shadow-sm" title="Edit">✏️</button>
@@ -355,7 +353,6 @@
 
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1.5">Detail Timbangan Ikan</label>
-                        <!-- Menggunakan textarea agar admin lebih leluasa ketik kebawah -->
                         <textarea x-model="formData.fish_weight" rows="4" class="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green outline-none transition bg-gray-50 focus:bg-white" placeholder="Contoh:&#10;Nila 1.5kg&#10;Gurami 2kg"></textarea>
                     </div>
                 </div>
@@ -423,34 +420,52 @@
     <div x-show="modals.log" style="display: none; z-index: 90;" class="fixed inset-0" x-transition.opacity>
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto" @click="modals.log = false"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
-            <div class="bg-white rounded-2xl w-full max-w-5xl h-[90vh] flex flex-col shadow-2xl relative pointer-events-auto">
+            <div class="bg-white rounded-2xl w-full max-w-[95vw] sm:max-w-6xl h-[90vh] flex flex-col shadow-2xl relative pointer-events-auto">
                 <div class="p-5 border-b flex items-center gap-4 bg-gray-50 rounded-t-2xl shrink-0">
                     <button type="button" @click="modals.log = false" class="p-2 bg-white border shadow-sm hover:bg-gray-100 text-gray-600 rounded-full transition flex items-center justify-center">✕</button>
                     <div class="flex-1">
                         <h3 class="text-xl font-bold text-gray-800">Log Aktivitas Sistem</h3>
                     </div>
                 </div>
-                <div class="px-6 pb-6 pt-4 overflow-y-auto flex-1">
+                <div class="px-6 pb-6 pt-4 overflow-y-auto flex-1 bg-white">
                     <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm bg-white">
                         <table class="w-full text-left text-sm whitespace-nowrap min-w-max">
                             <thead class="bg-gray-100 text-gray-600 font-bold border-b border-gray-200 text-xs uppercase">
                                 <tr>
-                                    <th class="p-3 text-center w-10">No.</th>
-                                    <th class="p-3">Waktu</th>
-                                    <th class="p-3">Aksi</th>
-                                    <th class="p-3">Pelaku</th>
-                                    <th class="p-3">Detail Perubahan</th>
+                                    <th class="p-4 text-center w-12">No.</th>
+                                    <th class="p-4">Waktu</th>
+                                    <th class="p-4">Pelaku</th>
+                                    <th class="p-4 text-center">Aksi</th>
+                                    <th class="p-4">Data Target</th>
+                                    <th class="p-4">Detail Tambahan</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
-                                <tr x-show="logLoading"><td colspan="5" class="p-10 text-center text-gray-400">Memuat log...</td></tr>
-                                <template x-for="(log, idx) in activityLogs" :key="log.id">
-                                    <tr x-show="!logLoading" class="hover:bg-purple-50/30 transition">
-                                        <td class="p-3 text-center text-gray-400 font-bold text-xs" x-text="idx+1"></td>
-                                        <td class="p-3 text-xs text-gray-500 font-medium" x-text="formatDateTime(log.ts)"></td>
-                                        <td class="p-3"><span class="px-2 py-1 rounded-lg text-xs font-black border" :class="{'bg-green-100 text-green-800 border-green-200': log.action === 'INSERT','bg-blue-100 text-blue-800 border-blue-200': log.action === 'UPDATE','bg-red-100 text-red-700 border-red-200': log.action === 'DELETE'}" x-text="log.action"></span></td>
-                                        <td class="p-3 font-bold text-gray-800" x-text="log.actor"></td>
-                                        <td class="p-3 text-xs text-gray-500 max-w-xs"><div class="truncate" :title="log.detail" x-text="log.detail || '-'"></div></td>
+                                <tr x-show="logLoading"><td colspan="6" class="p-10 text-center text-gray-500 font-medium">Memuat data log aktivitas...</td></tr>
+                                <tr x-show="!logLoading && activityLogs.length === 0"><td colspan="6" class="p-10 text-center text-gray-500 font-medium">Belum ada data log aktivitas tercatat.</td></tr>
+                                
+                                <template x-for="(log, idx) in activityLogs" :key="log.id || idx">
+                                    <tr x-show="!logLoading" class="hover:bg-gray-50 transition">
+                                        <td class="p-4 text-center text-gray-400 font-bold text-xs" x-text="idx+1"></td>
+                                        <td class="p-4 text-xs text-gray-500 font-medium" x-text="formatDateTime(log.ts)"></td>
+                                        <td class="p-4 font-bold text-gray-800 text-xs" x-text="log.actor"></td>
+                                        <td class="p-4 text-center">
+                                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-black border uppercase" 
+                                                  :class="{
+                                                      'bg-green-100 text-green-800 border-green-200': log.action === 'INSERT',
+                                                      'bg-blue-100 text-blue-800 border-blue-200': log.action === 'UPDATE',
+                                                      'bg-red-100 text-red-700 border-red-200': log.action === 'DELETE'
+                                                  }" x-text="log.action"></span>
+                                        </td>
+                                        <td class="p-4">
+                                            <div class="flex flex-col gap-0.5">
+                                                <div x-show="log.reservation_id" class="font-extrabold text-gray-700 font-mono tracking-tight text-xs bg-gray-100 px-2 py-0.5 rounded inline-block w-max" x-text="log.reservation_id"></div>
+                                                <div class="text-gray-800 text-sm font-bold mt-1" x-show="log.customer_name" x-text="log.customer_name"></div>
+                                                <div class="text-[10px] text-gray-500 font-medium" x-show="log.reservation_date">Tgl Reservasi: <span class="font-bold text-gray-600" x-text="log.reservation_date"></span></div>
+                                                <div x-show="!log.reservation_id && !log.customer_name" class="text-xs text-gray-400 italic">-</div>
+                                            </div>
+                                        </td>
+                                        <td class="p-4 text-xs text-gray-600 whitespace-normal min-w-[200px] max-w-md leading-relaxed" x-text="log.detail || '-'"></td>
                                     </tr>
                                 </template>
                             </tbody>
@@ -741,8 +756,26 @@
                         await supabaseClient.from('activity_logs').insert([{ action, actor: this.currentUser.name + ' (' + this.currentUser.role + ')', reservation_id: resId || null, customer_name: customerName || null, reservation_date: resDate || null, detail: detail || null, ts: new Date().getTime(), created_at: new Date().toISOString() }]);
                     } catch(e) {}
                 },
-                async openLog() { this.logLoading = true; this.activityLogs =[]; this.modals.log = true; await this.loadLogs(); },
-                async loadLogs() { try { const { data } = await supabaseClient.from('activity_logs').select('*').order('ts', { ascending: false }).limit(200); this.activityLogs = data ||[]; } catch(e){} finally { this.logLoading = false; } },
+                
+                async openLog() { 
+                    this.logLoading = true; 
+                    this.activityLogs =[]; 
+                    this.modals.log = true; 
+                    await this.loadLogs(); 
+                },
+                
+                async loadLogs() { 
+                    try { 
+                        const { data, error } = await supabaseClient.from('activity_logs').select('*').order('ts', { ascending: false }).limit(200); 
+                        if (error) throw error;
+                        this.activityLogs = data ||[]; 
+                    } catch(e){
+                        console.error("Supabase Load Logs Error:", e);
+                        this.showToast("Gagal memuat log aktivitas!", "error");
+                    } finally { 
+                        this.logLoading = false; 
+                    } 
+                },
 
                 // FUNGSI BLAST WA FONNTE (DIREVISI)
                 async sendWhatsAppInvoice(res) {
