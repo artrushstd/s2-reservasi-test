@@ -323,7 +323,7 @@
                         <div class="mb-4" x-show="formData.paymentStatus !== 'BLM BAYAR'">
                             <label class="block text-xs font-bold text-gray-500 mb-2">Pilih Metode Pembayaran</label>
                             <div class="flex gap-2">
-                                <template x-for="method in ['Transfer', 'Qris', 'EDC', 'Cash']">
+                                <template x-for="method in['Transfer', 'Qris', 'EDC', 'Cash']">
                                     <label class="flex-1 flex items-center justify-center gap-1 cursor-pointer border-2 py-2 px-1 rounded-lg transition bg-white select-none" 
                                            :class="formData.paymentMethod === method ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm' : 'border-gray-200 text-gray-500 hover:border-gray-300'">
                                         <input type="radio" x-model="formData.paymentMethod" :value="method" class="hidden">
@@ -437,7 +437,7 @@
                                     <th class="p-4">Pelaku</th>
                                     <th class="p-4 text-center">Aksi</th>
                                     <th class="p-4">Data Target</th>
-                                    <th class="p-4">Detail Tambahan</th>
+                                    <th class="p-4">Detail Tambahan & Perubahan</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
@@ -446,10 +446,10 @@
                                 
                                 <template x-for="(log, idx) in activityLogs" :key="log.id || idx">
                                     <tr x-show="!logLoading" class="hover:bg-gray-50 transition">
-                                        <td class="p-4 text-center text-gray-400 font-bold text-xs" x-text="idx+1"></td>
-                                        <td class="p-4 text-xs text-gray-500 font-medium" x-text="formatDateTime(log.ts)"></td>
-                                        <td class="p-4 font-bold text-gray-800 text-xs" x-text="log.actor"></td>
-                                        <td class="p-4 text-center">
+                                        <td class="p-4 text-center text-gray-400 font-bold text-xs align-top" x-text="idx+1"></td>
+                                        <td class="p-4 text-xs text-gray-500 font-medium align-top" x-text="formatDateTime(log.ts)"></td>
+                                        <td class="p-4 font-bold text-gray-800 text-xs align-top" x-text="log.actor"></td>
+                                        <td class="p-4 text-center align-top">
                                             <span class="px-2.5 py-1 rounded-lg text-[10px] font-black border uppercase" 
                                                   :class="{
                                                       'bg-green-100 text-green-800 border-green-200': log.action === 'INSERT',
@@ -457,15 +457,38 @@
                                                       'bg-red-100 text-red-700 border-red-200': log.action === 'DELETE'
                                                   }" x-text="log.action"></span>
                                         </td>
-                                        <td class="p-4">
-                                            <div class="flex flex-col gap-0.5">
-                                                <div x-show="log.reservation_id" class="font-extrabold text-gray-700 font-mono tracking-tight text-xs bg-gray-100 px-2 py-0.5 rounded inline-block w-max" x-text="log.reservation_id"></div>
-                                                <div class="text-gray-800 text-sm font-bold mt-1" x-show="log.customer_name" x-text="log.customer_name"></div>
-                                                <div class="text-[10px] text-gray-500 font-medium" x-show="log.reservation_date">Tgl Reservasi: <span class="font-bold text-gray-600" x-text="log.reservation_date"></span></div>
+                                        <td class="p-4 align-top">
+                                            <div class="flex flex-col items-start">
+                                                <div x-show="log.reservation_id" 
+                                                     @click="openReservationFromLog(log.reservation_id, log.reservation_date)"
+                                                     class="font-extrabold text-blue-600 font-mono tracking-tight text-[11px] bg-blue-50 border border-blue-200 hover:bg-blue-100 hover:text-blue-800 px-2 py-1 rounded inline-block w-max cursor-pointer transition shadow-sm mb-1.5"
+                                                     title="Lihat Detail Reservasi">
+                                                     <span x-text="log.reservation_id"></span> ↗
+                                                </div>
+                                                <div class="text-gray-800 text-sm font-bold" x-show="log.customer_name" x-text="log.customer_name"></div>
+                                                <div class="text-[10px] text-gray-500 font-medium mt-0.5" x-show="log.reservation_date">Tgl Reservasi: <span class="font-bold text-gray-600" x-text="log.reservation_date"></span></div>
                                                 <div x-show="!log.reservation_id && !log.customer_name" class="text-xs text-gray-400 italic">-</div>
                                             </div>
                                         </td>
-                                        <td class="p-4 text-xs text-gray-600 whitespace-normal min-w-[200px] max-w-md leading-relaxed" x-text="log.detail || '-'"></td>
+                                        <td class="p-4 text-xs text-gray-600 whitespace-normal min-w-[250px] max-w-md leading-relaxed align-top">
+                                            <div x-text="log.detail || '-'"></div>
+                                            
+                                            <!-- Fitur Diff Log (Sebelum & Sesudah) -->
+                                            <template x-if="log.changes_json">
+                                                <div class="mt-2 space-y-1.5">
+                                                    <template x-for="(change, key) in parseChanges(log.changes_json)" :key="key">
+                                                        <div class="text-[10px] bg-gray-50 border border-gray-200 p-1.5 rounded flex flex-col gap-0.5 shadow-sm">
+                                                            <span class="font-black text-gray-700 uppercase tracking-wider" x-text="formatLogKey(key)"></span>
+                                                            <div class="flex items-center gap-1.5 break-words max-w-full flex-wrap">
+                                                                <span class="line-through text-red-500 font-medium px-1 bg-red-50 rounded border border-red-100" x-text="change.old || '(kosong)'"></span> 
+                                                                <span class="text-gray-400 font-bold text-[8px]">➔</span> 
+                                                                <span class="text-green-600 font-bold px-1 bg-green-50 rounded border border-green-100" x-text="change.new || '(kosong)'"></span>
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                        </td>
                                     </tr>
                                 </template>
                             </tbody>
@@ -721,9 +744,35 @@
                         };
                         
                         if (this.formData.id) { 
+                            // Hitung changes untuk log sebelum update
+                            let changes = {};
+                            const oldData = this.reservations.find(r => r.id === this.formData.id);
+                            if (oldData) {
+                                const checkKeys =['name', 'time', 'date', 'order_type', 'details', 'notes', 'paymentStatus', 'paymentMethod', 'dpAmount', 'phone', 'pax', 'fish_weight'];
+                                checkKeys.forEach(k => {
+                                    let oldVal = oldData[k];
+                                    let newVal = payload[k];
+                                    if (k === 'dpAmount') oldVal = oldData.dpAmount || oldData.dpamount;
+                                    if (k === 'order_type') oldVal = oldData.orderType || oldData.ordertype || oldData.order_type;
+                                    
+                                    oldVal = (oldVal === null || oldVal === undefined) ? '' : String(oldVal).trim();
+                                    newVal = (newVal === null || newVal === undefined) ? '' : String(newVal).trim();
+                                    
+                                    if (oldVal !== newVal) {
+                                        changes[k] = { old: oldVal, new: newVal };
+                                    }
+                                });
+                                // Hitung diff untuk array seats
+                                const oldSeats = this.getSeats(oldData).sort().join(', ');
+                                const newSeats = (payload.seats || []).sort().join(', ');
+                                if (oldSeats !== newSeats) {
+                                    changes['seats'] = { old: oldSeats || '(kosong)', new: newSeats || '(kosong)' };
+                                }
+                            }
+
                             payload.updated_by = this.currentUser.name;
                             await supabaseClient.from('reservations').update(payload).eq('id', this.formData.id); 
-                            await this.writeLog('UPDATE', this.formData.id, payload.name, dateStr, `Jam: ${payload.time}`);
+                            await this.writeLog('UPDATE', this.formData.id, payload.name, dateStr, `Diubah melalui form edit`, Object.keys(changes).length > 0 ? JSON.stringify(changes) : null);
                         } else {
                             const dateCode = dateStr.replace(/-/g, '').substring(2);
                             let maxSeq = 0; this.dayReservations.forEach(r => { if (r.id && r.id.startsWith(`S2-${dateCode}-`)) { const seq = parseInt(r.id.split('-')[2]); if (seq > maxSeq) maxSeq = seq; } });
@@ -733,7 +782,7 @@
                             payload.updated_by = this.currentUser.name;
 
                             await supabaseClient.from('reservations').insert([payload]);
-                            await this.writeLog('INSERT', payload.id, payload.name, dateStr, `Jam: ${payload.time}`);
+                            await this.writeLog('INSERT', payload.id, payload.name, dateStr, `Reservasi baru dibuat`);
                         }
                         this.showToast("Data tersimpan!"); await this.initApp(); this.modals.form = false;
                     } catch (error) { 
@@ -745,16 +794,74 @@
                 async deleteRes(id) { 
                     if (confirm("Hapus reservasi ini?")) { 
                         this.isLoading = true; 
+                        const res = this.reservations.find(r => r.id === id); // Fetch existing untuk log
                         await supabaseClient.from('reservations').delete().eq('id', id); 
-                        await this.writeLog('DELETE', id, '-', '-', 'Dihapus');
+                        
+                        let changesJSON = null;
+                        if(res) {
+                            changesJSON = JSON.stringify({ "Status Reservasi": { old: "Terdaftar", new: "Dihapus Permanen" } });
+                        }
+                        await this.writeLog('DELETE', id, res?.name || '-', res?.date || '-', 'Dihapus oleh sistem', changesJSON);
+                        
                         this.showToast("Dihapus."); await this.initApp(); 
                     } 
                 },
 
-                async writeLog(action, resId, customerName, resDate, detail) {
+                // Fungsi Modifikasi Log
+                async writeLog(action, resId, customerName, resDate, detail, changesJson = null) {
                     try {
-                        await supabaseClient.from('activity_logs').insert([{ action, actor: this.currentUser.name + ' (' + this.currentUser.role + ')', reservation_id: resId || null, customer_name: customerName || null, reservation_date: resDate || null, detail: detail || null, ts: new Date().getTime(), created_at: new Date().toISOString() }]);
+                        await supabaseClient.from('activity_logs').insert([{ 
+                            action, 
+                            actor: this.currentUser.name + ' (' + this.currentUser.role + ')', 
+                            reservation_id: resId || null, 
+                            customer_name: customerName || null, 
+                            reservation_date: resDate || null, 
+                            detail: detail || null,
+                            changes_json: changesJson, // Insert diffs!
+                            ts: new Date().getTime(), 
+                            created_at: new Date().toISOString() 
+                        }]);
                     } catch(e) {}
+                },
+                
+                parseChanges(jsonStr) {
+                    if (!jsonStr) return {};
+                    try { return JSON.parse(jsonStr); } catch (e) { return {}; }
+                },
+
+                formatLogKey(key) {
+                    const keyMap = {
+                        name: 'Nama', time: 'Jam', seats: 'Kursi', details: 'Detail Pesanan', 
+                        notes: 'Catatan', paymentStatus: 'Status Bayar', paymentMethod: 'Metode Bayar', 
+                        dpAmount: 'DP', phone: 'No HP', pax: 'Pax', order_type: 'Order Via', fish_weight: 'Timbangan Ikan', date: 'Tanggal'
+                    };
+                    return keyMap[key] || key;
+                },
+
+                // Fitur untuk meng-klik ID Reservasi pada Activity Log
+                openReservationFromLog(id, dateStr) {
+                    const res = this.reservations.find(r => r.id === id);
+                    if (res) {
+                        // Arahkan kalender dan state ke tanggal reservasi terpilih
+                        const parts = res.date.split('-');
+                        if(parts.length === 3) {
+                            this.currentYear = parseInt(parts[0], 10);
+                            this.currentMonth = parseInt(parts[1], 10) - 1;
+                            this.selectedDate = parseInt(parts[2], 10);
+                            this.dayReservations = this.getReservations(this.selectedDate);
+                            
+                            // Menutup log, membuka view
+                            this.modals.log = false;
+                            this.modals.list = true;
+                            
+                            // Buka Form sekalian untuk melihat detailsnya
+                            setTimeout(() => {
+                                this.openForm(res);
+                            }, 300);
+                        }
+                    } else {
+                        this.showToast("Data reservasi ini tidak ditemukan (Mungkin sudah dihapus).", "error");
+                    }
                 },
                 
                 async openLog() { 
@@ -766,6 +873,7 @@
                 
                 async loadLogs() { 
                     try { 
+                        // Query akan otomatis mengambil kolom changes_json jika ada di Supabase
                         const { data, error } = await supabaseClient.from('activity_logs').select('*').order('ts', { ascending: false }).limit(200); 
                         if (error) throw error;
                         this.activityLogs = data ||[]; 
@@ -777,7 +885,7 @@
                     } 
                 },
 
-                // FUNGSI BLAST WA FONNTE (DIREVISI)
+                // FUNGSI BLAST WA FONNTE
                 async sendWhatsAppInvoice(res) {
                     // Validasi Nomor HP Kosong
                     if (!res.phone || res.phone.trim() === '') {
