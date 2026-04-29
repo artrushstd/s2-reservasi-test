@@ -430,61 +430,102 @@
                 <div class="px-6 pb-6 pt-4 overflow-y-auto flex-1 bg-white">
                     <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm bg-white">
                         <table class="w-full text-left text-sm whitespace-nowrap min-w-max">
-                            <thead class="bg-gray-100 text-gray-600 font-bold border-b border-gray-200 text-xs uppercase">
+                            <thead class="bg-gray-100 text-gray-600 font-bold border-b border-gray-200 text-xs uppercase tracking-wider">
                                 <tr>
                                     <th class="p-4 text-center w-12">No.</th>
-                                    <th class="p-4">Waktu</th>
-                                    <th class="p-4">Pelaku</th>
-                                    <th class="p-4 text-center">Aksi</th>
-                                    <th class="p-4">Data Target</th>
+                                    <th class="p-4 w-40">Waktu & Pelaku</th>
+                                    <th class="p-4 text-center w-32">Aksi</th>
+                                    <th class="p-4 w-64">Data Target</th>
                                     <th class="p-4">Detail Perubahan</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
-                                <tr x-show="logLoading"><td colspan="6" class="p-10 text-center text-gray-500 font-medium">Memuat data log aktivitas...</td></tr>
-                                <tr x-show="!logLoading && activityLogs.length === 0"><td colspan="6" class="p-10 text-center text-gray-500 font-medium">Belum ada data log aktivitas tercatat.</td></tr>
+                                <tr x-show="logLoading"><td colspan="5" class="p-10 text-center text-gray-500 font-medium">Memuat data log aktivitas...</td></tr>
+                                <tr x-show="!logLoading && activityLogs.length === 0"><td colspan="5" class="p-10 text-center text-gray-500 font-medium">Belum ada data log aktivitas tercatat.</td></tr>
                                 
                                 <template x-for="(log, idx) in activityLogs" :key="log.id || idx">
-                                    <tr x-show="!logLoading" class="hover:bg-gray-50 transition">
-                                        <td class="p-4 text-center text-gray-400 font-bold text-xs align-top" x-text="idx+1"></td>
-                                        <td class="p-4 text-xs text-gray-500 font-medium align-top" x-text="formatDateTime(log.ts)"></td>
-                                        <td class="p-4 font-bold text-gray-800 text-xs align-top" x-text="log.actor"></td>
-                                        <td class="p-4 text-center align-top">
-                                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-black border uppercase block mx-auto w-max" 
-                                                  :class="{
-                                                      'bg-green-100 text-green-800 border-green-200': log.action === 'INSERT',
-                                                      'bg-blue-100 text-blue-800 border-blue-200': log.action === 'UPDATE',
-                                                      'bg-red-100 text-red-700 border-red-200': log.action === 'DELETE'
-                                                  }" x-text="log.action"></span>
-                                        </td>
+                                    <tr x-show="!logLoading" class="hover:bg-gray-50 transition-colors">
+                                        <!-- Kolom No -->
+                                        <td class="p-4 text-center text-gray-400 font-bold text-sm align-top" x-text="idx+1"></td>
+                                        
+                                        <!-- Kolom Waktu & Pelaku -->
                                         <td class="p-4 align-top">
-                                            <div class="flex flex-col gap-0.5 items-start">
-                                                <button type="button" x-show="log.reservation_id" @click="openReservationFromLog(log.reservation_id)" class="font-extrabold text-blue-600 hover:text-white hover:bg-blue-600 transition-colors font-mono tracking-tight text-xs bg-blue-50 border border-blue-200 px-2 py-0.5 rounded inline-block w-max shadow-sm cursor-pointer" title="Klik untuk edit data ini">
+                                            <div class="text-xs text-gray-500 font-medium mb-1 flex items-center gap-1.5">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                <span x-text="formatDateTime(log.ts)"></span>
+                                            </div>
+                                            <div class="font-extrabold text-gray-800 text-xs flex items-center gap-1.5">
+                                                <svg class="w-3.5 h-3.5 text-brand-green" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                                <span x-text="log.actor"></span>
+                                            </div>
+                                        </td>
+                                        
+                                        <!-- Kolom Aksi -->
+                                        <td class="p-4 text-center align-top">
+                                            <span class="px-3 py-1.5 rounded-lg text-[10px] font-black border shadow-sm flex items-center justify-center gap-1.5 w-max mx-auto uppercase" 
+                                                  :class="{
+                                                      'bg-green-100 text-green-800 border-green-300': log.action === 'INSERT',
+                                                      'bg-blue-100 text-blue-800 border-blue-300': log.action === 'UPDATE',
+                                                      'bg-red-100 text-red-800 border-red-300': log.action === 'DELETE'
+                                                  }">
+                                                <svg x-show="log.action === 'INSERT'" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                                <svg x-show="log.action === 'UPDATE'" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                                <svg x-show="log.action === 'DELETE'" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                <span x-text="log.action"></span>
+                                            </span>
+                                        </td>
+                                        
+                                        <!-- Kolom Data Target (Dapat Di-Klik) -->
+                                        <td class="p-4 align-top">
+                                            <div class="flex flex-col gap-1 items-start">
+                                                <button type="button" x-show="log.reservation_id" @click="openReservationFromLog(log.reservation_id)" class="group flex items-center gap-1.5 font-bold text-blue-700 hover:text-blue-800 hover:bg-blue-100 transition-all font-mono tracking-tight text-xs bg-blue-50/70 border border-blue-200 px-2 py-1 rounded shadow-sm cursor-pointer" title="Buka Detail Form Reservasi">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                                                     <span x-text="log.reservation_id"></span>
-                                                    <span class="inline-block ml-1 text-[10px]">↗</span>
                                                 </button>
-                                                <div class="text-gray-800 text-sm font-bold mt-1" x-show="log.customer_name" x-text="log.customer_name"></div>
-                                                <div class="text-[10px] text-gray-500 font-medium" x-show="log.reservation_date">Tgl Reservasi: <span class="font-bold text-gray-600" x-text="log.reservation_date"></span></div>
+                                                <div class="text-gray-800 text-sm font-extrabold mt-1" x-show="log.customer_name">
+                                                    <span class="text-gray-500 font-medium text-xs mr-1">Nama:</span><span x-text="log.customer_name"></span>
+                                                </div>
+                                                <div class="text-xs text-gray-500 font-medium mt-0.5" x-show="log.reservation_date">
+                                                    Tanggal: <span class="font-bold text-gray-700 bg-gray-100 border border-gray-200 px-1 py-0.5 rounded" x-text="formatDateLong(log.reservation_date)"></span>
+                                                </div>
                                                 <div x-show="!log.reservation_id && !log.customer_name" class="text-xs text-gray-400 italic">-</div>
                                             </div>
                                         </td>
-                                        <td class="p-4 text-xs text-gray-600 whitespace-normal min-w-[250px] max-w-md leading-relaxed align-top">
-                                            <div x-text="log.detail || '-'" class="font-bold text-gray-800 mb-1"></div>
+                                        
+                                        <!-- Kolom Detail Perubahan -->
+                                        <td class="p-4 text-xs text-gray-600 whitespace-normal min-w-[300px] max-w-lg leading-relaxed align-top">
+                                            <div class="font-bold text-gray-800 mb-2" x-text="log.detail || '-'"></div>
                                             
-                                            <!-- Box Info Perubahan Detail Data -->
+                                            <!-- Tabel Perbandingan Detail Data -->
                                             <template x-if="log.parsedChanges">
-                                                <div class="mt-2 bg-white border border-gray-200 rounded-lg p-2.5 text-[10px] space-y-1.5 shadow-sm">
-                                                    <div class="text-[9px] uppercase font-black text-gray-400 mb-1 tracking-wider border-b pb-1">Detail Perubahan:</div>
-                                                    <template x-for="(change, label) in log.parsedChanges" :key="label">
-                                                        <div class="grid grid-cols-[80px_1fr] gap-1 items-start">
-                                                            <span class="font-bold text-gray-700" x-text="label + ':'"></span> 
-                                                            <div class="flex flex-wrap items-center gap-1.5">
-                                                                <span class="line-through text-red-500 font-medium px-1 bg-red-50 border border-red-100 rounded" x-text="change.old"></span> 
-                                                                <span class="text-gray-400 text-[8px]">▶</span> 
-                                                                <span class="text-green-700 font-bold px-1 bg-green-50 border border-green-100 rounded" x-text="change.new"></span>
-                                                            </div>
-                                                        </div>
-                                                    </template>
+                                                <div class="mt-2 border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                                                    <div class="bg-gray-100 px-3 py-1.5 border-b border-gray-200 flex justify-between items-center">
+                                                        <span class="text-[10px] uppercase font-black text-gray-600 tracking-wider">Perbandingan Data</span>
+                                                    </div>
+                                                    <div class="bg-white">
+                                                        <table class="w-full text-left text-[11px] border-collapse">
+                                                            <thead class="bg-gray-50/50">
+                                                                <tr>
+                                                                    <th class="px-3 py-1.5 border-b border-r border-gray-100 text-gray-500 font-bold w-1/4">Field</th>
+                                                                    <th class="px-3 py-1.5 border-b border-r border-gray-100 text-red-500 font-bold w-2/5">Data Lama</th>
+                                                                    <th class="px-3 py-1.5 border-b border-gray-100 text-green-600 font-bold w-2/5">Data Baru</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody class="divide-y divide-gray-100">
+                                                                <template x-for="(change, label) in log.parsedChanges" :key="label">
+                                                                    <tr class="hover:bg-gray-50 transition-colors">
+                                                                        <td class="px-3 py-2 border-r border-gray-100 font-bold text-gray-700 align-top" x-text="label"></td>
+                                                                        <td class="px-3 py-2 border-r border-gray-100 align-top bg-red-50/30">
+                                                                            <div class="line-through text-red-500/90 font-semibold whitespace-pre-wrap" x-text="change.old"></div>
+                                                                        </td>
+                                                                        <td class="px-3 py-2 align-top bg-green-50/30">
+                                                                            <div class="text-green-700 font-bold whitespace-pre-wrap" x-text="change.new"></div>
+                                                                        </td>
+                                                                    </tr>
+                                                                </template>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
                                                 </div>
                                             </template>
                                         </td>
@@ -548,7 +589,7 @@
                 nameError: '', phoneError: '', paxError: '', activityLogs:[], logLoading: false,
 
                 formatRupiah(angka) { if (!angka && angka !== 0) return ''; const num = parseInt(angka, 10); if (isNaN(num)) return ''; return 'Rp ' + num.toLocaleString('id-ID'); },
-                formatDateLong(dateStr) { if (!dateStr) return '-'; const parts = String(dateStr).split('-'); if (parts.length !== 3) return dateStr; const d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2])); if (isNaN(d.getTime())) return dateStr; return `${this.dayNames[d.getDay()]}, ${d.getDate()} ${this.monthNames[d.getMonth()]} ${d.getFullYear()}`; },
+                formatDateLong(dateStr) { if (!dateStr) return '-'; const parts = String(dateStr).split('-'); if (parts.length !== 3) return dateStr; const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10)-1, parseInt(parts[2], 10)); if (isNaN(d.getTime())) return dateStr; return `${this.dayNames[d.getDay()]}, ${d.getDate()} ${this.monthNames[d.getMonth()]} ${d.getFullYear()}`; },
                 formatDateTime(timestamp) { if (!timestamp) return '-'; const d = new Date(timestamp); if (isNaN(d.getTime())) return '-'; return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; },
                 onPhoneInput(event) { const el = event.target; const raw = el.value.replace(/\D/g, ''); this.formData.phone = raw; el.value = raw; },
                 onDpInput(event) { const el = event.target; const raw = el.value.replace(/\D/g, ''); this.formData.dpAmountDisplay = raw ? parseInt(raw, 10).toLocaleString('id-ID') : ''; this.formData.dpAmount = raw ? parseInt(raw, 10) : null; },
@@ -856,16 +897,16 @@
                     } 
                 },
 
-                // Fungsi baru: Buka form edit dari Log Aktivitas berdasarkan nomor Reservasi
+                // Fungsi: Buka form edit dari Log Aktivitas berdasarkan nomor Reservasi
                 openReservationFromLog(id) {
                     const res = this.reservations.find(r => r.id === id);
                     if (res) {
                         // Sesuaikan kalender ke bulan dan tanggal reservasi tersebut
                         const parts = res.date.split('-');
                         if(parts.length === 3) {
-                            this.currentYear = parseInt(parts[0]);
-                            this.currentMonth = parseInt(parts[1]) - 1;
-                            this.selectedDate = parseInt(parts[2]);
+                            this.currentYear = parseInt(parts[0], 10);
+                            this.currentMonth = parseInt(parts[1], 10) - 1;
+                            this.selectedDate = parseInt(parts[2], 10);
                             this.dayReservations = this.getReservations(this.selectedDate);
                         }
                         
