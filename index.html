@@ -324,7 +324,7 @@
                         <div class="mb-4" x-show="formData.paymentStatus !== 'BLM BAYAR'">
                             <label class="block text-xs font-bold text-gray-500 mb-2">Pilih Metode Pembayaran</label>
                             <div class="flex gap-2">
-                                <template x-for="method in['Transfer', 'Qris', 'EDC', 'Cash']">
+                                <template x-for="method in ['Transfer', 'Qris', 'EDC', 'Cash']">
                                     <label class="flex-1 flex items-center justify-center gap-1 cursor-pointer border-2 py-2 px-1 rounded-lg transition bg-white select-none" 
                                            :class="formData.paymentMethod === method ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm' : 'border-gray-200 text-gray-500 hover:border-gray-300'">
                                         <input type="radio" x-model="formData.paymentMethod" :value="method" class="hidden">
@@ -1431,7 +1431,7 @@
                         return `
                         <div class="card">
                           <div class="content">
-                            <div class="header-col">
+                            <div class="name-time-col">
                               <div class="value name">${res.name}</div>
                               <div class="jam-box">${res.time} WIB</div>
                             </div>
@@ -1458,20 +1458,20 @@
                   html, body { width:210mm; background:white; font-family:'Segoe UI',sans-serif; color:#1a1a1a; }
                   
                   /* GRID: 2 Kolom Kiri Kanan, 5 Baris Atas Bawah (Masing-masing 105mm x 59.4mm) */
-                  .page { width:210mm; height:297mm; display:grid; grid-template-columns:105mm 105mm; grid-template-rows:59.4mm 59.4mm 59.4mm 59.4mm 59.4mm; }
+                  .page { width:210mm; height:297mm; display:grid; grid-template-columns:105mm 105mm; grid-template-rows:repeat(5, 59.4mm); }
                   .page-break { page-break-after:always; }
                   
-                  .card { width:105mm; height:59.4mm; border-right:1px dashed #9ca3af; border-bottom:1px dashed #9ca3af; padding:5mm 6mm; display:flex; flex-direction:column; position:relative; }
+                  .card { width:105mm; height:59.4mm; border-right:1px dashed #9ca3af; border-bottom:1px dashed #9ca3af; padding:4mm 6mm; display:flex; flex-direction:column; position:relative; }
                   .card:nth-child(2n) { border-right:none; }
                   .card:nth-last-child(-n+2) { border-bottom:none; }
                   .card.empty { border:none; border-right:1px dashed transparent; border-bottom:1px dashed transparent; background:#fff; }
                   .card.empty:nth-child(2n) { border-right:none; }
                   
-                  .content { flex:1; display:flex; flex-direction:column; height: 100%; overflow: hidden; }
+                  .content { flex:1; display:flex; flex-direction:column; height: 100%; min-height: 0; }
                   
-                  .header-col { display:flex; flex-direction:column; gap:4px; margin-bottom:6px; }
-                  .value.name { font-size:12pt; font-weight:900; text-transform:uppercase; line-height:1.1; width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-                  .jam-box { font-size:10pt; font-weight:900; color:#e90023; border:1.5px solid #e90023; padding:2px 6px; border-radius:4px; width: max-content; }
+                  .name-time-col { display:flex; flex-direction:column; gap:4px; margin-bottom:6px; }
+                  .value.name { font-size:12pt; font-weight:900; text-transform:uppercase; line-height:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+                  .jam-box { font-size:10pt; font-weight:900; color:#e90023; border:2px solid #e90023; padding:2px 6px; border-radius:4px; width:max-content; line-height:1; }
                   
                   .detail-wrapper { flex:1; display:flex; flex-direction:column; min-height:0; }
                   .label { font-weight:800; color:#1a1a1a; font-size:7.5pt; text-transform:uppercase; margin-bottom:4px; }
@@ -1481,18 +1481,18 @@
                       height: 100%;
                       border:1px dashed #d1d5db; 
                       border-radius:4px; 
-                      padding:5px; 
-                      font-size:9pt; 
+                      padding:4px 6px; 
+                      font-size:8pt; 
                       font-weight:700; 
                       color:#1a1a1a; 
                       background:#f9fafb; 
                       white-space:pre-wrap; 
                       word-break:break-word; 
                       
-                      /* Fitur 2 Kolom Kiri ke Kanan */
+                      /* Fitur 2 Kolom Kiri ke Kanan penuh kebawah dulu */
                       column-count: 2;
                       column-fill: auto;
-                      column-gap: 10px;
+                      column-gap: 8px;
                       column-rule: 1px dashed #d1d5db;
                       overflow: hidden;
                       line-height: 1.3;
