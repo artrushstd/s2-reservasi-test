@@ -610,7 +610,8 @@
                 reservations:[], dayReservations:[], searchQuery: '', sortColumn: 'createdAt', sortDirection: 'desc',
                 modals: { list: false, form: false, time: false, seat: false, log: false, wa: false },
                 waModalData: { name: '', phone: '', message: '', link: '' },
-                formData: { id: null, orderType: 'WA', /* dst... */ },
+                formData: { id: null, orderType: 'WA', name: '', time: '', seats: [], details: '', notes: '', paymentStatus: 'DP', paymentMethod: 'Cash', createdAt: null, dpAmount: null, dpAmountDisplay: '', phone: '', pax: '', fish_weight: '' },
+                nameError: '', phoneError: '', paxError: '', activityLogs: [], logLoading: false,
                 nameError: '', phoneError: '', paxError: '', activityLogs:[], logLoading: false,
 
                 formatRupiah(angka) { if (!angka && angka !== 0) return ''; const num = parseInt(angka, 10); if (isNaN(num)) return ''; return 'Rp ' + num.toLocaleString('id-ID'); },
