@@ -419,44 +419,31 @@
 
 
     <!-- Modal WhatsApp (Z-Index 130) -->
-        <div x-show="modals.wa" style="display: none; z-index: 130;" class="fixed inset-0" x-transition.opacity>
-            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto" @click="modals.wa = false"></div>
-            <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
-                <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl relative pointer-events-auto flex flex-col max-h-[90vh]">
-                    <!-- Header -->
-                    <div class="flex items-center gap-3 p-5 border-b border-gray-100 shrink-0 bg-white rounded-t-2xl">
-                        <button type="button" @click="modals.wa = false" class="p-2 bg-gray-50 border shadow-sm hover:bg-gray-100 text-gray-600 rounded-full transition focus:outline-none">✕</button>
-                        <h3 class="text-xl font-extrabold flex-1 text-gray-800">Generate Pesan WhatsApp</h3>
+    <div x-show="modals.wa" style="display: none; z-index: 130;" class="fixed inset-0" x-transition.opacity>
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto" @click="modals.wa = false"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
+            <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl relative pointer-events-auto flex flex-col max-h-[90vh]">
+                <div class="flex items-center gap-3 p-5 border-b border-gray-100 shrink-0 bg-white rounded-t-2xl">
+                    <button type="button" @click="modals.wa = false" class="p-2 bg-gray-50 border shadow-sm hover:bg-gray-100 text-gray-600 rounded-full transition focus:outline-none">✕</button>
+                    <h3 class="text-xl font-extrabold flex-1 text-gray-800">Generate Pesan WhatsApp</h3>
+                </div>
+                <div class="p-6 overflow-y-auto flex-1 bg-white space-y-5">
+                    <div class="flex gap-3">
+                        <input type="text" readonly :value="waModalData.name" class="w-1/2 bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-gray-700 font-bold outline-none">
+                        <input type="text" readonly :value="waModalData.phone" class="w-1/2 bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-gray-700 font-bold outline-none">
                     </div>
-                    
-                    <!-- Body -->
-                    <div class="p-6 overflow-y-auto flex-1 bg-white space-y-5">
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Target Pelanggan</label>
-                            <div class="flex gap-3">
-                                <input type="text" readonly :value="waModalData.name" class="w-1/2 bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-gray-700 font-bold outline-none">
-                                <input type="text" readonly :value="waModalData.phone" class="w-1/2 bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-gray-700 font-bold outline-none">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Preview Isi Invoice E-Tiket</label>
-                            <textarea readonly x-model="waModalData.message" rows="12" class="w-full border border-gray-200 p-3.5 rounded-xl bg-green-50/30 text-gray-800 text-sm outline-none resize-none focus:border-brand-green focus:ring-1 focus:ring-brand-green"></textarea>
-                            <p class="text-[11px] text-gray-500 font-medium mt-1.5">* Teks ini sudah digenerate otomatis dan siap dikirim.</p>
-                        </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Preview Isi Invoice E-Tiket</label>
+                        <textarea readonly x-model="waModalData.message" rows="11" class="w-full border border-gray-200 p-3.5 rounded-xl bg-green-50/30 text-gray-800 text-sm outline-none resize-none focus:border-brand-green"></textarea>
                     </div>
-    
-                    <!-- Footer -->
-                    <div class="p-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50 rounded-b-2xl shrink-0">
-                        <button type="button" @click="copyWaMessage()" class="px-5 py-2.5 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-200 font-bold transition bg-white shadow-sm flex items-center gap-2">
-                            📋 Copy Teks
-                        </button>
-                        <a :href="waModalData.link" target="_blank" @click="modals.wa = false" class="px-6 py-2.5 bg-green-500 text-white rounded-xl hover:bg-green-600 font-bold shadow-md transition flex items-center gap-2">
-                            💬 Lanjut ke Chat WA
-                        </a>
-                    </div>
+                </div>
+                <div class="p-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50 rounded-b-2xl shrink-0">
+                    <button type="button" @click="copyWaMessage()" class="px-5 py-2.5 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-200 font-bold transition bg-white shadow-sm flex items-center gap-2">📋 Copy Teks</button>
+                    <a :href="waModalData.link" target="_blank" @click="modals.wa = false" class="px-6 py-2.5 bg-green-500 text-white rounded-xl hover:bg-green-600 font-bold shadow-md transition flex items-center gap-2">💬 Lanjut ke Chat WA</a>
                 </div>
             </div>
         </div>
+    </div>
         
         
     <!-- Modal Log Aktivitas (Z-Index 90) -->
@@ -974,60 +961,42 @@
                     return { isText: true, text: detail };
                 },
 
-                async sendWhatsAppInvoice(res) {openWhatsAppModal(res) {
+                async sendWhatsAppInvoice(res) {openWhatsAppModal(res) {openWhatsAppModal(res) {
                     if (!res.phone || res.phone.trim() === '') {
                         alert("❌ GAGAL: Nomor HP pelanggan belum diisi pada reservasi ini!");
                         return;
                     }
 
                     let targetPhone = res.phone.replace(/\D/g, '');
-                    if (targetPhone.startsWith('0')) {
-                        targetPhone = '62' + targetPhone.substring(1);
-                    } else if (targetPhone.startsWith('+62')) {
-                        targetPhone = '62' + targetPhone.substring(3);
-                    }
+                    if (targetPhone.startsWith('0')) targetPhone = '62' + targetPhone.substring(1);
+                    else if (targetPhone.startsWith('+62')) targetPhone = '62' + targetPhone.substring(3);
 
                     if (targetPhone.length < 10) {
-                        alert("❌ GAGAL: Nomor HP terlihat tidak valid! Mohon cek ulang nomor telepon pelanggan.");
+                        alert("❌ GAGAL: Nomor HP terlihat tidak valid!");
                         return;
                     }
 
                     const dateLong = this.formatDateLong(res.date);
                     const seatsText = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : 'Belum pilih kursi';
-                    let payText = '';
-                    
-                    if (res.paymentStatus === 'Lunas') {
-                        payText = `LUNAS (${res.paymentMethod || 'CASH'})`;
-                    } else if (res.paymentStatus === 'BLM BAYAR') {
-                        payText = `BELUM BAYAR`;
-                    } else {
-                        payText = `DP ${res.paymentMethod || 'CASH'} (${res.dpAmount ? this.formatRupiah(res.dpAmount) : '-'})`;
-                    }
+                    let payText = res.paymentStatus === 'Lunas' ? `LUNAS (${res.paymentMethod || 'CASH'})` : (res.paymentStatus === 'BLM BAYAR' ? 'BELUM BAYAR' : `DP ${res.paymentMethod || 'CASH'} (${res.dpAmount ? this.formatRupiah(res.dpAmount) : '-'})`);
 
-                    const message = `*E-TIKET RESERVASI - PEMANCINGAN SUHARNO 2*\n\n\nHalo *${res.name}*,\nTerima kasih telah melakukan reservasi. Berikut adalah detail e-tiket Anda:\n📋 *No. Reservasi:* ${res.id}\n📅 *Tanggal:* ${dateLong}\n⏰ *Jam:* ${res.time} WIB\n👥 *Jumlah Pax:* ${res.pax ? res.pax + ' Orang' : '-'}\n🪑 *No Tempat Duduk:* ${seatsText}\n\n💳 *Status Pembayaran:* ${payText}\n\n🍽 *Pesanan Menu:*\n${res.details || '- Tidak ada pesanan awal -'}\n\n📝 *Catatan Tambahan:*\n${res.notes || '-'}\n\n----------------------------------------------------\n⚠️ *Info Penting:*\n- Mohon tunjukkan pesan ini di loket kasir 3 saat kedatangan Anda.\n- Kursi berlaku maksimal 3 jam dari waktu yang tertera di atas.\n\nTerima kasih, kami tunggu kedatangannya! 😊\n*Manajemen Pemancingan Suharno 2*`;
-
-                    // Generate link wa.me dengan url encode pada message
-                    const link = `https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`;
+                    const message = `*E-TIKET RESERVASI - PEMANCINGAN SUHARNO 2*\n\nHalo *${res.name}*,\nTerima kasih telah melakukan reservasi. Berikut adalah detail e-tiket Anda:\n📋 *No. Reservasi:* ${res.id}\n📅 *Tanggal:* ${dateLong}\n⏰ *Jam:* ${res.time} WIB\n👥 *Jumlah Pax:* ${res.pax ? res.pax + ' Orang' : '-'}\n🪑 *No Tempat Duduk:* ${seatsText}\n\n💳 *Status Pembayaran:* ${payText}\n\n🍽 *Pesanan Menu:*\n${res.details || '- Tidak ada pesanan awal -'}\n\n📝 *Catatan Tambahan:*\n${res.notes || '-'}\n\n----------------------------------------------------\n⚠️ *Info Penting:*\n- Mohon tunjukkan pesan ini di loket kasir saat kedatangan.\n- Kursi berlaku maksimal 3 jam dari waktu tertera.\n\nTerima kasih, kami tunggu kedatangannya! 😊\n*Manajemen Pemancingan Suharno 2*`;
 
                     this.waModalData = {
                         name: res.name,
                         phone: targetPhone,
                         message: message,
-                        link: link
+                        link: `https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`
                     };
-
                     this.modals.wa = true;
                 },
 
                 copyWaMessage() {
                     if (navigator.clipboard && window.isSecureContext) {
                         navigator.clipboard.writeText(this.waModalData.message).then(() => {
-                            this.showToast("Isi Invoice berhasil disalin ke clipboard!");
-                        }).catch(err => {
-                            alert("Gagal menyalin. Silakan copy manual dari kolom teks.");
-                        });
+                            this.showToast("Isi Invoice berhasil disalin!");
+                        }).catch(() => alert("Gagal menyalin."));
                     } else {
-                        // Fallback jika bukan HTTPS (clipboard API butuh HTTPS)
                         const textArea = document.createElement("textarea");
                         textArea.value = this.waModalData.message;
                         document.body.appendChild(textArea);
@@ -1036,7 +1005,7 @@
                             document.execCommand('copy');
                             this.showToast("Isi Invoice berhasil disalin!");
                         } catch (err) {
-                            alert("Gagal menyalin. Silakan copy manual dari kolom teks.");
+                            alert("Gagal menyalin.");
                         }
                         document.body.removeChild(textArea);
                     }
