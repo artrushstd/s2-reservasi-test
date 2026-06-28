@@ -265,7 +265,6 @@
                     
                     <div>
                             <label class="block text-sm font-bold text-gray-700 mb-1.5">Nama Pemesan <span class="text-red-500">*</span></label>
-                            <!-- Tambahkan class 'uppercase' dan modifikasi @input untuk mengubah value ke ToUpperCase() -->
                             <input type="text" id="inputName" x-model="formData.name" @input="formData.name = $event.target.value.toUpperCase(); nameError = ''" class="w-full border p-3 rounded-xl outline-none transition bg-gray-50 focus:bg-white uppercase" 
                                :class="nameError ? 'border-red-400 focus:ring-red-500 text-red-700' : 'border-gray-200 focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green'" 
                                 placeholder="MASUKKAN NAMA LENGKAP">
@@ -417,48 +416,46 @@
         </div>
     </div>
 
-
     <!-- Modal WhatsApp (Z-Index 130) -->
-        <div x-show="modals.wa" style="display: none; z-index: 130;" class="fixed inset-0" x-transition.opacity>
-            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto" @click="modals.wa = false"></div>
-            <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
-                <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl relative pointer-events-auto flex flex-col max-h-[90vh]">
-                    <!-- Header -->
-                    <div class="flex items-center gap-3 p-5 border-b border-gray-100 shrink-0 bg-white rounded-t-2xl">
-                        <button type="button" @click="modals.wa = false" class="p-2 bg-gray-50 border shadow-sm hover:bg-gray-100 text-gray-600 rounded-full transition focus:outline-none">✕</button>
-                        <h3 class="text-xl font-extrabold flex-1 text-gray-800">Generate Pesan WhatsApp</h3>
-                    </div>
-                    
-                    <!-- Body -->
-                    <div class="p-6 overflow-y-auto flex-1 bg-white space-y-5">
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Target Pelanggan</label>
-                            <div class="flex gap-3">
-                                <input type="text" readonly :value="waModalData.name" class="w-1/2 bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-gray-700 font-bold outline-none">
-                                <input type="text" readonly :value="waModalData.phone" class="w-1/2 bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-gray-700 font-bold outline-none">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Preview Isi Invoice E-Tiket</label>
-                            <textarea readonly x-model="waModalData.message" rows="12" class="w-full border border-gray-200 p-3.5 rounded-xl bg-green-50/30 text-gray-800 text-sm outline-none resize-none focus:border-brand-green focus:ring-1 focus:ring-brand-green"></textarea>
-                            <p class="text-[11px] text-gray-500 font-medium mt-1.5">* Teks ini sudah digenerate otomatis dan siap dikirim.</p>
+    <div x-show="modals.wa" style="display: none; z-index: 130;" class="fixed inset-0" x-transition.opacity>
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto" @click="modals.wa = false"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
+            <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl relative pointer-events-auto flex flex-col max-h-[90vh]">
+                <!-- Header -->
+                <div class="flex items-center gap-3 p-5 border-b border-gray-100 shrink-0 bg-white rounded-t-2xl">
+                    <button type="button" @click="modals.wa = false" class="p-2 bg-gray-50 border shadow-sm hover:bg-gray-100 text-gray-600 rounded-full transition focus:outline-none">✕</button>
+                    <h3 class="text-xl font-extrabold flex-1 text-gray-800">Generate Pesan WhatsApp</h3>
+                </div>
+                
+                <!-- Body -->
+                <div class="p-6 overflow-y-auto flex-1 bg-white space-y-5">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Target Pelanggan</label>
+                        <div class="flex gap-3">
+                            <input type="text" readonly :value="waModalData.name" class="w-1/2 bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-gray-700 font-bold outline-none">
+                            <input type="text" readonly :value="waModalData.phone" class="w-1/2 bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-gray-700 font-bold outline-none">
                         </div>
                     </div>
-    
-                    <!-- Footer -->
-                    <div class="p-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50 rounded-b-2xl shrink-0">
-                        <button type="button" @click="copyWaMessage()" class="px-5 py-2.5 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-200 font-bold transition bg-white shadow-sm flex items-center gap-2">
-                            📋 Copy Teks
-                        </button>
-                        <a :href="waModalData.link" target="_blank" @click="modals.wa = false" class="px-6 py-2.5 bg-green-500 text-white rounded-xl hover:bg-green-600 font-bold shadow-md transition flex items-center gap-2">
-                            💬 Lanjut ke Chat WA
-                        </a>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Preview Isi Invoice E-Tiket</label>
+                        <textarea readonly x-model="waModalData.message" rows="12" class="w-full border border-gray-200 p-3.5 rounded-xl bg-green-50/30 text-gray-800 text-sm outline-none resize-none focus:border-brand-green focus:ring-1 focus:ring-brand-green"></textarea>
+                        <p class="text-[11px] text-gray-500 font-medium mt-1.5">* Teks ini sudah digenerate otomatis dan siap dikirim.</p>
                     </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="p-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50 rounded-b-2xl shrink-0">
+                    <button type="button" @click="copyWaMessage()" class="px-5 py-2.5 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-200 font-bold transition bg-white shadow-sm flex items-center gap-2">
+                        📋 Copy Teks
+                    </button>
+                    <a :href="waModalData.link" target="_blank" @click="modals.wa = false" class="px-6 py-2.5 bg-green-500 text-white rounded-xl hover:bg-green-600 font-bold shadow-md transition flex items-center gap-2">
+                        💬 Lanjut ke Chat WA
+                    </a>
                 </div>
             </div>
         </div>
-        
-        
+    </div>
+
     <!-- Modal Log Aktivitas (Z-Index 90) -->
     <div x-show="modals.log" style="display: none; z-index: 90;" class="fixed inset-0" x-transition.opacity>
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto" @click="modals.log = false"></div>
@@ -582,8 +579,6 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlcHdheXFucGx1ZG96Ym9udmJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMzE4NTksImV4cCI6MjA5MTYwNzg1OX0.klCq5PCxFcZYGEp2Y0ckMX9aZLRt__KNhGXSRdQX3K4';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        const FONNTE_TOKEN = 'fbVhTiVRHDfEKPX8Xjxn';
-
         document.addEventListener('alpine:init', () => {
             Alpine.data('reservationApp', () => ({
                 isLoggedIn: false, currentUser: { role: '', name: '' }, loginForm: { password: '', showPass: false, error: '' },
@@ -623,7 +618,7 @@
                 reservations:[], dayReservations:[], searchQuery: '', sortColumn: 'createdAt', sortDirection: 'desc',
                 modals: { list: false, form: false, time: false, seat: false, log: false, wa: false },
                 waModalData: { name: '', phone: '', message: '', link: '' },
-                formData: { id: null, orderType: 'WA', /* dst... */ },
+                formData: { id: null, orderType: 'WA', name: '', time: '', seats:[], details: '', notes: '', paymentStatus: 'DP', paymentMethod: 'Cash', createdAt: null, dpAmount: null, dpAmountDisplay: '', phone: '', pax: '', fish_weight: '' },
                 nameError: '', phoneError: '', paxError: '', activityLogs:[], logLoading: false,
 
                 formatRupiah(angka) { if (!angka && angka !== 0) return ''; const num = parseInt(angka, 10); if (isNaN(num)) return ''; return 'Rp ' + num.toLocaleString('id-ID'); },
@@ -638,8 +633,8 @@
                 handleEscape(e) {
                     if (this.modals.time) { this.modals.time = false; return; }
                     if (this.modals.seat) { this.modals.seat = false; return; }
-                    if (this.modals.wa) { this.modals.wa = false; return; } // Tambahkan baris ini
-                    if (this.modals.form) { e.preventDefault(); return; }  
+                    if (this.modals.wa) { this.modals.wa = false; return; }
+                    if (this.modals.form) { e.preventDefault(); return; } 
                     if (this.modals.log) { this.modals.log = false; return; }
                     if (this.modals.list) { this.modals.list = false; return; }
                 },
@@ -974,7 +969,7 @@
                     return { isText: true, text: detail };
                 },
 
-                async sendWhatsAppInvoice(res) {openWhatsAppModal(res) {
+                openWhatsAppModal(res) {
                     if (!res.phone || res.phone.trim() === '') {
                         alert("❌ GAGAL: Nomor HP pelanggan belum diisi pada reservasi ini!");
                         return;
@@ -1006,7 +1001,6 @@
 
                     const message = `*E-TIKET RESERVASI - PEMANCINGAN SUHARNO 2*\n\n\nHalo *${res.name}*,\nTerima kasih telah melakukan reservasi. Berikut adalah detail e-tiket Anda:\n📋 *No. Reservasi:* ${res.id}\n📅 *Tanggal:* ${dateLong}\n⏰ *Jam:* ${res.time} WIB\n👥 *Jumlah Pax:* ${res.pax ? res.pax + ' Orang' : '-'}\n🪑 *No Tempat Duduk:* ${seatsText}\n\n💳 *Status Pembayaran:* ${payText}\n\n🍽 *Pesanan Menu:*\n${res.details || '- Tidak ada pesanan awal -'}\n\n📝 *Catatan Tambahan:*\n${res.notes || '-'}\n\n----------------------------------------------------\n⚠️ *Info Penting:*\n- Mohon tunjukkan pesan ini di loket kasir 3 saat kedatangan Anda.\n- Kursi berlaku maksimal 3 jam dari waktu yang tertera di atas.\n\nTerima kasih, kami tunggu kedatangannya! 😊\n*Manajemen Pemancingan Suharno 2*`;
 
-                    // Generate link wa.me dengan url encode pada message
                     const link = `https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`;
 
                     this.waModalData = {
@@ -1027,7 +1021,6 @@
                             alert("Gagal menyalin. Silakan copy manual dari kolom teks.");
                         });
                     } else {
-                        // Fallback jika bukan HTTPS (clipboard API butuh HTTPS)
                         const textArea = document.createElement("textarea");
                         textArea.value = this.waModalData.message;
                         document.body.appendChild(textArea);
@@ -1038,510 +1031,4 @@
                         } catch (err) {
                             alert("Gagal menyalin. Silakan copy manual dari kolom teks.");
                         }
-                        document.body.removeChild(textArea);
-                    }
-                },
-
-                printDailySchedule() {
-                    const list =[...this.dayReservations].sort((a,b) => (a.time||'').localeCompare(b.time||''));
-                    if (list.length === 0) return;
-
-                    let tableRows = '';
-                    list.forEach((res, index) => {
-                        const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : '-';
-                        const pax = res.pax ? res.pax + ' Org' : '-';
-                        const notes = res.notes ? res.notes : '-';
-                        
-                        tableRows += `
-                            <tr>
-                                <td style="text-align:center;">${index + 1}</td>
-                                <td style="text-align:center; font-weight:bold;">${res.time}</td>
-                                <td style="text-transform: uppercase;">${res.name} (${res.orderType || 'WA'})</td>
-                                <td style="text-align:center;">${pax}</td>
-                                <td style="text-align:center; font-weight:bold;">${seats}</td>
-                                <td style="text-transform: uppercase; color:#c2410c; font-weight:600;">${notes}</td>
-                            </tr>
-                        `;
-                    });
-
-                    const printDateStr = this.formatDateLong(this.getFormattedDate(this.selectedDate));
-
-                    const html = `<!DOCTYPE html>
-                    <html lang="id">
-                    <head>
-                        <meta charset="UTF-8">
-                        <title>Daftar Reservasi Hari Ini - ${this.selectedDateString}</title>
-                        <style>
-                            @page { size: A4 portrait; margin: 15mm; }
-                            body { font-family: 'Segoe UI', Arial, sans-serif; color: #000; }
-                            .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-                            .header h1 { font-size: 18pt; margin: 0; text-transform: uppercase; }
-                            .header p { font-size: 12pt; margin: 5px 0 0 0; font-weight: bold; }
-                            table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11pt; }
-                            th, td { border: 1px solid #000; padding: 8px; }
-                            th { background-color: #f0f0f0; text-transform: uppercase; }
-                            .footer { margin-top: 20px; font-size: 9pt; text-align: right; font-style: italic; }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="header">
-                            <h1>DAFTAR RESERVASI HARI INI</h1>
-                            <p style="font-size: 12pt; margin-top: 8px;">(${printDateStr})</p>
-                        </div>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th style="width: 5%;">No</th>
-                                    <th style="width: 10%;">Jam</th>
-                                    <th style="width: 25%;">Nama</th>
-                                    <th style="width: 10%;">Pax</th>
-                                    <th style="width: 20%;">Meja / Kursi</th>
-                                    <th style="width: 30%;">Info Catatan Tambahan</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${tableRows}
-                            </tbody>
-                        </table>
-                        <div class="footer">
-                            Dicetak oleh: ${this.currentUser.name} pada ${this.formatDateTime(new Date().getTime())}
-                        </div>
-                        <script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
-                    </body>
-                    </html>`;
-
-                    const popup = window.open('', '_blank', 'width=800,height=900,scrollbars=yes');
-                    if (popup) { 
-                        popup.document.write(html); 
-                        popup.document.close(); 
-                    } else { 
-                        this.showToast('Izinkan popup browser Anda!', 'error'); 
-                    }
-                },
-
-                printSeatLabel(res) {
-                    const seatsText = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : 'Belum Pilih Kursi';
-                    const pax = res.pax ? res.pax : '-';
-                    const time = res.time ? res.time + ' WIB' : '-';
-
-                    let seatFontSize = '85pt';
-                    if (seatsText.length > 40) {
-                        seatFontSize = '40pt';
-                    } else if (seatsText.length > 25) {
-                        seatFontSize = '55pt';
-                    } else if (seatsText.length > 15) {
-                        seatFontSize = '70pt';
-                    }
-
-                    const html = `<!DOCTYPE html>
-                    <html lang="id">
-                    <head>
-                    <meta charset="UTF-8">
-                    <title>Print Label Kursi - ${res.name}</title>
-                    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;900&display=swap" rel="stylesheet">
-                    <style>
-                      @page { size: A4 landscape; margin: 0; }
-                      * { box-sizing: border-box; margin: 0; padding: 0; }
-                      body {
-                          width: 297mm;
-                          height: 210mm;
-                          margin: 0;
-                          display: flex;
-                          justify-content: center;
-                          align-items: center;
-                          font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-                          background: white;
-                          color: #000;
-                          overflow: hidden;
-                      }
-                      .container {
-                          width: 100%;
-                          height: 100%;
-                          padding: 10mm 15mm;
-                          display: flex;
-                          flex-direction: column;
-                          justify-content: center;
-                          align-items: center;
-                          text-align: center;
-                      }
-                      .line-mohon {
-                          font-size: 55pt;
-                          font-weight: 900;
-                          text-decoration: underline;
-                          text-underline-offset: 12px;
-                          margin-bottom: 20px;
-                          letter-spacing: 3px;
-                          line-height: 1;
-                      }
-                      .line-normal {
-                          font-size: 38pt;
-                          font-weight: 700;
-                          margin-bottom: 10px;
-                          color: #1a1a1a;
-                          line-height: 1;
-                      }
-                      .line-seat {
-                          font-size: ${seatFontSize};
-                          font-weight: 900;
-                          color: #e90023;
-                          margin-bottom: 15px;
-                          line-height: 1.1;
-                          word-wrap: break-word;
-                          word-break: break-word;
-                          max-width: 98%;
-                      }
-                      .line-name {
-                          font-size: 65pt;
-                          font-weight: 900;
-                          color: #e90023;
-                          margin-bottom: 25px;
-                          text-transform: uppercase;
-                          line-height: 1.1;
-                          word-wrap: break-word;
-                          word-break: break-word;
-                          max-width: 98%;
-                      }
-                      .line-footer {
-                          font-size: 32pt;
-                          font-weight: 900;
-                          color: #000;
-                          padding: 12px 40px;
-                          border: 6px solid #000;
-                          border-radius: 20px;
-                          display: inline-block;
-                          background-color: #f8f8f8;
-                      }
-                      .line-footer .highlight {
-                          color: #e90023;
-                      }
-                      @media print {
-                          body {
-                              -webkit-print-color-adjust: exact;
-                              print-color-adjust: exact;
-                          }
-                      }
-                    </style>
-                    </head>
-                    <body>
-                      <div class="container">
-                          <div class="line-mohon">MOHON MAAF</div>
-                          <div class="line-normal">TEMPAT DUDUK INI</div>
-                          <div class="line-seat">${seatsText}</div>
-                          <div class="line-normal">SUDAH DI RESERVASI OLEH</div>
-                          <div class="line-name">${res.name}</div>
-                          <div class="line-footer">
-                              JUMLAH: <span class="highlight">${pax}</span> PAX &nbsp;&ndash;&nbsp; JAM: <span class="highlight">${time}</span>
-                          </div>
-                      </div>
-                      <script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
-                    </body>
-                    </html>`;
-                    
-                    const popup = window.open('', '_blank', 'width=1000,height=800');
-                    if (popup) { 
-                        popup.document.write(html); 
-                        popup.document.close(); 
-                    } else { 
-                        this.showToast('Izinkan popup browser Anda!', 'error'); 
-                    }
-                },
-
-                printTicket(res) {
-                    const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : '—';
-                    const details = res.details || '- Tidak ada pesanan menu -';
-                    
-                    let payText = '';
-                    if (res.paymentStatus === 'Lunas') {
-                        payText = `LUNAS (${res.paymentMethod || 'CASH'})`;
-                    } else if (res.paymentStatus === 'BLM BAYAR') {
-                        payText = `BELUM BAYAR`;
-                    } else {
-                        payText = `DP ${res.paymentMethod || 'CASH'}: ${res.dpAmount ? this.formatRupiah(res.dpAmount) : '-'}`;
-                    }
-
-                    const payColor = res.paymentStatus === 'DP' ? 'color:#d97706;' : (res.paymentStatus === 'BLM BAYAR' ? 'color:#dc2626;' : '');
-                    
-                    const catatanLine = res.notes ? `<div class="row"><span class="label">Catatan Tambahan:</span><span class="value upper" style="color:#c2410c;font-weight:900;">${res.notes}</span></div>` : '';
-                    const phoneLine = res.phone ? `<div class="row"><span class="label">No. HP:</span><span class="value">${res.phone}</span></div>` : '';
-                    const paxLine = res.pax ? `<div class="row"><span class="label">Jumlah Pax:</span><span class="value">${res.pax}</span></div>` : '';
-
-                    const createdAtStr = this.formatDateTime(res.createdAt);
-                    const createdBy = res.createdBy || '-';
-                    const updatedTime = res.updatedAt ? this.formatDateTime(res.updatedAt) : '-';
-                    const updatedStr = res.updatedBy ? `<br>Diubah : ${updatedTime} oleh ${res.updatedBy}` : '';
-                    const printDate = this.formatDateTime(new Date().getTime());
-
-                    const html = `<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<title>Tiket - ${res.id}</title>
-<style>
-  @page { size: A4 portrait; margin: 10mm; }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html, body {
-      width: 190mm;
-      height: 277mm;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: white;
-      color: #1a1a1a;
-  }
-  
-  .print-wrapper { column-count: 2; column-gap: 15mm; column-fill: auto; height: 277mm; position: relative; }
-  .header { text-align: center; border-bottom: 2px dashed #9ca3af; padding-bottom: 12px; margin-bottom: 15px; break-inside: avoid; position: relative; }
-  .watermark { position: absolute; top: -5px; right: 0; font-size: 30px; font-weight: 900; color: #e5e7eb; z-index: -1; letter-spacing: 2px; }
-  .header h1 { font-size: 14pt; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
-  .header p  { font-size: 8.5pt; color: #6b7280; margin-top: 4px; font-weight: 600; }
-  
-  .row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; padding: 6px 0; break-inside: avoid; }
-  .row .label { font-weight: 700; color: #6b7280; font-size: 9.5pt; white-space: nowrap; }
-  .row .value { font-weight: 700; font-size: 10.5pt; text-align: right; }
-  .row .value.id  { font-family: monospace; letter-spacing: 0.5px; font-size: 10pt; }
-  .row .value.jam { border: 2px solid #1a1a1a; padding: 2px 6px; border-radius: 4px; }
-  .row .value.upper { text-transform: uppercase; }
-  
-  .notes-label { font-weight: 900; color: #1a1a1a; font-size: 11pt; margin-top: 15px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; break-after: avoid; }
-  
-  .notes-box { font-size: 10.5pt; font-weight: 600; white-space: pre-wrap; line-height: 1.6; column-count: 2; column-fill: auto; column-gap: 15px; column-rule: 1px dashed #d1d5db; word-break: break-word; height: auto; flex: 1; }
-  
-  .rules { margin-top: 20px; text-align: center; font-size: 8pt; color: #6b7280; line-height: 1.6; font-weight: 700; text-transform: uppercase; break-inside: avoid; }
-  .ticket-meta { display: flex; justify-content: space-between; font-size: 7.5pt; color: #6b7280; margin-top: 10px; border-top: 2px solid #1a1a1a; padding-top: 8px; break-inside: avoid; line-height: 1.4; font-weight: 600; }
-  .ticket-meta .left { text-align: left; }
-  .ticket-meta .right { text-align: right; }
-</style>
-</head>
-<body>
-<div class="print-wrapper">
-  <div class="header">
-    <div class="watermark">S2</div>
-    <h1>Pemancingan Suharno 2</h1>
-    <p>E-TIKET RESERVASI PELANGGAN</p>
-  </div>
-  <div class="row"><span class="label">No. Reservasi:</span><span class="value id">${res.id}</span></div>
-  <div class="row"><span class="label">Nama Pelanggan:</span><span class="value upper">${res.name} (${res.orderType || 'WA'})</span></div>
-  ${phoneLine}
-  ${paxLine}
-  <div class="row"><span class="label">Tgl. Kedatangan:</span><span class="value">${this.formatDateLong(res.date)}</span></div>
-  <div class="row"><span class="label">Jam Kedatangan:</span><span class="value jam">${res.time} WIB</span></div>
-  <div class="row"><span class="label">Status Bayar:</span><span class="value upper" style="${payColor}">${payText}</span></div>
-  ${catatanLine}
-  <div class="row"><span class="label">Spot / Kursi:</span><span class="value upper">${seats}</span></div>
-  
-  <div class="notes-label">🍽 Detail Menu:</div>
-  <div class="notes-box">${details}</div>
-  
-  <div class="rules">
-    <p>Tunjukkan tiket ini kepada kasir saat kedatangan.</p>
-    <p>Kursi berlaku maks. 3 jam dari waktu tertera.</p>
-  </div>
-  <div class="ticket-meta">
-    <div class="left">
-      Input : ${createdAtStr} oleh ${createdBy}${updatedStr}
-    </div>
-    <div class="right">
-      Dicetak : ${printDate} <br>
-      oleh ${this.currentUser.name}
-    </div>
-  </div>
-</div>
-<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
-</body>
-</html>`;
-                    const popup = window.open('', '_blank', 'width=800,height=900,scrollbars=yes');
-                    if (popup) { popup.document.write(html); popup.document.close(); } else { this.showToast('Izinkan popup!', 'error'); }
-                },
-
-                printDay() {
-                    const list =[...this.dayReservations].sort((a,b)=>(a.time||'').localeCompare(b.time||''));
-                    if (list.length === 0) return;
-                    
-                    const printDate = this.formatDateTime(new Date().getTime());
-
-                    const buildTicket = (res) => {
-                        const seats = this.getSeats(res).length > 0 ? this.getSeats(res).join(', ') : '—';
-                        const catatanLine = res.notes ? `<div class="row"><span class="label">Catatan:</span><span class="value upper" style="color:#c2410c;font-weight:700;">${res.notes}</span></div>` : '';
-                        
-                        let payText = '';
-                        if (res.paymentStatus === 'Lunas') {
-                            payText = `LUNAS (${res.paymentMethod || 'CASH'})`;
-                        } else if (res.paymentStatus === 'BLM BAYAR') {
-                            payText = `BELUM BAYAR`;
-                        } else {
-                            payText = `DP ${res.paymentMethod || 'CASH'}: ${res.dpAmount ? this.formatRupiah(res.dpAmount) : '-'}`;
-                        }
-                        
-                        const payColor = res.paymentStatus === 'DP' ? 'color:#d97706;' : (res.paymentStatus === 'BLM BAYAR' ? 'color:#dc2626;' : '');
-
-                        const phoneLine = res.phone ? `<div class="row"><span class="label">No.HP:</span><span class="value">${res.phone}</span></div>` : '';
-                        const paxLine = res.pax ? `<div class="row"><span class="label">Pax:</span><span class="value">${res.pax}</span></div>` : '';
-                        
-                        const createdAtStr = this.formatDateTime(res.createdAt);
-                        const createdBy = res.createdBy || '-';
-                        const updatedTime = res.updatedAt ? this.formatDateTime(res.updatedAt) : '-';
-                        const updatedStr = res.updatedBy ? `<br>Diubah : ${updatedTime} oleh ${res.updatedBy}` : '';
-
-                        return `
-<div class="ticket">
-  <div class="watermark">S2</div>
-  <div class="header">
-    <h1>Pemancingan Suharno 2</h1>
-    <p>E-TIKET RESERVASI RESMI</p>
-  </div>
-  
-  <div class="row"><span class="label">No:</span><span class="value id">${res.id}</span></div>
-  <div class="row"><span class="label">Nama:</span><span class="value upper">${res.name} (${res.orderType || 'WA'})</span></div>
-  ${phoneLine}
-  ${paxLine}
-  <div class="row"><span class="label">Tgl:</span><span class="value">${this.formatDateLong(res.date)}</span></div>
-  <div class="row"><span class="label">Jam:</span><span class="value jam">${res.time} WIB</span></div>
-  <div class="row"><span class="label">Bayar:</span><span class="value upper" style="${payColor}">${payText}</span></div>
-  <div class="row"><span class="label">Kursi:</span><span class="value upper">${seats}</span></div>
-  ${catatanLine}
-  
-  <div class="notes-label"> Menu:</div>
-  <div class="notes-box">${res.details || '- Tidak ada -'}</div>
-  
-  <div class="footer">
-     <div class="meta-print">
-        <div class="left">Input : ${createdAtStr} oleh ${createdBy}${updatedStr}</div>
-        <div class="right">Dicetak : ${printDate}<br>oleh ${this.currentUser.name}</div>
-     </div>
-  </div>
-</div>`;
-                    };
-
-                    let pages = '';
-                    for (let i = 0; i < list.length; i += 2) {
-                        const chunk = list.slice(i, i + 2); while (chunk.length < 2) chunk.push(null);
-                        const cells = chunk.map(res => res ? buildTicket(res) : '<div class="ticket ticket-empty"></div>').join('');
-                        pages += `<div class="page${i + 2 >= list.length ? '' : ' page-break'}">${cells}</div>`;
-                    }
-
-                    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Tiket Harian</title>
-<style>
-  @page { size: A4 portrait; margin: 0; }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html, body { width:210mm; background:white; font-family:'Segoe UI',sans-serif; color:#1a1a1a; }
-  
-  /* GRID: 2 Kolom Kiri Kanan (Masing-masing 105mm width, Tinggi 297mm full A4 vertikal) */
-  .page { width:210mm; height:297mm; display:grid; grid-template-columns:105mm 105mm; grid-template-rows:297mm; }
-  .page-break { page-break-after:always; }
-  
-  /* Tiket menyesuaikan kolom width=105mm & height=297mm */
-  .ticket { width:105mm; height:297mm; border-right:1px dashed #9ca3af; padding:8mm; display:flex; flex-direction:column; position:relative; font-size:9.5pt; }
-  .ticket:nth-child(2n) { border-right:none; }
-  .ticket-empty { background:#f9fafb; border:none; }
-  
-  .watermark { position:absolute; top:15px; right:15px; font-size:28px; font-weight:900; color:#e5e7eb; }
-  .header { text-align:center; border-bottom:2px dashed #9ca3af; padding-bottom:8px; margin-bottom:8px; }
-  .header h1 { font-size:12pt; font-weight:900; text-transform:uppercase; letter-spacing:1px; }
-  .header p  { font-size:7.5pt; color:#6b7280; font-weight:600; margin-top:2px; }
-  
-  .row { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e5e7eb; padding:5px 0; }
-  .row .label { font-weight:700; color:#6b7280; font-size:8.5pt; white-space:nowrap; }
-  .row .value { font-weight:700; font-size:9pt; text-align:right; max-width:65%; }
-  .row .value.id { font-family:monospace; font-size:8.5pt; }
-  .row .value.jam { border:2px solid #1a1a1a; padding:2px 6px; border-radius:4px; }
-  .row .value.upper { text-transform:uppercase; }
-  
-  .notes-label { font-weight:900; color:#1a1a1a; font-size:10pt; margin-top:10px; margin-bottom:6px; text-transform:uppercase; }
-  
-  /* Box Menu disesuaikan ke layout Vertikal, column-fill auto membuat text mengalir ke bawah sebelum pindah kolom */
-  .notes-box { padding:8px; background:#f9fafb; border:1px solid #d1d5db; border-radius:6px; font-size:9pt; font-weight:600; white-space:pre-wrap; flex:1; overflow:hidden; line-height:1.5; column-count: 2; column-fill: auto; column-gap: 10px; column-rule: 1px dashed #d1d5db; word-break: break-word; }
-  
-  .footer { margin-top:auto; border-top:2px solid #1a1a1a; padding-top:8px; display:flex; flex-direction:column; gap:6px; }
-  .footer p { text-align:center; font-size:7pt; color:#6b7280; text-transform:uppercase; font-weight:700; margin-bottom: 2px; }
-  
-  .meta-print { display:flex; justify-content:space-between; font-size:6.5pt; color:#9ca3af; font-weight:600; line-height:1.4; }
-  .meta-print .left { text-align:left; max-width: 55%; }
-  .meta-print .right { text-align:right; max-width: 45%; }
-</style></head><body>${pages}<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script></body></html>`;
-                    const popup = window.open('', '_blank', 'width=900,height=800');
-                    if (popup) { popup.document.write(html); popup.document.close(); }
-                },
-
-                printFishWeight() {
-                    const list =[...this.dayReservations].sort((a,b) => (a.time||'').localeCompare(b.time||''));
-                    if (list.length === 0) return;
-                    
-                    const buildCard = (res) => {
-                        const fishWeightText = res.fish_weight || '';
-                        return `
-                        <div class="card">
-                          <div class="content">
-                            <div class="name-time-col">
-                              <div class="value name">${res.name}</div>
-                              <div class="jam-box">${res.time} WIB</div>
-                            </div>
-                            <div class="detail-wrapper">
-                              <div class="value detail-box">${fishWeightText}</div>
-                            </div>
-                          </div>
-                        </div>`;
-                    };
-
-                    let pages = '';
-                    for (let i = 0; i < list.length; i += 10) {
-                        const chunk = list.slice(i, i + 10); 
-                        while (chunk.length < 10) chunk.push(null);
-                        const cells = chunk.map(res => res ? buildCard(res) : '<div class="card empty"></div>').join('');
-                        pages += `<div class="page${i + 10 >= list.length ? '' : ' page-break'}">${cells}</div>`;
-                    }
-
-                    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Print Timbangan Ikan</title>
-                <style>
-                  @page { size: A4 portrait; margin: 0; }
-                  * { margin:0; padding:0; box-sizing:border-box; }
-                  html, body { width:210mm; background:white; font-family:'Segoe UI',sans-serif; color:#1a1a1a; }
-                  
-                  /* GRID: 2 Kolom Kiri Kanan, 5 Baris Atas Bawah (Masing-masing 105mm x 59.4mm) */
-                  .page { width:210mm; height:297mm; display:grid; grid-template-columns:105mm 105mm; grid-template-rows:repeat(5, 59.4mm); }
-                  .page-break { page-break-after:always; }
-                  
-                  .card { width:105mm; height:59.4mm; border-right:1px dashed #9ca3af; border-bottom:1px dashed #9ca3af; padding:4mm 6mm; display:flex; flex-direction:column; position:relative; }
-                  .card:nth-child(2n) { border-right:none; }
-                  .card:nth-last-child(-n+2) { border-bottom:none; }
-                  .card.empty { border:none; border-right:1px dashed transparent; border-bottom:1px dashed transparent; background:#fff; }
-                  .card.empty:nth-child(2n) { border-right:none; }
-                  
-                  .content { flex:1; display:flex; flex-direction:column; height: 100%; min-height: 0; }
-                  
-                  .name-time-col { display:flex; flex-direction:column; gap:4px; margin-bottom:6px; }
-                  .value.name { font-size:12pt; font-weight:900; text-transform:uppercase; line-height:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-                  .jam-box { font-size:10pt; font-weight:900; color:#e90023; border:2px solid #e90023; padding:2px 6px; border-radius:4px; width:max-content; line-height:1; }
-                  
-                  .detail-wrapper { flex:1; display:flex; flex-direction:column; min-height:0; }
-                  .label { font-weight:800; color:#1a1a1a; font-size:7.5pt; text-transform:uppercase; margin-bottom:4px; }
-                  
-                  .value.detail-box { 
-                      flex:1; 
-                      height: 100%;
-                      border:1px dashed #d1d5db; 
-                      border-radius:4px; 
-                      padding:4px 6px; 
-                      font-size:10pt; 
-                      font-weight:700; 
-                      color:#1a1a1a; 
-                      background:#f9fafb; 
-                      white-space:pre-wrap; 
-                      word-break:break-word; 
-                      
-                      /* Fitur 2 Kolom Kiri ke Kanan penuh kebawah dulu */
-                      column-count: 2;
-                      column-fill: auto;
-                      column-gap: 8px;
-                      column-rule: 1px dashed #d1d5db;
-                      overflow: hidden;
-                      line-height: 1.3;
-                  }
-                </style></head><body>${pages}<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script></body></html>`;
-                    
-                    const popup = window.open('', '_blank', 'width=900,height=800');
-                    if (popup) { popup.document.write(html); popup.document.close(); } else { this.showToast('Izinkan popup browser Anda!', 'error'); }
-                }
-            }));
-        });
-    </script>
-    </div>
-</body>
-</html>
+                        document.body.rem
