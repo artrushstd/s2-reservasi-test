@@ -347,9 +347,134 @@
                         <input type="text" maxlength="30" x-model="formData.notes" class="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green outline-none transition bg-gray-50 focus:bg-white" placeholder="Contoh: Sound + MIC...">
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-1.5">Detail Pesanan Menu</label>
-                        <textarea x-model="formData.details" rows="3" class="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green outline-none transition bg-gray-50 focus:bg-white" placeholder="Contoh: 2 Gurami Bakar..."></textarea>
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-inner space-y-5">
+                        <label class="block text-base font-extrabold text-brand-green border-b pb-2">📋 Detail Pesanan Menu Terpisah</label>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm font-bold text-gray-700">1. Makanan</span>
+                                <button type="button" @click="formData.menus.makanan.push({qty: 1, lauk: 'Gurame', olahan: 'Bakar', note: ''})" class="text-xs bg-brand-green text-white px-2 py-1 rounded font-bold hover:bg-green-700">+ Tambah</button>
+                            </div>
+                            <div class="space-y-2">
+                                <template x-for="(item, idx) in formData.menus.makanan" :key="idx">
+                                    <div class="flex flex-wrap sm:flex-nowrap gap-2 items-start bg-white p-2 rounded-lg border border-gray-200 shadow-sm relative pr-8">
+                                        <button type="button" @click="formData.menus.makanan.splice(idx, 1)" class="absolute right-2 top-2 text-red-500 hover:text-red-700 font-bold p-1">✕</button>
+                                        <input type="number" min="1" x-model="item.qty" class="w-16 border rounded p-1.5 text-sm text-center outline-none focus:border-brand-green" placeholder="Qty">
+                                        <select x-model="item.lauk" @change="item.olahan = 'Bakar'" class="w-28 sm:w-1/4 border rounded p-1.5 text-sm outline-none focus:border-brand-green bg-white">
+                                            <option value="Gurame">Gurame</option><option value="Kalper">Kalper</option><option value="Lele">Lele</option><option value="Nila">Nila</option><option value="Ayam">Ayam</option>
+                                        </select>
+                                        <select x-model="item.olahan" class="w-32 sm:w-1/4 border rounded p-1.5 text-sm outline-none focus:border-brand-green bg-white">
+                                            <option value="Bakar">Bakar</option><option value="Goreng">Goreng</option>
+                                            <template x-if="item.lauk !== 'Ayam'">
+                                                <optgroup label="Spesial Ikan">
+                                                    <option value="Asam Manis">Asam Manis</option><option value="Rujak">Rujak</option><option value="Acar">Acar</option><option value="Bali">Bali</option><option value="Pepes">Pepes</option>
+                                                </optgroup>
+                                            </template>
+                                        </select>
+                                        <input type="text" x-model="item.note" class="flex-1 border rounded p-1.5 text-sm outline-none focus:border-brand-green" placeholder="Catatan bebas..">
+                                    </div>
+                                </template>
+                                <div x-show="formData.menus.makanan.length === 0" class="text-xs text-gray-400 italic">Belum ada makanan ditambahkan.</div>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-gray-200 pt-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm font-bold text-gray-700">2. Pelengkap</span>
+                                <button type="button" @click="formData.menus.pelengkap.push({qty: 1, jenis: 'Nasi', varian: 'Piring'})" class="text-xs bg-brand-green text-white px-2 py-1 rounded font-bold hover:bg-green-700">+ Tambah</button>
+                            </div>
+                            <div class="space-y-2">
+                                <template x-for="(item, idx) in formData.menus.pelengkap" :key="idx">
+                                    <div class="flex gap-2 items-center bg-white p-2 rounded-lg border border-gray-200 shadow-sm relative pr-8">
+                                        <button type="button" @click="formData.menus.pelengkap.splice(idx, 1)" class="absolute right-2 text-red-500 hover:text-red-700 font-bold p-1">✕</button>
+                                        <input type="number" min="1" x-model="item.qty" class="w-16 border rounded p-1.5 text-sm text-center outline-none focus:border-brand-green" placeholder="Qty">
+                                        <select x-model="item.jenis" @change="item.varian = (item.jenis === 'Nasi' ? 'Piring' : (item.jenis === 'Sambal' ? 'Trasi' : ''))" class="w-1/2 border rounded p-1.5 text-sm outline-none focus:border-brand-green bg-white">
+                                            <option value="Nasi">Nasi</option><option value="Lalap">Lalap</option><option value="Sambal">Sambal</option>
+                                        </select>
+                                        <select x-model="item.varian" x-show="item.jenis !== 'Lalap'" class="w-1/2 border rounded p-1.5 text-sm outline-none focus:border-brand-green bg-white">
+                                            <template x-if="item.jenis === 'Nasi'"><optgroup><option value="Piring">Piring</option><option value="Bakul">Bakul</option></optgroup></template>
+                                            <template x-if="item.jenis === 'Sambal'"><optgroup><option value="Trasi">Trasi</option><option value="Bawang">Bawang</option></optgroup></template>
+                                        </select>
+                                        <div x-show="item.jenis === 'Lalap'" class="w-1/2 p-1.5 text-sm text-gray-400 bg-gray-50 border rounded italic text-center">Default</div>
+                                    </div>
+                                </template>
+                                <div x-show="formData.menus.pelengkap.length === 0" class="text-xs text-gray-400 italic">Belum ada pelengkap ditambahkan.</div>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-gray-200 pt-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm font-bold text-gray-700">3. Minuman</span>
+                                <button type="button" @click="formData.menus.minuman.push({qty: 1, suhu: 'Es', jenis: 'Teh', wadah: 'Gelas'})" class="text-xs bg-brand-green text-white px-2 py-1 rounded font-bold hover:bg-green-700">+ Tambah</button>
+                            </div>
+                            <div class="space-y-2">
+                                <template x-for="(item, idx) in formData.menus.minuman" :key="idx">
+                                    <div class="flex flex-wrap sm:flex-nowrap gap-2 items-center bg-white p-2 rounded-lg border border-gray-200 shadow-sm relative pr-8">
+                                        <button type="button" @click="formData.menus.minuman.splice(idx, 1)" class="absolute right-2 text-red-500 hover:text-red-700 font-bold p-1">✕</button>
+                                        <input type="number" min="1" x-model="item.qty" class="w-16 border rounded p-1.5 text-sm text-center outline-none focus:border-brand-green" placeholder="Qty">
+                                        <select x-model="item.suhu" class="w-24 border rounded p-1.5 text-sm outline-none focus:border-brand-green bg-white"><option value="Es">Es</option><option value="Panas">Panas</option></select>
+                                        <select x-model="item.jenis" class="w-24 border rounded p-1.5 text-sm outline-none focus:border-brand-green bg-white"><option value="Teh">Teh</option><option value="Jeruk">Jeruk</option></select>
+                                        <select x-model="item.wadah" class="flex-1 border rounded p-1.5 text-sm outline-none focus:border-brand-green bg-white"><option value="Gelas">Gelas</option><option value="Teko Kecil">Teko Kecil</option><option value="Teko Besar">Teko Besar</option></select>
+                                    </div>
+                                </template>
+                                <div x-show="formData.menus.minuman.length === 0" class="text-xs text-gray-400 italic">Belum ada minuman ditambahkan.</div>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-gray-200 pt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm font-bold text-gray-700">4. Sayuran</span>
+                                    <button type="button" @click="formData.menus.sayuran.push({qty: 1, jenis: 'Trancam'})" class="text-[10px] bg-brand-green text-white px-2 py-1 rounded font-bold hover:bg-green-700">+ Tambah</button>
+                                </div>
+                                <div class="space-y-2">
+                                    <template x-for="(item, idx) in formData.menus.sayuran" :key="idx">
+                                        <div class="flex gap-1 bg-white p-1.5 rounded-lg border border-gray-200">
+                                            <input type="number" min="1" x-model="item.qty" class="w-12 border rounded p-1 text-xs text-center outline-none" placeholder="Qty">
+                                            <select x-model="item.jenis" class="flex-1 border rounded p-1 text-xs outline-none bg-white"><option value="Trancam">Trancam</option><option value="Gudangan">Gudangan</option><option value="Tumis Kangkung">Tumis Kangkung</option></select>
+                                            <button type="button" @click="formData.menus.sayuran.splice(idx, 1)" class="px-2 text-red-500 hover:text-red-700 font-bold">✕</button>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm font-bold text-gray-700">5. Gorengan</span>
+                                    <button type="button" @click="formData.menus.gorengan.push({qty: 1, jenis: 'Mendoan'})" class="text-[10px] bg-brand-green text-white px-2 py-1 rounded font-bold hover:bg-green-700">+ Tambah</button>
+                                </div>
+                                <div class="space-y-2">
+                                    <template x-for="(item, idx) in formData.menus.gorengan" :key="idx">
+                                        <div class="flex gap-1 bg-white p-1.5 rounded-lg border border-gray-200">
+                                            <input type="number" min="1" x-model="item.qty" class="w-12 border rounded p-1 text-xs text-center outline-none" placeholder="Qty">
+                                            <select x-model="item.jenis" class="flex-1 border rounded p-1 text-xs outline-none bg-white"><option value="Mendoan">Mendoan</option><option value="Tahu">Tahu</option></select>
+                                            <button type="button" @click="formData.menus.gorengan.splice(idx, 1)" class="px-2 text-red-500 hover:text-red-700 font-bold">✕</button>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-gray-200 pt-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm font-bold text-gray-700">6. Caffe</span>
+                                <button type="button" @click="formData.menus.caffe.push({qty: 1, pesanan: ''})" class="text-xs bg-brand-green text-white px-2 py-1 rounded font-bold hover:bg-green-700">+ Tambah</button>
+                            </div>
+                            <div class="space-y-2">
+                                <template x-for="(item, idx) in formData.menus.caffe" :key="idx">
+                                    <div class="flex gap-2 items-center bg-white p-2 rounded-lg border border-gray-200 shadow-sm relative pr-8">
+                                        <button type="button" @click="formData.menus.caffe.splice(idx, 1)" class="absolute right-2 text-red-500 hover:text-red-700 font-bold p-1">✕</button>
+                                        <input type="number" min="1" x-model="item.qty" class="w-16 border rounded p-1.5 text-sm text-center outline-none focus:border-brand-green" placeholder="Qty">
+                                        <input type="text" x-model="item.pesanan" class="flex-1 border rounded p-1.5 text-sm outline-none focus:border-brand-green" placeholder="Contoh: 1 Kopi Susu Aren...">
+                                    </div>
+                                </template>
+                                <div x-show="formData.menus.caffe.length === 0" class="text-xs text-gray-400 italic">Belum ada pesanan Caffe ditambahkan.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div x-show="formData.details && !formData.menus.makanan.length && !formData.menus.pelengkap.length && !formData.menus.minuman.length && !formData.menus.sayuran.length && !formData.menus.gorengan.length && !formData.menus.caffe.length">
+                        <label class="block text-xs font-bold text-gray-500 mb-1">Detail Menu Lama (teks)</label>
+                        <textarea x-model="formData.details" rows="3" class="w-full border border-gray-200 p-3 rounded-xl outline-none bg-gray-50 text-sm" placeholder="Detail menu teks dari reservasi lama"></textarea>
                     </div>
 
                     <div>
@@ -608,10 +733,50 @@
                 reservations: [], dayReservations: [], searchQuery: '', sortColumn: 'createdAt', sortDirection: 'desc',
                 modals: { list: false, form: false, time: false, seat: false, log: false, wa: false },
                 waModalData: { name: '', phone: '', message: '', link: '' },
-                formData: { id: null, orderType: 'WA', name: '', time: '', seats: [], details: '', notes: '', paymentStatus: 'DP', paymentMethod: 'Cash', createdAt: null, dpAmount: null, dpAmountDisplay: '', phone: '', pax: '', fish_weight: '' },
+                formData: { id: null, orderType: 'WA', name: '', time: '', seats: [], details: '', notes: '', paymentStatus: 'DP', paymentMethod: 'Cash', createdAt: null, dpAmount: null, dpAmountDisplay: '', phone: '', pax: '', fish_weight: '', menus: { makanan: [], pelengkap: [], minuman: [], sayuran: [], gorengan: [], caffe: [] } },
                 nameError: '', phoneError: '', paxError: '', activityLogs: [], logLoading: false,
 
                 formatRupiah(angka) { if (!angka && angka !== 0) return ''; const num = parseInt(angka, 10); if (isNaN(num)) return ''; return 'Rp ' + num.toLocaleString('id-ID'); },
+                emptyMenus() { return { makanan: [], pelengkap: [], minuman: [], sayuran: [], gorengan: [], caffe: [] }; },
+                normalizeMenus(menus) {
+                    if (!menus) return this.emptyMenus();
+                    const parsed = typeof menus === 'string' ? JSON.parse(menus) : menus;
+                    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Format menu tidak valid.');
+                    const normalized = this.emptyMenus();
+                    Object.keys(normalized).forEach(category => {
+                        if (Array.isArray(parsed[category])) normalized[category] = parsed[category];
+                    });
+                    return normalized;
+                },
+                generateMenuText(menus) {
+                    if (!menus) return '';
+                    const text = [];
+                    if (menus.makanan?.length) {
+                        text.push('🍲 MAKANAN:');
+                        menus.makanan.forEach(m => text.push(` - ${m.qty} ${m.lauk} ${m.olahan}${m.note ? ` (${m.note})` : ''}`));
+                    }
+                    if (menus.pelengkap?.length) {
+                        text.push('🍚 PELENGKAP:');
+                        menus.pelengkap.forEach(m => text.push(` - ${m.qty} ${m.jenis}${m.jenis !== 'Lalap' && m.varian ? ` ${m.varian}` : ''}`));
+                    }
+                    if (menus.minuman?.length) {
+                        text.push('🍹 MINUMAN:');
+                        menus.minuman.forEach(m => text.push(` - ${m.qty} ${m.jenis} ${m.suhu} (${m.wadah})`));
+                    }
+                    if (menus.sayuran?.length) {
+                        text.push('🥬 SAYURAN:');
+                        menus.sayuran.forEach(m => text.push(` - ${m.qty} ${m.jenis}`));
+                    }
+                    if (menus.gorengan?.length) {
+                        text.push('🥟 GORENGAN:');
+                        menus.gorengan.forEach(m => text.push(` - ${m.qty} ${m.jenis}`));
+                    }
+                    if (menus.caffe?.length) {
+                        text.push('☕ CAFFE:');
+                        menus.caffe.forEach(m => text.push(` - ${m.qty} ${m.pesanan}`));
+                    }
+                    return text.join('\n');
+                },
                 formatDateLong(dateStr) { if (!dateStr) return '-'; const parts = String(dateStr).split('-'); if (parts.length !== 3) return dateStr; const d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2])); if (isNaN(d.getTime())) return dateStr; return `${this.dayNames[d.getDay()]}, ${d.getDate()} ${this.monthNames[d.getMonth()]} ${d.getFullYear()}`; },
                 formatDateTime(timestamp) { if (!timestamp) return '-'; const d = new Date(timestamp); if (isNaN(d.getTime())) return '-'; return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; },
                 onPhoneInput(event) { const el = event.target; const raw = el.value.replace(/\D/g, ''); this.formData.phone = raw; el.value = raw; },
@@ -640,7 +805,7 @@
                 },
                 
                 resetForm() {
-                    this.formData = { id: null, orderType: 'WA', name: '', time: '', seats: [], details: '', notes: '', paymentStatus: 'DP', paymentMethod: 'Cash', createdAt: null, dpAmount: null, dpAmountDisplay: '', phone: '', pax: '', fish_weight: '' };
+                    this.formData = { id: null, orderType: 'WA', name: '', time: '', seats: [], details: '', notes: '', paymentStatus: 'DP', paymentMethod: 'Cash', createdAt: null, dpAmount: null, dpAmountDisplay: '', phone: '', pax: '', fish_weight: '', menus: this.emptyMenus() };
                     this.nameError = ''; this.phoneError = ''; this.paxError = '';
                 },
 
@@ -698,8 +863,15 @@
                     this.nameError = ''; this.phoneError = ''; this.paxError = ''; this.selectedSeatZone = 'A';
                     if (res) {
                         const dpVal = res.dpAmount || res.dpamount || null;
-                        this.formData = { id: res.id || null, orderType: res.orderType || res.ordertype || 'WA', name: res.name || '', time: res.time || '', seats: Array.isArray(res.seats) ? [...res.seats] : (res.seat ? [res.seat] : []), details: res.details || '', notes: res.notes || '', paymentStatus: res.paymentStatus || 'DP', paymentMethod: res.paymentMethod || 'Cash', createdAt: res.createdAt || null, dpAmount: dpVal, dpAmountDisplay: dpVal ? parseInt(dpVal, 10).toLocaleString('id-ID') : '', phone: res.phone || '', pax: res.pax || '', fish_weight: res.fish_weight || '' };
-                    } else { this.formData = { id: null, orderType: 'WA', name: '', time: '', seats: [], details: '', notes: '', paymentStatus: 'DP', paymentMethod: 'Cash', createdAt: null, dpAmount: null, dpAmountDisplay: '', phone: '', pax: '', fish_weight: '' }; }
+                        let parsedMenus = this.emptyMenus();
+                        try {
+                            parsedMenus = this.normalizeMenus(res.menus);
+                        } catch (error) {
+                            console.error('Gagal membaca detail menu reservasi:', error);
+                            this.showToast('Detail menu tidak dapat dibaca.', 'error');
+                        }
+                        this.formData = { id: res.id || null, orderType: res.orderType || res.order_type || res.ordertype || 'WA', name: res.name || '', time: res.time || '', seats: Array.isArray(res.seats) ? [...res.seats] : (res.seat ? [res.seat] : []), details: res.details || '', notes: res.notes || '', paymentStatus: res.paymentStatus || res.paymentstatus || 'DP', paymentMethod: res.paymentMethod || res.paymentmethod || 'Cash', createdAt: res.createdAt || res.createdat || null, dpAmount: dpVal, dpAmountDisplay: dpVal ? parseInt(dpVal, 10).toLocaleString('id-ID') : '', phone: res.phone || '', pax: res.pax || '', fish_weight: res.fish_weight || '', menus: parsedMenus };
+                    } else { this.formData = { id: null, orderType: 'WA', name: '', time: '', seats: [], details: '', notes: '', paymentStatus: 'DP', paymentMethod: 'Cash', createdAt: null, dpAmount: null, dpAmountDisplay: '', phone: '', pax: '', fish_weight: '', menus: this.emptyMenus() }; }
                     this.modals.form = true;
                 },
 
@@ -757,11 +929,12 @@
                     try {
                         const dateStr = this.getFormattedDate(this.selectedDate);
                         const dpAmountVal = (this.formData.paymentStatus === 'DP' && this.formData.dpAmount > 0) ? this.formData.dpAmount : null;
+                        const detailTextAuto = this.generateMenuText(this.formData.menus);
                         
                         const payload = { 
                             order_type: this.formData.orderType, name: this.formData.name.trim(), 
                             date: dateStr, time: this.formData.time, seats: this.formData.seats, 
-                            details: this.formData.details || null, notes: this.formData.notes || null, 
+                            details: detailTextAuto || this.formData.details || null, menus: this.formData.menus, notes: this.formData.notes || null, 
                             paymentStatus: this.formData.paymentStatus, paymentMethod: this.formData.paymentMethod, 
                             dpAmount: dpAmountVal !== null ? String(dpAmountVal) : null,
                             phone: this.formData.phone || null, pax: paxVal !== null ? String(paxVal) : null,
@@ -771,10 +944,11 @@
                         if (this.formData.id) { 
                             const oldData = this.reservations.find(r => r.id === this.formData.id);
                             payload.updated_by = this.currentUser.name;
-                            await supabaseClient.from('reservations').update(payload).eq('id', this.formData.id); 
+                            const { error } = await supabaseClient.from('reservations').update(payload).eq('id', this.formData.id);
+                            if (error) throw error;
                             
                             let changes = [];
-                            const fieldLabels = { order_type: 'Order', name: 'Nama', date: 'Tanggal', time: 'Jam', seats: 'Kursi', details: 'Menu', notes: 'Catatan', paymentStatus: 'Status Bayar', paymentMethod: 'Metode', dpAmount: 'DP', phone: 'HP', pax: 'Pax', fish_weight: 'Timbangan' };
+                            const fieldLabels = { order_type: 'Order', name: 'Nama', date: 'Tanggal', time: 'Jam', seats: 'Kursi', details: 'Menu', menus: 'Detail menu', notes: 'Catatan', paymentStatus: 'Status Bayar', paymentMethod: 'Metode', dpAmount: 'DP', phone: 'HP', pax: 'Pax', fish_weight: 'Timbangan' };
 
                             for (let key in payload) {
                                 if (['id', 'updated_by', 'createdAt', 'created_by'].includes(key)) continue;
@@ -782,6 +956,7 @@
                                 let newVal = payload[key];
                                 
                                 if (key === 'seats') { oldVal = this.getSeats(oldData).join(', '); newVal = (Array.isArray(newVal) ? newVal : []).join(', '); } 
+                                else if (key === 'menus') { oldVal = JSON.stringify(oldVal || this.emptyMenus()); newVal = JSON.stringify(newVal || this.emptyMenus()); }
                                 else if (key === 'dpAmount') { oldVal = oldVal ? this.formatRupiah(oldVal) : ''; newVal = newVal ? this.formatRupiah(newVal) : ''; } 
                                 else if (key === 'date') { oldVal = oldVal ? this.formatDateLong(oldVal) : ''; newVal = newVal ? this.formatDateLong(newVal) : ''; } 
                                 else if (key === 'time') { oldVal = oldVal ? oldVal + ' WIB' : ''; newVal = newVal ? newVal + ' WIB' : ''; }
@@ -802,11 +977,15 @@
                             payload.created_by = this.currentUser.name;
                             payload.updated_by = this.currentUser.name;
 
-                            await supabaseClient.from('reservations').insert([payload]);
+                            const { error } = await supabaseClient.from('reservations').insert([payload]);
+                            if (error) throw error;
                             await this.writeLog('INSERT', payload.id, payload.name, dateStr, 'Reservasi baru ditambahkan ke sistem.');
                         }
                         this.showToast("Data tersimpan!"); await this.initApp(); this.modals.form = false;
-                    } catch (error) { this.showToast("Gagal menyimpan!", "error"); } finally { this.isLoading = false; }
+                    } catch (error) {
+                        console.error('Gagal menyimpan reservasi:', error);
+                        this.showToast(error?.message ? `Gagal menyimpan: ${error.message}` : 'Gagal menyimpan reservasi.', 'error');
+                    } finally { this.isLoading = false; }
                 },
 
                 async deleteRes(id) { 
